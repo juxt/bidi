@@ -32,9 +32,10 @@ do. Separation of concerns and all that.
 ```clojure
 (require '[bidi.bidi :refer (match-route)])
 
-(match-route ["/blog" [["/foo" 'foo]
-                       [["/bar" "/articles/" :artid "/index.html"] 'bar]]]
-             {:path "/blog/bar/articles/123/index.html"})
+(match-route
+    ["/blog" [["/foo" 'foo]
+              [["/bar/articles/" :artid "/index.html"] 'bar]]]
+    {:path "/blog/bar/articles/123/index.html"})
 ```
 
 returns
