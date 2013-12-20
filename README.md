@@ -62,7 +62,7 @@ returns
 "/blog/article/1239.html"
 ```
 
-Nice.
+[Nice!](http://i357.photobucket.com/albums/oo17/MageOfTheOnyx/LouisBalfour.jpg)
 
 ## Status
 
