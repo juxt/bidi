@@ -6,15 +6,17 @@
 In the grand tradition of Clojure libraries we begin with an irrelevant
 quote.
 
-Bi-directional URI routing between handlers and routes. Like [Compojure](https://github.com/weavejester/compojure),
-but when you want to go both ways. For example, many routing libraries
-can route a URI to a request handler, but only a fraction of these (for
-example, [Pedestal](http://pedestal.io),
+Bi-directional URI routing between handlers and routes. Like
+[Compojure](https://github.com/weavejester/compojure), but when you want
+to go both ways. For example, many routing libraries can route a URI to
+a request handler, but only a fraction of these (for example,
+[Pedestal](http://pedestal.io),
 [gudu](https://github.com/thatismatt/gudu)) can generate a URI from a
 handler. If you are serving REST resources, you should be
 [providing links](http://en.wikipedia.org/wiki/HATEOAS) to others
 resources, and without full support for generating URIs from handlers
-you code will become coupled with your routing.
+your code will become coupled with your routing. In short, hard-coded
+URIs will eventually break.
 
 In bidi, routes are data structures, there are no macros here.
 
