@@ -22,7 +22,10 @@ In bidi, routes are data structures, there are no macros here.
 
 The logic for matching routes is separated from the responsibility for
 handling requests. This is an important
-[architectural principle](http://www.infoq.com/presentations/Simple-Made-Easy).
+[architectural principle](http://www.infoq.com/presentations/Simple-Made-Easy). So
+you can match on things that aren't necessarily handlers, like keywords
+which you can use to lookup your handlers, or whatever you want to
+do. Separation of concerns and all that.
 
 ## Usage
 
