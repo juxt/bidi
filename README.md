@@ -2,7 +2,7 @@
 
 > "bidi bidi bidi" -- Twiki, in probably every episode of [Buck Rogers in the 25th Century](http://en.wikipedia.org/wiki/Buck_Rogers_in_the_25th_Century_%28TV_series%29)
 
-In the grand tradition of Clojure libraries we begin with a irrelevant quote.
+In the grand tradition of Clojure libraries we begin with an irrelevant quote.
 
 Bi-directional URI routing between handlers and routes. Like Compojure, but when you want to go both ways.
 
