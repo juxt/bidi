@@ -1,14 +1,26 @@
 # bidi
 
-> "bidi bidi bidi" -- Twiki, in probably every episode of [Buck Rogers in the 25th Century](http://en.wikipedia.org/wiki/Buck_Rogers_in_the_25th_Century_%28TV_series%29)
+> "bidi bidi bidi" -- Twiki, in probably every episode of
+  [Buck Rogers in the 25th Century](http://en.wikipedia.org/wiki/Buck_Rogers_in_the_25th_Century_%28TV_series%29)
 
-In the grand tradition of Clojure libraries we begin with an irrelevant quote.
+In the grand tradition of Clojure libraries we begin with an irrelevant
+quote.
 
-Bi-directional URI routing between handlers and routes. Like Compojure, but when you want to go both ways.
+Bi-directional URI routing between handlers and routes. Like Compojure,
+but when you want to go both ways. For example, many routing libraries
+can route a URI to a request handler, but only a fraction of these (for
+example, [Pedestal](http://pedestal.io),
+[gudu](https://github.com/thatismatt/gudu) can generate a URI from a
+handler. If you are serving REST resources, you should be
+[providing links](http://en.wikipedia.org/wiki/HATEOAS) to others
+resources, and without full support for generating URIs from handlers
+you code will become coupled with your routing.
 
-Routes are data structures, no macros here.
+In bidi, routes are data structures, there are no macros here.
 
-Not complected with Ring. Nuff said.
+The logic for matching routes is separated from the responsibility for
+handling requests. This is an important
+[architectural principle](http://www.infoq.com/presentations/Simple-Made-Easy).
 
 ## Usage
 
