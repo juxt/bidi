@@ -6,7 +6,7 @@
 In the grand tradition of Clojure libraries we begin with an irrelevant
 quote.
 
-Bi-directional URI routing between handlers and routes. Like Compojure,
+Bi-directional URI routing between handlers and routes. Like [Compojure](https://github.com/weavejester/compojure),
 but when you want to go both ways. For example, many routing libraries
 can route a URI to a request handler, but only a fraction of these (for
 example, [Pedestal](http://pedestal.io),
@@ -25,7 +25,9 @@ handling requests. This is an important
 ## Usage
 
 ```clojure
-(match-route ["/blog" [["/foo" 'foo]
+(require '[bidi.bidi :refer (match-route)])
+
+(bidi/match-route ["/blog" [["/foo" 'foo]
                        [["/bar" "/articles/" :artid "/index.html"] 'bar]]]
              {:path "/blog/bar/articles/123/index.html"})
 ```
@@ -39,6 +41,8 @@ returns
 You can also go the other way
 
 ```clojure
+(require '[bidi.bidi :refer (unmatch-route)])
+
 (unmatch-route ["/blog"
                 [["/index.html" 'blog-index]
                  [["/article/" :id ".html"] 'blog-article-handler]
