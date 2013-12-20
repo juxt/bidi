@@ -11,9 +11,10 @@ Bi-directional URI routing between handlers and routes. Like
 to go both ways. For example, many routing libraries can route a URI to
 a request handler, but only a fraction of these (for example,
 [Pedestal](http://pedestal.io),
-[gudu](https://github.com/thatismatt/gudu)) can generate a URI from a
-handler. If you are serving REST resources, you should be
-[providing links](http://en.wikipedia.org/wiki/HATEOAS) to others
+[gudu](https://github.com/thatismatt/gudu)) can take a reference to a
+handler, plus some environment, and generate a URI. If you are serving
+REST resources, you should be
+[providing links](http://en.wikipedia.org/wiki/HATEOAS) to other
 resources, and without full support for generating URIs from handlers
 your code will become coupled with your routing. In short, hard-coded
 URIs will eventually break.
