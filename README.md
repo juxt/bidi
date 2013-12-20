@@ -1,0 +1,54 @@
+# bidi
+
+> "bidi bidi bidi" -- Twiki, in probably every episode of [Buck Rogers in the 25th Century](http://en.wikipedia.org/wiki/Buck_Rogers_in_the_25th_Century_%28TV_series%29)
+
+In the grand tradition of Clojure libraries we begin with a irrelevant quote.
+
+Bi-directional URI routing between handlers and routes. Like Compojure, but when you want to go both ways.
+
+Routes are data structures, no macros here.
+
+Not complected with Ring. Nuff said.
+
+## Usage
+
+```clojure
+(match-route ["/blog" [["/foo" 'foo]
+                       [["/bar" "/articles/" :artid "/index.html"] 'bar]]]
+             {:path "/blog/bar/articles/123/index.html"})
+```
+
+returns
+
+```clojure
+{:handler 'bar, :params {:artid "123"}, :path "/bar/articles/123/index.html"}
+```
+
+You can also go the other way
+
+```clojure
+(unmatch-route ["/blog"
+                [["/index.html" 'blog-index]
+                 [["/article/" :id ".html"] 'blog-article-handler]
+                 [["/archive/" :id "/old.html"] 'foo]]]
+               {:handler 'blog-article-handler :params {:id 1239}})
+```
+
+returns
+
+```clojure
+"/blog/article/1239.html"
+```
+
+Nice.
+
+## Status
+
+This is pre-alpha, and I know there's a few bugs, so don't use until I remove this message.
+
+## License
+
+Copyright © 2013, JUXT LTD. All Rights Reserved.
+
+Distributed under the Eclipse Public License either version 1.0 or (at
+your option) any later version.
