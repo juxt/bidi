@@ -35,6 +35,14 @@ you can match on things that aren't necessarily handlers, like keywords
 which you can use to lookup your handlers, or whatever you want to
 do. Separation of concerns and all that.
 
+## Installation
+
+Add the following dependency to your `project.clj` file
+
+```clojure
+[bidi "1.1.0"]
+```
+
 ## Usage
 
 ```clojure
