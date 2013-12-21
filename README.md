@@ -35,26 +35,26 @@ do. Separation of concerns and all that.
 
 (match-route
     ["/blog" [["/foo" 'foo]
-              [["/bar/articles/" :artid "/index.html"] 'bar]]]
-    {:path "/blog/bar/articles/123/index.html"})
+              [["/bar/articles/" :artid "/index"] 'bar]]]
+    "/blog/bar/articles/123/index.html")
 ```
 
 returns
 
 ```clojure
-{:handler 'bar, :params {:artid "123"}, :path "/bar/articles/123/index.html"}
+{:handler 'bar, :params {:artid "123"}, :path ".html"}
 ```
 
-You can also go the other way
+You can also go in the reverse direction
 
 ```clojure
-(require '[bidi.bidi :refer (unmatch-route)])
+(require '[bidi.bidi :refer (path-for)])
 
-(unmatch-route ["/blog"
-                [["/index.html" 'blog-index]
-                 [["/article/" :id ".html"] 'blog-article-handler]
-                 [["/archive/" :id "/old.html"] 'foo]]]
-               {:handler 'blog-article-handler :params {:id 1239}})
+(path-for ["/blog"
+            [["/index.html" 'blog-index]
+             [["/article/" :id ".html"] 'blog-article-handler]
+             [["/archive/" :id "/old.html"] 'foo]]]
+          {:handler 'blog-article-handler :params {:id 1239}})
 ```
 
 returns
@@ -65,9 +65,25 @@ returns
 
 [Nice!](http://i357.photobucket.com/albums/oo17/MageOfTheOnyx/LouisBalfour.jpg)
 
-## Status
+## Route definitions
 
-This is pre-alpha, and I know there's a few bugs, so don't use until I remove this message.
+A simple [BNF](http://en.wikipedia.org/wiki/Backus%E2%80%93Naur_Form)
+grammar describes the structure of the routes definition data
+structures.
+
+```
+RoutesDefinition ::= RoutePair
+
+RoutePair ::= [Matcher RouteSpec]
+
+Matcher ::= Path | [ PathComponent+ ]
+
+Path ::= String
+
+PathComponent ::= String | Keyword
+
+RouteSpec ::= Symbol | Keyword | RoutePair | [ RoutePair+ ]
+```
 
 ## License
 
