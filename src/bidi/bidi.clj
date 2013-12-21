@@ -74,4 +74,4 @@
   path that would route to the handler entry in the map. The map must
   also contain the values to any parameters required to create the path."
   [routes & {:as m}]
-  (unmatch-pair routes m))
+  (str (unmatch-pair routes m) (:path m)))

@@ -70,4 +70,8 @@
           "/blog/archive/1239/section.html"))
       (is
        (= (path-for routes :handler 'image-handler)
-          "/images/")))))
+          "/images/"))
+
+      (is
+       (= (path-for routes :handler 'image-handler :path "123.png")
+          "/images/123.png")))))
