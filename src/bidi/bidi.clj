@@ -36,7 +36,10 @@
   (match-right [v m] (merge m {:handler v}))
 
   clojure.lang.Keyword
-  (match-right [v m] (merge m {:handler v})))
+  (match-right [v m] (merge m {:handler v}))
+
+  clojure.lang.Fn
+  (match-right [f m] (merge m {:handler f})))
 
 (defn match-route
   "Given a route definition data structure and a path, return the
@@ -75,3 +78,12 @@
   also contain the values to any parameters required to create the path."
   [routes & {:as m}]
   (str (unmatch-pair routes m) (:path m)))
+
+(defn make-handler
+  "Create a Ring handler from the route definition data
+  structure. Matches a handler from the uri in the request, and invokes
+  it with the request as a parameter."
+  [routes]
+  (fn [{:keys [uri] :as request}]
+    (let [{:keys [handler path]} (match-route routes uri)]
+      (handler (assoc request ::path path)))))

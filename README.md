@@ -65,6 +65,18 @@ returns
 
 [Nice!](http://i357.photobucket.com/albums/oo17/MageOfTheOnyx/LouisBalfour.jpg)
 
+You can also create a Ring handler from your route defintions, as long as your routes match to invokeable functions.
+
+```clojure
+(require '[bidi.bidi :refer (make-handler)])
+
+(def handler
+  (make-handler ["/blog"
+                 [["/index.html" blog-index]
+                  [["/article/" :id ".html"] blog-article-handler]
+                  [["/archive/" :id "/old.html"] (fn [req] {:status 404}]]]))
+```
+
 ## Route definitions
 
 A simple [BNF](http://en.wikipedia.org/wiki/Backus%E2%80%93Naur_Form)
@@ -82,7 +94,7 @@ Path ::= String
 
 PathComponent ::= String | Keyword
 
-RouteSpec ::= Symbol | Keyword | RoutePair | [ RoutePair+ ]
+RouteSpec ::= Function | Symbol | Keyword | RoutePair | [ RoutePair+ ]
 ```
 
 The implementation is based on protocols which can be extended by the

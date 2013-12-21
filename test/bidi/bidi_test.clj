@@ -11,7 +11,8 @@
 
 (ns bidi.bidi-test
   (:require [clojure.test :refer :all]
-            [bidi.bidi :refer :all]))
+            [bidi.bidi :refer :all]
+            [ring.mock.request :refer :all]))
 
 (deftest matching-routes-test
   (testing "misc-routes"
@@ -75,3 +76,15 @@
       (is
        (= (path-for routes :handler 'image-handler :path "123.png")
           "/images/123.png")))))
+
+
+(deftest make-handler-test
+  (let [handler
+        (make-handler ["/"
+                       [["blog"
+                         [["/index.html" (fn [req] {:status 200 :body "Index"})]
+                          [["/article/" :id ".html"] 'blog-article-handler]
+                          [["/archive/" :id "/" :page ".html"] 'archive-handler]]]
+                        ["images/" 'image-handler]]])]
+    (is (= (handler (request :get "/blog/index.html"))
+           {:status 200, :body "Index"}))))
