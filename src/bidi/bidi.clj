@@ -27,7 +27,7 @@
   (match-right [v m] (first (keep #(match-pair % m) v)))
   (match-left [v m]
     (let [pattern (reduce str (concat (map #(cond (keyword? %) "(.*)" :otherwise %) v) ["(.*)"]))]
-      (when-let [groups (rest (re-matches (re-pattern pattern) (:path m)))]
+      (when-let [groups (next (re-matches (re-pattern pattern) (:path m)))]
         (-> m
             (update-in [:params] merge (zipmap (filter keyword? v) (butlast groups)))
             (assoc-in [:path] (last groups))))))
