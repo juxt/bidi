@@ -85,6 +85,10 @@ PathComponent ::= String | Keyword
 RouteSpec ::= Symbol | Keyword | RoutePair | [ RoutePair+ ]
 ```
 
+The implementation is based on protocols which can be extended by the
+user to support other types, for example, integrating regular
+expressions.
+
 ## License
 
 Copyright © 2013, JUXT LTD. All Rights Reserved.
