@@ -19,7 +19,14 @@ resources, and without full support for generating URIs from handlers
 your code will become coupled with your routing. In short, hard-coded
 URIs will eventually break.
 
-In bidi, routes are data structures, there are no macros here.
+In bidi, routes are data structures, there are no macros here. Generally
+speaking, data structures are to be preferred over code structures. When
+your routes are defined in a data structure there are numerous
+advantages-they can be read in from a configuration file, generated,
+computed, transformed by functions and introspected - all things which
+macro-based DSLs make harder. This project also avoids 'terse' forms for
+the route definitions, it is better to learn and live with a single data
+structure.
 
 The logic for matching routes is separated from the responsibility for
 handling requests. This is an important
@@ -34,15 +41,15 @@ do. Separation of concerns and all that.
 (require '[bidi.bidi :refer (match-route)])
 
 (match-route
-    ["/blog" [["/foo" 'foo]
-              [["/bar/articles/" :artid "/index"] 'bar]]]
-    "/blog/bar/articles/123/index.html")
+    ["/blog" [["/index 'index]
+              [["/articles/" :artid "/index"] :article]]]
+    "/blog/articles/123/index.html")
 ```
 
 returns
 
 ```clojure
-{:handler 'bar, :params {:artid "123"}, :path ".html"}
+{:handler :article, :params {:artid "123"}, :path ".html"}
 ```
 
 You can also go in the reverse direction
@@ -65,7 +72,9 @@ returns
 
 [Nice!](http://i357.photobucket.com/albums/oo17/MageOfTheOnyx/LouisBalfour.jpg)
 
-You can also create a Ring handler from your route defintions, as long as your routes match to invokeable functions.
+You don't have to route to functions, you can use symbols or keywords
+too. If you do use functions, however, you can easily create a Ring
+handler from your route defintions. You decide what works best for your application.
 
 ```clojure
 (require '[bidi.bidi :refer (make-handler)])
