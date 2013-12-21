@@ -77,14 +77,39 @@
        (= (path-for routes :handler 'image-handler :path "123.png")
           "/images/123.png")))))
 
-
 (deftest make-handler-test
-  (let [handler
-        (make-handler ["/"
-                       [["blog"
-                         [["/index.html" (fn [req] {:status 200 :body "Index"})]
-                          [["/article/" :id ".html"] 'blog-article-handler]
-                          [["/archive/" :id "/" :page ".html"] 'archive-handler]]]
-                        ["images/" 'image-handler]]])]
-    (is (= (handler (request :get "/blog/index.html"))
-           {:status 200, :body "Index"}))))
+  (testing "routes"
+    (let [handler
+          (make-handler ["/"
+                         [["blog"
+                           [["/index.html" (fn [req] {:status 200 :body "Index"})]
+                            [["/article/" :id ".html"] 'blog-article-handler]
+                            [["/archive/" :id "/" :page ".html"] 'archive-handler]]]
+                          ["images/" 'image-handler]]])]
+      (is (= (handler (request :get "/blog/index.html"))
+             {:status 200, :body "Index"}))))
+  (testing "method constraints"
+    (let [handler
+          (make-handler ["/"
+                         [["blog"
+                           [[:get [["/index" (fn [req] {:status 200 :body "Index"})]]]
+                            [:post [["/zip" (fn [req] {:status 201 :body "Created"})]]]]
+                           ]]])]
+
+      (is handler)
+      (is (= (handler (request :get "/blog/index.html")) {:status 200, :body "Index"}))
+      (is (nil? (handler (request :post "/blog/index.html"))))
+      (is (= (handler (request :post "/blog/zip")) {:status 201, :body "Created"}))
+      (is (nil? (handler (request :get "/blog/zip"))))))
+  (testing "other request constraints"
+    (let [handler
+          (make-handler ["/"
+                         [["blog"
+                           [[:get [["/index" (fn [req] {:status 200 :body "Index"})]]]
+                            [{:request-method :post :server-name "juxt.pro"} [["/zip" (fn [req] {:status 201 :body "Created"})]]]]
+                           ]]])]
+
+      (is handler)
+      (is (nil? (handler (request :post "/blog/zip"))))
+      (is (= (handler (request :post "http://juxt.pro/blog/zip")) {:status 201, :body "Created"}))
+      (is (nil? (handler (request :post "/blog/zip")))))))

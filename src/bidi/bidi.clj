@@ -19,11 +19,15 @@
 (extend-protocol Matcher
   String
   (match-left [s m] (when-let [path (last (re-matches (re-pattern (format "(\\Q%s\\E)(.*)" s)) (:path m)))]
-                      {:path path}))
+                      (merge m {:path path})))
+
+  Boolean
+  (match-left [b m] (when b m))
 
   clojure.lang.PersistentVector
-  (match-pair [v m] (when-let [m2 (match-left (first v) m)]
-                       (match-right (second v) (merge m m2))))
+  (match-pair [v m]
+    (when-let [m2 (match-left (first v) m)]
+      (match-right (second v) (merge m m2))))
   (match-right [v m] (first (keep #(match-pair % m) v)))
   (match-left [v m]
     (let [pattern (reduce str (concat (map #(cond (keyword? %) "(.*)" :otherwise %) v) ["(.*)"]))]
@@ -37,15 +41,25 @@
 
   clojure.lang.Keyword
   (match-right [v m] (merge m {:handler v}))
+  (match-left [k m]
+    (when (= k (:request-method m)) m))
 
   clojure.lang.Fn
-  (match-right [f m] (merge m {:handler f})))
+  (match-right [f m] (merge m {:handler f}))
+
+  clojure.lang.PersistentArrayMap
+  (match-left [options m]
+    (when (every? (fn [[k v]] (cond
+                     (or (fn? v) (set? v)) (v (get m k))
+                     :otherwise (= v (get m k))))
+                  (seq options))
+      m)))
 
 (defn match-route
   "Given a route definition data structure and a path, return the
   handler, if any, that matches the path."
-  [routes path]
-  (match-pair routes {:path path}))
+  [routes path & {:as options}]
+  (match-pair routes (merge options {:path path})))
 
 (defprotocol Unmatcher
   (unmatch-pair [_ m])
@@ -86,5 +100,6 @@
   it with the request as a parameter."
   [routes]
   (fn [{:keys [uri] :as request}]
-    (let [{:keys [handler path]} (match-route routes uri)]
-      (handler (assoc request ::path path)))))
+    (let [{:keys [handler path]} (apply match-route routes uri (apply concat (seq request)))]
+      (when handler
+        (handler (assoc request ::path path))))))

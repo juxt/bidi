@@ -86,9 +86,27 @@ handler from your route defintions. You decide what works best for your applicat
                   [["/archive/" :id "/old.html"] (fn [req] {:status 404}]]]))
 ```
 
+By default, routes don't dispatch on the request method and behave like Compojure's `ANY` routes. That's fine if your handlers deal with the request methods themselves, as [Liberator](http://clojure-liberator.github.io/liberator/)'s do. However, you can specify a method using a keyword.
+
+```clojure
+["/"
+ [["blog"
+   [[:get [["/index" (fn [req] {:status 200 :body "Index"})]]]]]]]
+```
+
+You can also restrict routes by other criteria. In this example, the `/zip` route is only matched if the server name in the request is `juxt.pro`. Constraints are specified by maps. Map entries can specify a single value, a set of possible values or even a predicate to test a value.
+
+```clojure
+["/"
+ [["blog"
+   [[:get [["/index" (fn [req] {:status 200 :body "Index"})]]]
+    [{:request-method :post :server-name "juxt.pro"} [["/zip" (fn [req] {:status 201 :body "Created"})]]]]
+   ]]]
+```
+
 ## Route definitions
 
-A simple [BNF](http://en.wikipedia.org/wiki/Backus%E2%80%93Naur_Form)
+This [BNF](http://en.wikipedia.org/wiki/Backus%E2%80%93Naur_Form)
 grammar describes the structure of the routes definition data
 structures.
 
@@ -97,7 +115,15 @@ RoutesDefinition ::= RoutePair
 
 RoutePair ::= [Matcher RouteSpec]
 
-Matcher ::= Path | [ PathComponent+ ]
+Matcher ::= MethodQualifier | Constraints | Path | [ PathComponent+ ]
+
+MethodQualifier ::= :get :post :put :delete :head :options
+
+Constraints ::= { RequestConstraintKey RequestConstraintValue }
+
+RequestConstraintKey ::= Keyword
+
+RequestConstraintValue ::= Value | Set | Function
 
 Path ::= String
 
