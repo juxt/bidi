@@ -26,11 +26,11 @@
                        (match-right (second v) (merge m m2))))
   (match-right [v m] (first (keep #(match-pair % m) v)))
   (match-left [v m]
-    (when-let [groups (rest (re-matches
-                             (re-pattern (reduce str (concat (map #(cond (keyword? %) "(.*)" :otherwise %) v) ["(.*)"]))) (:path m)))]
-      (-> m
-          (update-in [:params] merge (zipmap (filter keyword? v) (butlast groups)))
-          (assoc-in [:path] (last groups)))))
+    (let [pattern (reduce str (concat (map #(cond (keyword? %) "(.*)" :otherwise %) v) ["(.*)"]))]
+      (when-let [groups (rest (re-matches (re-pattern pattern) (:path m)))]
+        (-> m
+            (update-in [:params] merge (zipmap (filter keyword? v) (butlast groups)))
+            (assoc-in [:path] (last groups))))))
 
   clojure.lang.Symbol
   (match-right [v m] (merge m {:handler v}))
@@ -58,11 +58,12 @@
   (unmatch-right [s m] nil)
 
   clojure.lang.PersistentVector
-  (unmatch-left [v m] (apply str
-                             (let [replaced (replace (:params m) v)]
-                               (if-let [k (first (filter keyword? replaced))]
-                                 (throw (ex-info (format "Keyword %s not supplied" k) {:param k}))
-                                 replaced))))
+  (unmatch-left [v m]
+    (apply str
+           (let [replaced (replace (:params m) v)]
+             (if-let [k (first (filter keyword? replaced))]
+               (throw (ex-info (format "Keyword %s not supplied" k) {:param k}))
+               replaced))))
   (unmatch-pair [v m] (when-let [r (unmatch-right (second v) m)] (str (unmatch-left (first v) m) r)))
   (unmatch-right [v m] (first (keep #(unmatch-pair % m) v)))
 
