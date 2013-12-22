@@ -29,24 +29,21 @@
                         "/blog/bar/articles/123/index.html")
            {:handler :bar, :path "/articles/123/index.html"}))
 
-    ;; in README
-    (is (=
-         (match-route ["/blog" [["/foo" 'foo]
-                                [["/bar/articles/" :artid "/index"] 'bar]]]
-                      "/blog/bar/articles/123/index.html")
-         {:handler 'bar, :params {:artid "123"}, :path ".html"}))
+    ;; example in README
+    (is (= (match-route ["/blog" [["/foo" 'foo]
+                                  [["/bar/articles/" :artid "/index"] 'bar]]]
+                        "/blog/bar/articles/123/index.html")
+           {:handler 'bar, :params {:artid "123"}, :path ".html"}))
 
-    (is (=
-         (match-route ["/blog" [["/foo" 'foo]
-                                [["/bar/articles/" :artid "/index.html"] 'bar]]]
-                      "/blog/bar/articles/123/index.html")
-         {:handler 'bar, :params {:artid "123"}, :path ""}))
+    (is (= (match-route ["/blog" [["/foo" 'foo]
+                                  [["/bar/articles/" :artid "/index.html"] 'bar]]]
+                        "/blog/bar/articles/123/index.html")
+           {:handler 'bar, :params {:artid "123"}, :path ""}))
 
-    (is (=
-         (match-route ["/blog" [[["/articles/" :id "/index.html"] 'foo]
-                                ["/text" 'bar]]]
-                      "/blog/articles/123/index.html")
-         {:handler 'foo, :params {:id "123"}, :path ""}))))
+    (is (= (match-route ["/blog" [[["/articles/" :id "/index.html"] 'foo]
+                                  ["/text" 'bar]]]
+                        "/blog/articles/123/index.html")
+           {:handler 'foo, :params {:id "123"}, :path ""}))))
 
 (deftest unmatching-routes-test
   (let [routes ["/"
@@ -55,7 +52,9 @@
                    [["/article/" :id ".html"] 'blog-article-handler]
                    [["/archive/" :id "/" :page ".html"] 'archive-handler]]]
                  ["images/" 'image-handler]]]]
+
     (testing "unmatching"
+
       (is
        (= (path-for routes :handler 'blog-index)
           "/blog/index.html"))
@@ -75,10 +74,23 @@
 
       (is
        (= (path-for routes :handler 'image-handler :path "123.png")
-          "/images/123.png")))))
+          "/images/123.png")))
+
+    (testing "unmatching with constraints"
+
+      (let [routes ["/" [["blog"
+                          [[:get [[["/index"] :index]]]
+                           [{:request-method :post :server-name "juxt.pro"}
+                            [[["/articles/" :artid] :new-article-handler]]]]]]]]
+        (is (= (path-for routes :handler :index)
+               "/blog/index"))
+        (is (= (path-for routes :handler :new-article-handler :params {:artid 10})
+               "/blog/articles/10"))))))
 
 (deftest make-handler-test
+
   (testing "routes"
+
     (let [handler
           (make-handler ["/"
                          [["blog"
@@ -88,7 +100,9 @@
                           ["images/" 'image-handler]]])]
       (is (= (handler (request :get "/blog/index.html"))
              {:status 200, :body "Index"}))))
+
   (testing "method constraints"
+
     (let [handler
           (make-handler ["/"
                          [["blog"
@@ -101,7 +115,9 @@
       (is (nil? (handler (request :post "/blog/index.html"))))
       (is (= (handler (request :post "/blog/zip")) {:status 201, :body "Created"}))
       (is (nil? (handler (request :get "/blog/zip"))))))
+
   (testing "other request constraints"
+
     (let [handler
           (make-handler ["/"
                          [["blog"

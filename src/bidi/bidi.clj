@@ -85,7 +85,12 @@
   (unmatch-right [s m] (when (= s (:handler m)) ""))
 
   clojure.lang.Keyword
-  (unmatch-right [s m] (when (= s (:handler m)) "")))
+  (unmatch-right [k m] (when (= k (:handler m)) ""))
+  (unmatch-left [k m] "") ; always succeeds
+
+  clojure.lang.PersistentArrayMap
+  (unmatch-left [this m] "") ; always succeeds
+  )
 
 (defn path-for
   "Given a route definition data structure and an option map, return a
