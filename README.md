@@ -19,10 +19,10 @@ resources, and without full support for generating URIs from handlers
 your code will become coupled with your routing. In short, hard-coded
 URIs will eventually break.
 
-In bidi, routes are data structures, there are no macros here. Generally
+In bidi, routes are *data structures*, there are no macros here. Generally
 speaking, data structures are to be preferred over code structures. When
-your routes are defined in a data structure there are numerous
-advantages-they can be read in from a configuration file, generated,
+routes are defined in a data structure there are numerous
+advantages - they can be read in from a configuration file, generated,
 computed, transformed by functions and introspected - all things which
 macro-based DSLs make harder. This project also avoids 'terse' forms for
 the route definitions, it is better to learn and live with a single data
@@ -102,7 +102,7 @@ By default, routes don't dispatch on the request method and behave like Compojur
    [[:get [["/index" (fn [req] {:status 200 :body "Index"})]]]]]]]
 ```
 
-You can also restrict routes by other criteria. In this example, the `/zip` route is only matched if the server name in the request is `juxt.pro`. Constraints are specified by maps. Map entries can specify a single value, a set of possible values or even a predicate to test a value.
+You can also restrict routes by other criteria. In this example, the `/zip` route is only matched if the server name in the request is `juxt.pro`. Guards are specified by maps. Map entries can specify a single value, a set of possible values or even a predicate to test a value.
 
 ```clojure
 ["/"
@@ -123,15 +123,15 @@ RoutesDefinition ::= RoutePair
 
 RoutePair ::= [Matcher RouteSpec]
 
-Matcher ::= MethodQualifier | Constraints | Path | [ PathComponent+ ]
+Matcher ::= MethodGuard | Guard | Path | [ PathComponent+ ]
 
-MethodQualifier ::= :get :post :put :delete :head :options
+MethodGuard ::= :get :post :put :delete :head :options
 
-Constraints ::= { RequestConstraintKey RequestConstraintValue }
+Guard ::= { GuardKey GuardValue }
 
-RequestConstraintKey ::= Keyword
+GuardKey ::= Keyword
 
-RequestConstraintValue ::= Value | Set | Function
+GuardValue ::= Value | Set | Function
 
 Path ::= String
 
