@@ -60,7 +60,9 @@ user> (match-route "/index.html" route)
 {:handler :index}
 ```
 
-We have a match! A map is returned with a single entry with a `:handler` key and `:index` as the value. We could use this result, for example, to look up a Ring handler in a map mapping keywords to Ring handlers.
+We have a match! A map is returned with a single entry with a `:handler`
+key and `:index` as the value. We could use this result, for example, to
+look up a Ring handler in a map mapping keywords to Ring handlers.
 
 What happens if we try a different path?
 
@@ -165,13 +167,13 @@ structures.
 ```
 RoutesDefinition ::= RoutePair
 
-RoutePair ::= [Matcher RouteSpec]
+RoutePair ::= [Pattern RouteSpec]
 
-Matcher ::= MethodGuard | Guard | Path | [ PathComponent+ ]
+Pattern ::= Path | [ PathComponent+ ] | MethodGuard | GeneralGuard
 
 MethodGuard ::= :get :post :put :delete :head :options
 
-Guard ::= { GuardKey GuardValue }
+GeneralGuard ::= [ GuardKey GuardValue ]* (a map)
 
 GuardKey ::= Keyword
 
@@ -184,9 +186,10 @@ PathComponent ::= String | Keyword
 RouteSpec ::= Function | Symbol | Keyword | RoutePair | [ RoutePair+ ]
 ```
 
-The implementation is based on protocols which can be extended by the
-user to support other types, for example, integrating regular
-expressions.
+## Extensibility
+
+The implementation is based on Clojure protocols which allows the route
+syntax to be extended outside of this library.
 
 ## License
 
