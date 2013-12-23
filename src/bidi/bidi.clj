@@ -18,8 +18,8 @@
 
 (extend-protocol Matcher
   String
-  (match-left [s m] (when-let [path (last (re-matches (re-pattern (format "(\\Q%s\\E)(.*)" s)) (:path m)))]
-                      (merge m {:path path})))
+  (match-left [s m] (when-let [path (last (re-matches (re-pattern (format "(\\Q%s\\E)(.*)" s)) (:remainder m)))]
+                      (merge m {:remainder path})))
 
   Boolean
   (match-left [b m] (when b m))
@@ -31,21 +31,27 @@
   (match-right [v m] (first (keep #(match-pair % m) v)))
   (match-left [v m]
     (let [pattern (reduce str (concat (map #(cond (keyword? %) "(.*)" :otherwise %) v) ["(.*)"]))]
-      (when-let [groups (next (re-matches (re-pattern pattern) (:path m)))]
+      (when-let [groups (next (re-matches (re-pattern pattern) (:remainder m)))]
         (-> m
             (update-in [:params] merge (zipmap (filter keyword? v) (butlast groups)))
-            (assoc-in [:path] (last groups))))))
+            (assoc-in [:remainder] (last groups))))))
 
   clojure.lang.Symbol
-  (match-right [v m] (merge m {:handler v}))
+  (match-right [v m]
+    (when (= (:remainder m) "")
+      (merge (dissoc m :remainder) {:handler v})))
 
   clojure.lang.Keyword
-  (match-right [v m] (merge m {:handler v}))
+  (match-right [v m]
+    (when (= (:remainder m) "")
+      (merge (dissoc m :remainder) {:handler v})))
   (match-left [k m]
     (when (= k (:request-method m)) m))
 
   clojure.lang.Fn
-  (match-right [f m] (merge m {:handler f}))
+  (match-right [f m]
+    (when (= (:remainder m) "")
+      (merge (dissoc m :remainder) {:handler f})))
 
   clojure.lang.PersistentArrayMap
   (match-left [options m]
@@ -59,7 +65,7 @@
   "Given a route definition data structure and a path, return the
   handler, if any, that matches the path."
   [routes path & {:as options}]
-  (match-pair routes (merge options {:path path})))
+  (match-pair routes (merge options {:remainder path})))
 
 (defprotocol Unmatcher
   (unmatch-pair [_ m])
@@ -86,18 +92,18 @@
 
   clojure.lang.Keyword
   (unmatch-right [k m] (when (= k (:handler m)) ""))
-  (unmatch-left [k m] "") ; always succeeds
+  (unmatch-left [k m] "")
 
   clojure.lang.PersistentArrayMap
-  (unmatch-left [this m] "") ; always succeeds
+  (unmatch-left [this m] "")
   )
 
 (defn path-for
   "Given a route definition data structure and an option map, return a
   path that would route to the handler entry in the map. The map must
   also contain the values to any parameters required to create the path."
-  [routes & {:as m}]
-  (str (unmatch-pair routes m) (:path m)))
+  [routes handler & {:as params}]
+  (unmatch-pair routes {:handler handler :params params}))
 
 (defn make-handler
   "Create a Ring handler from the route definition data
@@ -105,6 +111,8 @@
   it with the request as a parameter."
   [routes]
   (fn [{:keys [uri] :as request}]
-    (let [{:keys [handler path]} (apply match-route routes uri (apply concat (seq request)))]
+    (let [{:keys [handler params]} (apply match-route routes uri (apply concat (seq request)))]
       (when handler
-        (handler (assoc request ::path path))))))
+        (handler (-> request
+                     (assoc :route-params params)
+                     (update-in [:params] #(merge params %))))))))

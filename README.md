@@ -43,6 +43,38 @@ Add the following dependency to your `project.clj` file
 [bidi "1.1.0"]
 ```
 
+## Take 5 minutes to learn bidi (using the REPL)
+
+Let's create a route that matches `/index.html`.
+
+```clojure
+user> (def route ["/index.html" :index])
+```
+
+Let's try to match that route to a path.
+
+```clojure
+user> (use 'bidi.bidi)
+nil
+user> (match-route route "/index.html")
+{:handler :index}
+```
+
+We have a match! A map is returned with a single entry with a `:handler` key and `:index` as the value. We could use this result, for example, to look up a Ring handler in a map mapping keywords to Ring handlers.
+
+What happens if we try a different path?
+
+```clojure
+user> (match-route route "/another.html")
+nil
+```
+
+Nil means 'no route matched'.
+
+Let's imagine we want to match based on a route template. Let's assume
+we have some articles in our blog and each article URI is of the form
+`/articles/:id/index.html` where `:id` is the unique article number.
+
 ## Usage
 
 ```clojure
@@ -50,14 +82,14 @@ Add the following dependency to your `project.clj` file
 
 (match-route
     ["/blog" [["/index 'index]
-              [["/articles/" :artid "/index"] :article]]]
+              [["/articles/" :artid "/index.html"] :article]]]
     "/blog/articles/123/index.html")
 ```
 
 returns
 
 ```clojure
-{:handler :article, :params {:artid "123"}, :path ".html"}
+{:handler :article, :params {:artid "123"}}
 ```
 
 You can also go in the reverse direction
@@ -69,7 +101,7 @@ You can also go in the reverse direction
             [["/index.html" 'blog-index]
              [["/article/" :id ".html"] 'blog-article-handler]
              [["/archive/" :id "/old.html"] 'foo]]]
-          {:handler 'blog-article-handler :params {:id 1239}})
+          'blog-article-handler :id 1239)
 ```
 
 returns
@@ -80,9 +112,11 @@ returns
 
 [Nice!](http://i357.photobucket.com/albums/oo17/MageOfTheOnyx/LouisBalfour.jpg)
 
+# Wrapping as a Ring handler
+
 You don't have to route to functions, you can use symbols or keywords
-too. If you do use functions, however, you can easily create a Ring
-handler from your route defintions. You decide what works best for your application.
+too. If you do use functions, however, you can wrap your routes as a Ring
+handler from your route defintions (similar to what Compojure's `routes` and `defroutes` does).
 
 ```clojure
 (require '[bidi.bidi :refer (make-handler)])
