@@ -189,11 +189,9 @@ grammar describes the structure of the routes definition data
 structures.
 
 ```
-RoutesDefinition ::= RoutePair
+RoutePair ::= [Pattern Matched]
 
-RoutePair ::= [Pattern RouteSpec]
-
-Pattern ::= Path | [ PathComponent+ ] | MethodGuard | GeneralGuard
+Pattern ::= Path | [ PatternSegment+ ] | MethodGuard | GeneralGuard
 
 MethodGuard ::= :get :post :put :delete :head :options
 
@@ -205,9 +203,9 @@ GuardValue ::= Value | Set | Function
 
 Path ::= String
 
-PathComponent ::= String | Keyword
+PatternSegment ::= String | Regex | Keyword | [ (String | Regex) Keyword ]
 
-RouteSpec ::= Function | Symbol | Keyword | RoutePair | [ RoutePair+ ]
+Matched ::= Function | Symbol | Keyword | RoutePair | [ RoutePair+ ]
 ```
 
 ## Composeability

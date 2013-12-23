@@ -26,28 +26,42 @@
 
     (is (= (match-route "/blog/bar/articles/123/index.html"
                         ["/blog" [["/foo" 'foo]
-                                  [["/bar" :path] :bar]]]
-                        )
+                                  [["/bar" :path] :bar]]])
            {:handler :bar :params {:path "/articles/123/index.html"}}))
 
     ;; The example in the README, so make sure it passes!
     (is (= (match-route "/blog/bar/articles/123/index.html"
                         ["/blog" [["/index.html" 'index]
-                                  [["/bar/articles/" :artid "/index.html"] 'article]]]
-                        )
+                                  [["/bar/articles/" :artid "/index.html"] 'article]]])
            {:handler 'article :params {:artid "123"}}))
 
     (is (= (match-route "/blog/bar/articles/123/index.html"
                         ["/blog" [["/foo" 'foo]
-                                  [["/bar/articles/" :artid "/index.html"] 'bar]]]
-                        )
+                                  [["/bar/articles/" :artid "/index.html"] 'bar]]])
            {:handler 'bar :params {:artid "123"}}))
 
     (is (= (match-route "/blog/articles/123/index.html"
                         ["/blog" [[["/articles/" :id "/index.html"] 'foo]
-                                  ["/text" 'bar]]]
-                        )
-           {:handler 'foo :params {:id "123"}}))))
+                                  ["/text" 'bar]]])
+           {:handler 'foo :params {:id "123"}}))
+
+    (testing "regex"
+      (is (= (match-route "/blog/articles/123/index.html"
+                          ["/blog" [[["/articles/" [#"\d+" :id] "/index.html"] 'foo]
+                                    ["/text" 'bar]]])
+             {:handler 'foo :params {:id "123"}}))
+      (is (= (match-route "/blog/articles/123a/index.html"
+                          ["/blog" [[["/articles/" [#"\d+" :id] "/index.html"] 'foo]
+                                    ["/text" 'bar]]])
+             nil))
+      (is (= (match-route "/blog/articles/123abc/index.html"
+                          ["/blog" [[["/articles/" [#"\d+" :id] [#"\p{Lower}+" :a] "/index.html"] 'foo]
+                                    ["/text" 'bar]]])
+             {:handler 'foo :params {:id "123" :a "abc"}})))
+    (is (= (match-route "/blog/articles/123abc/index.html"
+                        [#"/bl\p{Lower}{2}+" [[["/articles/" [#"\d+" :id] [#"\p{Lower}+" :a] "/index.html"] 'foo]
+                                              ["/text" 'bar]]])
+           {:handler 'foo :params {:id "123" :a "abc"}}))))
 
 (deftest unmatching-routes-test
   (let [routes ["/"
@@ -89,7 +103,14 @@
         (is (= (path-for :index routes)
                "/blog/index"))
         (is (= (path-for :new-article-handler routes :artid 10)
-               "/blog/articles/10"))))))
+               "/blog/articles/10"))))
+    (testing "unmatching with regexes"
+      (let [routes
+            ["/blog" [[["/articles/" [#"\d+" :id] [#"\p{Lower}+" :a] "/index.html"] 'foo]
+                      ["/text" 'bar]]]]
+        (is (= (path-for 'foo routes :id "123" :a "abc")
+               "/blog/articles/123abc/index.html"))
+        ))))
 
 (deftest make-handler-test
 
@@ -149,6 +170,6 @@
                {:status 200 :body "123"})))
       (testing "artid makes it into :params, but non-destructively"
         (is (= (handler (-> (request :get "/blog/article/123/another.html"
-                                        {:artid "foo"})
+                                     {:artid "foo"})
                             (assoc :params {:artid "foo"})))
                {:status 200 :body "foo"}))))))

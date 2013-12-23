@@ -9,94 +9,153 @@
 ;;
 ;; You must not remove this notice, or any other, from this software.
 
-(ns bidi.bidi)
+(ns bidi.bidi
+  (:import
+   (clojure.lang PersistentVector Symbol Keyword PersistentArrayMap Fn)))
 
-(defprotocol Matcher
-  (match-pair [_ path])
-  (match-right [_ path])
-  (match-left [_ path]))
+;; A PatternSegment is part of a segmented pattern, where the pattern is
+;; given as a vector. Each segment can be of a different type, and each
+;; segment can optionally be associated with a key, thereby contributing
+;; a route parameter.
 
-(extend-protocol Matcher
+(defprotocol PatternSegment
+  (match-segment [_])
+  (param-key [_])
+  (unmatch-segment [_ params])
+  (matches? [_ s]))
+
+
+(extend-protocol PatternSegment
   String
-  (match-left [s m] (when-let [path (last (re-matches (re-pattern (format "(\\Q%s\\E)(.*)" s)) (:remainder m)))]
-                      (merge m {:remainder path})))
+  (match-segment [this] (format "\\Q%s\\E" this))
+  (unmatch-segment [this _] this)
+  (param-key [_] nil)
+
+  java.util.regex.Pattern
+  (match-segment [this] (.pattern this))
+  (param-key [_] nil)
+  (matches? [this s] (re-matches this s))
+
+  Keyword
+  ;; By default, a keyword can represent any string.
+  (match-segment [_] "(.*)")
+  (unmatch-segment [this params]
+    (if-let [v (this params)]
+      (str v)
+      (throw (ex-info (format "No parameter value given for %s" this) {}))))
+  (param-key [this] this)
+
+  PersistentVector
+  ;; A vector allows a keyword to be associated with a segment. The
+  ;; segment comes first, then the keyword.
+  (match-segment [this] (format "(%s)" (match-segment (first this))))
+  (unmatch-segment [this params]
+    (let [k (second this)]
+      (if-not (keyword? k)
+        (throw (ex-info (format "If a PatternSegment is represented by a vector, the second element must be the key associated with the pattern: %s" this) {})))
+      (if-let [v (get params k)]
+        (if (matches? (first this) v)
+          v
+          (throw (ex-info (format "Parameter value of %s (key %s) is not compatible with the route pattern %s" v k this) {})))
+        (throw (ex-info (format "No parameter found in params for key %s" k) {})))))
+  (param-key [this] (let [k (second this)]
+                      (if (keyword? k)
+                        k
+                        (throw (ex-info (format "If a PatternSegment is represented by a vector, the second element must be the key associated with the pattern: %s" this) {}))))))
+
+;; A Route is a pair. The pair has two halves: a pattern on the left,
+;; something that is matched by the pattern on the right.
+
+(defprotocol Pattern
+  ;; Return truthy if the given pattern matches the given path. By
+  ;; truthy, we mean a map containing (at least) the rest of the path to
+  ;; match in a :remainder entry
+  (match-pattern [_ ^String path])
+  (unmatch-pattern [_ m]))
+
+(defprotocol Matched
+  (resolve-handler [_ path])
+  (unresolve-handler [_ m]))
+
+(defn match-pair [[pattern matched] m]
+    (when-let [pattern-map (match-pattern pattern m)]
+      (resolve-handler matched (merge m pattern-map))))
+
+(defn match-beginning
+  "Match the beginning of the :remainder value in m. If matched, update
+  the :remainder value in m with the path that remains after matching."
+  [regex-pattern m]
+  (when-let [path (last (re-matches (re-pattern (str regex-pattern "(.*)"))
+                                    (:remainder m)))]
+      (merge m {:remainder path})))
+
+(defn succeed [handler m]
+  (when (= (:remainder m) "")
+      (merge (dissoc m :remainder) {:handler handler})))
+
+(extend-protocol Pattern
+  String
+  (match-pattern [this m] (match-beginning (match-segment this) m))
+  (unmatch-pattern [this _] this)
+
+  java.util.regex.Pattern
+  (match-pattern [this m] (match-beginning (.pattern this) m))
 
   Boolean
-  (match-left [b m] (when b m))
+  (match-pattern [this m] (when this m))
 
-  clojure.lang.PersistentVector
-  (match-pair [v m]
-    (when-let [m2 (match-left (first v) m)]
-      (match-right (second v) (merge m m2))))
-  (match-right [v m] (first (keep #(match-pair % m) v)))
-  (match-left [v m]
-    (let [pattern (reduce str (concat (map #(cond (keyword? %) "(.*)" :otherwise %) v) ["(.*)"]))]
-      (when-let [groups (next (re-matches (re-pattern pattern) (:remainder m)))]
+  PersistentVector
+  (match-pattern [this m]
+    (let [pattern (re-pattern (str (reduce str (map match-segment this)) "(.*)"))]
+      (when-let [groups (next (re-matches pattern (:remainder m)))]
         (-> m
-            (update-in [:params] merge (zipmap (filter keyword? v) (butlast groups)))
-            (assoc-in [:remainder] (last groups))))))
+            (assoc-in [:remainder] (last groups))
+            (update-in [:params] merge (zipmap (keep param-key this) (butlast groups)))))))
+  (unmatch-pattern [this m]
+    (apply str (map #(unmatch-segment % (:params m)) this)))
 
-  clojure.lang.Symbol
-  (match-right [v m]
-    (when (= (:remainder m) "")
-      (merge (dissoc m :remainder) {:handler v})))
+  Keyword
+  (match-pattern [this m] (when (= this (:request-method m)) m))
+  (unmatch-pattern [_ _] "")
 
-  clojure.lang.Keyword
-  (match-right [v m]
-    (when (= (:remainder m) "")
-      (merge (dissoc m :remainder) {:handler v})))
-  (match-left [k m]
-    (when (= k (:request-method m)) m))
-
-  clojure.lang.Fn
-  (match-right [f m]
-    (when (= (:remainder m) "")
-      (merge (dissoc m :remainder) {:handler f})))
-
-  clojure.lang.PersistentArrayMap
-  (match-left [options m]
-    (when (every? (fn [[k v]] (cond
+  PersistentArrayMap
+  (match-pattern [this m]
+    (when (every? (fn [[k v]]
+                    (cond
                      (or (fn? v) (set? v)) (v (get m k))
                      :otherwise (= v (get m k))))
-                  (seq options))
-      m)))
+                  (seq this))
+      m))
+  (unmatch-pattern [_ _] ""))
+
+(defn unmatch-pair [v m]
+  (when-let [r (unresolve-handler (second v) m)]
+    (str (unmatch-pattern (first v) m) r)))
+
+(extend-protocol Matched
+  String
+  (unresolve-handler [_ _] nil)
+
+  PersistentVector
+  (resolve-handler [this m] (first (keep #(match-pair % m) this)))
+  (unresolve-handler [this m] (first (keep #(unmatch-pair % m) this)))
+
+  Symbol
+  (resolve-handler [this m] (succeed this m))
+  (unresolve-handler [this m] (when (= this (:handler m)) ""))
+
+  Keyword
+  (resolve-handler [this m] (succeed this m))
+  (unresolve-handler [this m] (when (= this (:handler m)) ""))
+
+  Fn
+  (resolve-handler [this m] (succeed this m)))
 
 (defn match-route
   "Given a route definition data structure and a path, return the
   handler, if any, that matches the path."
-  [path routes & {:as options}]
-  (match-pair routes (merge options {:remainder path})))
-
-(defprotocol Unmatcher
-  (unmatch-pair [_ m])
-  (unmatch-left [_ m])
-  (unmatch-right [_ m]))
-
-(extend-protocol Unmatcher
-  String
-  (unmatch-left [s m] s)
-  (unmatch-right [s m] nil)
-
-  clojure.lang.PersistentVector
-  (unmatch-left [v m]
-    (apply str
-           (let [replaced (replace (:params m) v)]
-             (if-let [k (first (filter keyword? replaced))]
-               (throw (ex-info (format "Keyword %s not supplied" k) {:param k}))
-               replaced))))
-  (unmatch-pair [v m] (when-let [r (unmatch-right (second v) m)] (str (unmatch-left (first v) m) r)))
-  (unmatch-right [v m] (first (keep #(unmatch-pair % m) v)))
-
-  clojure.lang.Symbol
-  (unmatch-right [s m] (when (= s (:handler m)) ""))
-
-  clojure.lang.Keyword
-  (unmatch-right [k m] (when (= k (:handler m)) ""))
-  (unmatch-left [k m] "")
-
-  clojure.lang.PersistentArrayMap
-  (unmatch-left [this m] "")
-  )
+  [path route & {:as options}]
+  (match-pair route (merge options {:remainder path})))
 
 (defn path-for
   "Given a route definition data structure and an option map, return a
