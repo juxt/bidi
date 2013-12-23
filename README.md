@@ -56,7 +56,7 @@ Let's try to match that route to a path.
 ```clojure
 user> (use 'bidi.bidi)
 nil
-user> (match-route route "/index.html")
+user> (match-route "/index.html" route)
 {:handler :index}
 ```
 
@@ -65,11 +65,13 @@ We have a match! A map is returned with a single entry with a `:handler` key and
 What happens if we try a different path?
 
 ```clojure
-user> (match-route route "/another.html")
+user> (match-route "/another.html" route)
 nil
 ```
 
-Nil means 'no route matched'.
+We get a `nil`. Nil means 'no route matched'.
+
+Now, let's go in the other direction.
 
 Let's imagine we want to match based on a route template. Let's assume
 we have some articles in our blog and each article URI is of the form
@@ -81,9 +83,10 @@ we have some articles in our blog and each article URI is of the form
 (require '[bidi.bidi :refer (match-route)])
 
 (match-route
+    "/blog/articles/123/index.html"
     ["/blog" [["/index 'index]
               [["/articles/" :artid "/index.html"] :article]]]
-    "/blog/articles/123/index.html")
+    )
 ```
 
 returns
@@ -97,11 +100,12 @@ You can also go in the reverse direction
 ```clojure
 (require '[bidi.bidi :refer (path-for)])
 
-(path-for ["/blog"
+(path-for 'blog-article-handler
+          ["/blog"
             [["/index.html" 'blog-index]
-             [["/article/" :id ".html"] 'blog-article-handler]
-             [["/archive/" :id "/old.html"] 'foo]]]
-          'blog-article-handler :id 1239)
+            [["/article/" :id ".html"] 'blog-article-handler]
+            [["/archive/" :id "/old.html"] 'foo]]]
+          :id 1239)
 ```
 
 returns
@@ -112,7 +116,7 @@ returns
 
 [Nice!](http://i357.photobucket.com/albums/oo17/MageOfTheOnyx/LouisBalfour.jpg)
 
-# Wrapping as a Ring handler
+## Wrapping as a Ring handler
 
 You don't have to route to functions, you can use symbols or keywords
 too. If you do use functions, however, you can wrap your routes as a Ring
@@ -128,6 +132,10 @@ handler from your route defintions (similar to what Compojure's `routes` and `de
                   [["/archive/" :id "/old.html"] (fn [req] {:status 404}]]]))
 ```
 
+## Guards
+
+### Method guards
+
 By default, routes don't dispatch on the request method and behave like Compojure's `ANY` routes. That's fine if your handlers deal with the request methods themselves, as [Liberator](http://clojure-liberator.github.io/liberator/)'s do. However, you can specify a method using a keyword.
 
 ```clojure
@@ -135,6 +143,8 @@ By default, routes don't dispatch on the request method and behave like Compojur
  [["blog"
    [[:get [["/index" (fn [req] {:status 200 :body "Index"})]]]]]]]
 ```
+
+### Other guards
 
 You can also restrict routes by other criteria. In this example, the `/zip` route is only matched if the server name in the request is `juxt.pro`. Guards are specified by maps. Map entries can specify a single value, a set of possible values or even a predicate to test a value.
 

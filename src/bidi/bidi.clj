@@ -64,7 +64,7 @@
 (defn match-route
   "Given a route definition data structure and a path, return the
   handler, if any, that matches the path."
-  [routes path & {:as options}]
+  [path routes & {:as options}]
   (match-pair routes (merge options {:remainder path})))
 
 (defprotocol Unmatcher
@@ -102,7 +102,7 @@
   "Given a route definition data structure and an option map, return a
   path that would route to the handler entry in the map. The map must
   also contain the values to any parameters required to create the path."
-  [routes handler & {:as params}]
+  [handler routes & {:as params}]
   (unmatch-pair routes {:handler handler :params params}))
 
 (defn make-handler
@@ -111,7 +111,7 @@
   it with the request as a parameter."
   [routes]
   (fn [{:keys [uri] :as request}]
-    (let [{:keys [handler params]} (apply match-route routes uri (apply concat (seq request)))]
+    (let [{:keys [handler params]} (apply match-route uri routes (apply concat (seq request)))]
       (when handler
         (handler (-> request
                      (assoc :route-params params)

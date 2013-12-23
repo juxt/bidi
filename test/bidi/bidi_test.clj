@@ -16,33 +16,37 @@
 
 (deftest matching-routes-test
   (testing "misc-routes"
-    (is (= (match-route ["/blog/foo" 'foo] "/blog/foo")
+    (is (= (match-route "/blog/foo" ["/blog/foo" 'foo])
            {:handler 'foo}))
 
-    (is (= (match-route ["/blog" [["/foo" 'foo]
-                                  ["/bar" [["/abc" :bar]]]]]
-                        "/blog/bar/abc")
+    (is (= (match-route "/blog/bar/abc"
+                        ["/blog" [["/foo" 'foo]
+                                  ["/bar" [["/abc" :bar]]]]])
            {:handler :bar}))
 
-    (is (= (match-route ["/blog" [["/foo" 'foo]
+    (is (= (match-route "/blog/bar/articles/123/index.html"
+                        ["/blog" [["/foo" 'foo]
                                   [["/bar" :path] :bar]]]
-                        "/blog/bar/articles/123/index.html")
+                        )
            {:handler :bar :params {:path "/articles/123/index.html"}}))
 
     ;; The example in the README, so make sure it passes!
-    (is (= (match-route ["/blog" [["/index.html" 'index]
+    (is (= (match-route "/blog/bar/articles/123/index.html"
+                        ["/blog" [["/index.html" 'index]
                                   [["/bar/articles/" :artid "/index.html"] 'article]]]
-                        "/blog/bar/articles/123/index.html")
+                        )
            {:handler 'article :params {:artid "123"}}))
 
-    (is (= (match-route ["/blog" [["/foo" 'foo]
+    (is (= (match-route "/blog/bar/articles/123/index.html"
+                        ["/blog" [["/foo" 'foo]
                                   [["/bar/articles/" :artid "/index.html"] 'bar]]]
-                        "/blog/bar/articles/123/index.html")
+                        )
            {:handler 'bar :params {:artid "123"}}))
 
-    (is (= (match-route ["/blog" [[["/articles/" :id "/index.html"] 'foo]
+    (is (= (match-route "/blog/articles/123/index.html"
+                        ["/blog" [[["/articles/" :id "/index.html"] 'foo]
                                   ["/text" 'bar]]]
-                        "/blog/articles/123/index.html")
+                        )
            {:handler 'foo :params {:id "123"}}))))
 
 (deftest unmatching-routes-test
@@ -56,24 +60,24 @@
     (testing "unmatching"
 
       (is
-       (= (path-for routes 'blog-index)
+       (= (path-for 'blog-index routes)
           "/blog/index.html"))
       (is
-       (= (path-for routes 'blog-article-handler :id 1239)
+       (= (path-for 'blog-article-handler routes :id 1239)
           "/blog/article/1239.html"))
       (is
        ;; If not all the parameters are specified we expect an error to be thrown
-       (thrown? clojure.lang.ExceptionInfo (path-for routes 'archive-handler :id 1239)
+       (thrown? clojure.lang.ExceptionInfo (path-for 'archive-handler routes :id 1239)
                 "/blog/archive/1239/section.html"))
       (is
-       (= (path-for routes 'archive-handler :id 1239 :page "section")
+       (= (path-for 'archive-handler routes :id 1239 :page "section")
           "/blog/archive/1239/section.html"))
       (is
-       (= (path-for routes 'image-handler :path "")
+       (= (path-for 'image-handler routes :path "")
           "/images/"))
 
       (is
-       (= (path-for routes 'image-handler :path "123.png")
+       (= (path-for 'image-handler routes :path "123.png")
           "/images/123.png")))
 
     (testing "unmatching with constraints"
@@ -82,9 +86,9 @@
                           [[:get [[["/index"] :index]]]
                            [{:request-method :post :server-name "juxt.pro"}
                             [[["/articles/" :artid] :new-article-handler]]]]]]]]
-        (is (= (path-for routes :index)
+        (is (= (path-for :index routes)
                "/blog/index"))
-        (is (= (path-for routes :new-article-handler :artid 10)
+        (is (= (path-for :new-article-handler routes :artid 10)
                "/blog/articles/10"))))))
 
 (deftest make-handler-test
