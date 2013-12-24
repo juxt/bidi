@@ -149,7 +149,8 @@
   (unresolve-handler [this m] (when (= this (:handler m)) ""))
 
   Fn
-  (resolve-handler [this m] (succeed this m)))
+  (resolve-handler [this m] (succeed this m))
+  (unresolve-handler [this m] nil))
 
 (defn match-route
   "Given a route definition data structure and a path, return the
