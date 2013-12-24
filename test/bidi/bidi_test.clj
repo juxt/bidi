@@ -149,7 +149,7 @@
                            [[:get
                              [["/index"
                                (fn [req] {:status 200 :body "Index"})]
-                              [["/article/" :artid "/index.html"]
+                              [["/article/" :artid "/article.html"]
                                (fn [req] {:status 200 :body (get-in req [:route-params :artid])})]
                               [["/article/" :artid "/another.html"]
                                (fn [req] {:status 200 :body (get-in req [:params :artid])})]]]
@@ -163,7 +163,7 @@
              {:status 201 :body "Created"}))
       (is (nil? (handler (request :post "/blog/zip"))))
       (testing "artid makes it into :route-params")
-      (is (= (handler (request :get "/blog/article/123/index.html"))
+      (is (= (handler (request :get "/blog/article/123/article.html"))
              {:status 200 :body "123"}))
       (testing "artid makes it into :params"
         (is (= (handler (request :get "/blog/article/123/another.html"))

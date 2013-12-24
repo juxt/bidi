@@ -92,10 +92,10 @@ development).
 ### Mutliple routes
 
 Let's pretend we have some articles in our blog and each article URI
-matches the pattern `/articles/:id/index.html` where `:id` is the unique
+matches the pattern `/articles/:id/article.html` where `:id` is the unique
 article number. Rather than including 'special' characters in strings,
 we construct the pattern in segments using a simple Clojure vector:
-`["/articles/" :id "index.html"]`. We combine this route with our
+`["/articles/" :id "article.html"]`. We combine this route with our
 existing `:index` route inside another vector.
 
 ```clojure
@@ -142,10 +142,10 @@ routes to form a Ring handler (similar to what Compojure's `routes` and
 (require '[bidi.bidi :refer (make-handler)])
 
 (def handler
-  (make-handler ["/blog"
-                 [["/index.html" blog-index]
-                  [["/article/" :id ".html"] blog-article-handler]
-                  [["/archive/" :id "/old.html"] (fn [req] {:status 404}]]]))
+  (make-handler ["/" [
+                      ["index.html" :index]
+                      [["articles/" :id "/article.html"] :article]
+                     ]])
 ```
 
 ## Guards
