@@ -40,7 +40,7 @@ do. Separation of concerns and all that.
 Add the following dependency to your `project.clj` file
 
 ```clojure
-[bidi "1.1.0"]
+[bidi "1.3.0"]
 ```
 
 ## Take 5 minutes to learn bidi (using the REPL)
