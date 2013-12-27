@@ -45,6 +45,27 @@ you can match on things that aren't necessarily handlers, like keywords
 which you can use to lookup your handlers, or whatever you want to
 do. Separation of concerns and all that.
 
+## Comparison with other routing libraries
+
+<table>
+<thead>
+<tr>
+<th>Library</th>
+<th>Route syntax</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Compojure</td>
+<td>Macros</td>
+</tr>
+<tr>
+<td>bidi</td>
+<td>Data literals</td>
+</tr>
+</tbody>
+</table>
+
 ## Installation
 
 Add the following dependency to your `project.clj` file
