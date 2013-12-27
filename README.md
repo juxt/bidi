@@ -72,11 +72,11 @@ There are numerous Clojure routing libraries. The table below is designed to per
 </tr>
 <tr>
 <td>Bidirectional?</td>
-<td style="background: #800">No</td>
-<td style="background: #080">Yes</td>
-<td style="background: #080">Yes</td>
-<td style="background: #080">Yes</td>
-<td style="background: #080">Yes</td>
+<td style="background-color: #800">No</td>
+<td style="background-color: #080">Yes</td>
+<td style="background-color: #080">Yes</td>
+<td style="background-color: #080">Yes</td>
+<td style="background-color: #080">Yes</td>
 </tr>
 <tr>
 <td>Extensible via types?</td>
