@@ -232,12 +232,13 @@ Consider the following route definition.
         ["/old" (bidi.bidi.Redirect. 307 my-handler)]]]
 ```
 
-Any requests to `/articles/old` yield [*307 Temporary Redirect*](http://en.wikipedia.org/wiki/HTTP_307#3xx_Redirection)
-responses with a *Location* header of `/articles/new`. This is a nice way
-of forming redirects in your code, since it guarantees that the
+Any requests to `/articles/old` yield
+[*307 Temporary Redirect*](http://en.wikipedia.org/wiki/HTTP_307#3xx_Redirection)
+responses with a *Location* header of `/articles/new`. This is a robust
+way of forming redirects in your code, since it guarantees that the
 *Location URI* matches an existing handler, both reducing the chance of
 broken links and encouraging the practise of retaining old URIs (linking
-to new ones) after refactoring.
+to new ones) after refactoring. You can also use it for the common practice of adding a *welcome page* suffix, for example, adding `index.html` to a URI ending in `/`.
 
 ## License
 
