@@ -75,7 +75,7 @@ There are numerous Clojure routing libraries. The table below is designed to per
 <td>Yes</td>
 </tr>
 <tr>
-<td><a href="https://github.com/clojurewerkz/route-one">Pedestal</a></td>
+<td><a href="http://pedestal.io/">Pedestal</a></td>
 <td>Data literals</td>
 <td>Yes</td>
 <td>No</td>
