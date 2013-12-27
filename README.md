@@ -8,12 +8,7 @@ quote.
 
 Bi-directional URI dispatch. Like
 [Compojure](https://github.com/weavejester/compojure), but when you want
-to go both ways. For example, many routing libraries can route a URI to
-a request handler, but only some of these (for example,
-[Pedestal](http://pedestal.io),
-[gudu](https://github.com/thatismatt/gudu)) can take a reference to a
-handler, plus some environment, and generate a URI. If you are serving
-REST resources, you should be
+to go both ways. If you are serving REST resources, you should be
 [providing links](http://en.wikipedia.org/wiki/HATEOAS) to other
 resources, and without full support for generating URIs from handlers
 your code will become coupled with your routing. In short, hard-coded
