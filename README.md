@@ -49,7 +49,8 @@ Let's create a route that matches `/index.html`. Routes are pairs, the
 first element is always a pattern.
 
 ```clojure
-user> (def route ["/index.html" :index])
+    user> (def route ["/index.html" :index])
+    #'user/route
 ```
 
 Let's try to match that route to a path.
@@ -91,22 +92,67 @@ development).
 
 ### Mutliple routes
 
-Let's pretend we have some articles in our blog and each article URI
-matches the pattern `/articles/:id/article.html` where `:id` is the unique
-article number. Rather than including 'special' characters in strings,
-we construct the pattern in segments using a simple Clojure vector:
-`["/articles/" :id "/article.html"]`. We combine this route with our
-existing `:index` route inside another vector.
+Now let's suppose we have 2 routes. We match on their common prefix (or
+use `""` if necessary) and the 2 routes are contained in a vector.
 
 ```clojure
     user> (def routes ["/" [
             ["index.html" :index]
-            [["articles/" :id "/article.html"] :article]
+            ["article.html" :article]
            ]])
     #'user/routes
 ```
 
-Now we can match on an article path.
+Since each element in the vector is itself a route, you can nest these
+recursively.
+
+```clojure
+    user> (def routes ["/" [
+            ["index.html" :index]
+            ["articles/" [
+              ["index.html" :article-index]
+              ["article.html" :article]
+            ]]
+           ]])
+    #'user/routes
+```
+
+We can match these routes as before :-
+
+```clojure
+user> (match-route "/index.html" routes)
+{:handler :index}
+user> (match-route "/articles/article.html" routes)
+{:handler :article}
+```
+
+and in reverse too :-
+
+```clojure
+user> (path-for :article-index routes)
+"/articles/index.html"
+```
+
+### Route patterns
+
+It's common to want to match on a pattern or template, extracting some
+variable from the URI. Rather than including special characters in
+strings, we construct the pattern in segments using a Clojure vector
+`[:id "/article.html"]`. This vector replaces the string we had in the
+left hand side of the route pair.
+
+```clojure
+    user> (def routes ["/" [
+            ["index.html" :index]
+            ["articles/" [
+              ["index.html" :article-index]
+              [[:id "/article.html"] :article]
+            ]]
+           ]])
+    #'user/routes
+```
+
+Now, when we match on an article path, the keyword values are extracted into a map.
 
 ```clojure
 user> (match-route "/articles/123/article.html" routes)
@@ -114,9 +160,6 @@ user> (match-route "/articles/123/article.html" routes)
 user> (match-route "/articles/999/article.html" routes)
 {:handler :article, :params {:id "999"}}
 ```
-
-The result is a map as before. This time it includes a `:params` entry
-with a map of route parameters.
 
 To generate the path we need to supply the value of `:id` as extra
 arguments to the `path-for` function.
@@ -127,6 +170,8 @@ user> (path-for :article routes :id 123)
 user> (path-for :article routes :id 999)
 "/articles/999/article.html"
 ```
+
+If you don't specify a required parameter an exception is thrown.
 
 Apart from a few extra bells and whistles documented in the rest of this
 README, that's basically it.
