@@ -228,8 +228,8 @@ Consider the following route definition.
 
     ["/articles"
       [
-        ["/new" content-handler]
-        ["/old" (bidi.bidi.Redirect. 307 content-handler)]]]
+        ["/new" my-handler]
+        ["/old" (bidi.bidi.Redirect. 307 my-handler)]]]
 ```
 
 Any requests to `/articles/old` return a *307 Temporary Redirect*
