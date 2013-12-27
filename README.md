@@ -47,6 +47,8 @@ do. Separation of concerns and all that.
 
 ## Comparison with other routing libraries
 
+There are numerous Clojure routing libraries. The table below is designed to persuade you to consider bidi.
+
 <table>
 <thead>
 <tr>
@@ -54,6 +56,7 @@ do. Separation of concerns and all that.
 <th>Route syntax</th>
 <th>Bidirectional?</th>
 <th>Extensible via types?</th>
+<th>Independent library?</th>
 </tr>
 </thead>
 <tbody>
@@ -62,11 +65,20 @@ do. Separation of concerns and all that.
 <td>Macros</td>
 <td>No</td>
 <td>No</td>
+<td>Yes</td>
 </tr>
 <tr>
 <td><a href="https://github.com/clojurewerkz/route-one">RouteOne</a></td>
 <td>Macros</td>
 <td>Yes</td>
+<td>No</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><a href="https://github.com/clojurewerkz/route-one">Pedestal</a></td>
+<td>Data literals</td>
+<td>Yes</td>
+<td>No</td>
 <td>No</td>
 </tr>
 <tr>
@@ -74,10 +86,12 @@ do. Separation of concerns and all that.
 <td>Data literals</td>
 <td>Yes</td>
 <td>No</td>
+<td>Yes</td>
 </tr>
 <tr>
 <td>bidi</td>
 <td>Data literals</td>
+<td>Yes</td>
 <td>Yes</td>
 <td>Yes</td>
 </tr>
