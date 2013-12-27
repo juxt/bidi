@@ -24,12 +24,22 @@ speaking, data structures are to be preferred over code structures. When
 routes are defined in a data structure there are numerous
 advantages - they can be read in from a configuration file, generated,
 computed, transformed by functions and introspected - all things which
-macro-based DSLs make harder. This project also avoids 'terse' forms for
-the route definitions, it is better to learn and live with a single data
-structure.
+macro-based DSLs make harder.
 
-The logic for matching routes is separated from the responsibility for
-handling requests. This is an important
+For example, suppose you wanted to use the same set of routes in your
+application and in your production [Nginx](http://wiki.nginx.org/Main)
+or [HAProxy](http://haproxy.1wt.eu/) configuration. Having your routes
+defined in a single data structure means you can programmatically
+generate your configuration, making your environments easier to manage
+and reducing the chance of discrepancies.
+
+bidi also avoids 'terse' forms for the route definitions- reducing the
+number of parsing rules for the data structure is valued over
+convenience for the programmer. Convenience can always be added later
+with macros.
+
+Finally, the logic for matching routes is separated from the
+responsibility for handling requests. This is an important
 [architectural principle](http://www.infoq.com/presentations/Simple-Made-Easy). So
 you can match on things that aren't necessarily handlers, like keywords
 which you can use to lookup your handlers, or whatever you want to
