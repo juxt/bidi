@@ -52,16 +52,34 @@ do. Separation of concerns and all that.
 <tr>
 <th>Library</th>
 <th>Route syntax</th>
+<th>Bidirectional?</th>
+<th>Extensible via types?</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Compojure</td>
+<td><a href="https://github.com/weavejester/compojure">Compojure</a></td>
 <td>Macros</td>
+<td>No</td>
+<td>No</td>
+</tr>
+<tr>
+<td><a href="https://github.com/clojurewerkz/route-one">RouteOne</a></td>
+<td>Macros</td>
+<td>Yes</td>
+<td>No</td>
+</tr>
+<tr>
+<td><a href="https://github.com/thatismatt/gudu">gudu</a></td>
+<td>Data literals</td>
+<td>Yes</td>
+<td>No</td>
 </tr>
 <tr>
 <td>bidi</td>
 <td>Data literals</td>
+<td>Yes</td>
+<td>Yes</td>
 </tr>
 </tbody>
 </table>
