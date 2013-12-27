@@ -183,7 +183,7 @@ user> (path-for :article routes :id 999)
 If you don't specify a required parameter an exception is thrown.
 
 Apart from a few extra bells and whistles documented in the rest of this
-README, that's basically it.
+README, that's basically it. Your five minutes are up!
 
 ## Wrapping as a Ring handler
 
