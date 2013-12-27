@@ -95,7 +95,7 @@ Let's pretend we have some articles in our blog and each article URI
 matches the pattern `/articles/:id/article.html` where `:id` is the unique
 article number. Rather than including 'special' characters in strings,
 we construct the pattern in segments using a simple Clojure vector:
-`["/articles/" :id "article.html"]`. We combine this route with our
+`["/articles/" :id "/article.html"]`. We combine this route with our
 existing `:index` route inside another vector.
 
 ```clojure
