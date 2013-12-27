@@ -79,19 +79,19 @@ There are numerous Clojure routing libraries. The table below is designed to per
 <td>Yes</td>
 </tr>
 <tr>
-<td>Extensible via types?</td>
-<td>No</td>
-<td>No</td>
-<td>No</td>
-<td>No</td>
-<td>Yes</td>
-</tr>
-<tr>
 <td>Independent library?</td>
 <td>Yes</td>
 <td>Yes</td>
 <td>No</td>
 <td>Yes</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Extensible via types?</td>
+<td>No</td>
+<td>No</td>
+<td>No</td>
+<td>No</td>
 <td>Yes</td>
 </tr>
 </tbody>
