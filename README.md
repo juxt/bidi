@@ -53,47 +53,46 @@ There are numerous Clojure routing libraries. The table below is designed to per
 <thead>
 <tr>
 <th>Library</th>
-<th>Route syntax</th>
-<th>Bidirectional?</th>
-<th>Extensible via types?</th>
-<th>Independent library?</th>
+<th><a href="https://github.com/weavejester/compojure">Compojure</a></th>
+<th><a href="https://github.com/clojurewerkz/route-one">RouteOne</a></th>
+<th><a href=""http://pedestal.io/">Pedestal</a></th>
+<th><a href="https://github.com/thatismatt/gudu">gudu</a></th>
+<th>bidi</th>
+</tr>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><a href="https://github.com/weavejester/compojure">Compojure</a></td>
+<td>Route syntax</td>
 <td>Macros</td>
-<td>No</td>
-<td>No</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td><a href="https://github.com/clojurewerkz/route-one">RouteOne</a></td>
 <td>Macros</td>
-<td>Yes</td>
-<td>No</td>
-<td>Yes</td>
+<td>Data literals</td>
+<td>Data literals</td>
+<td>Data literals</td>
 </tr>
 <tr>
-<td><a href="http://pedestal.io/">Pedestal</a></td>
-<td>Data literals</td>
-<td>Yes</td>
-<td>No</td>
-<td>No</td>
+<td>Bidirectional?</td>
+<td style="background: #800">No</td>
+<td style="background: #080">Yes</td>
+<td style="background: #080">Yes</td>
+<td style="background: #080">Yes</td>
+<td style="background: #080">Yes</td>
 </tr>
 <tr>
-<td><a href="https://github.com/thatismatt/gudu">gudu</a></td>
-<td>Data literals</td>
-<td>Yes</td>
-<td>No</td>
-<td>Yes</td>
+<td>Extensible via types?</td>
+<td style="background: #800">No</td>
+<td style="background: #800">No</td>
+<td style="background: #800">No</td>
+<td style="background: #800">No</td>
+<td style="background: #080">Yes</td>
 </tr>
 <tr>
-<td>bidi</td>
-<td>Data literals</td>
-<td>Yes</td>
-<td>Yes</td>
-<td>Yes</td>
+<td>Independent library?</td>
+<td style="background: #080">Yes</td>
+<td style="background: #080">Yes</td>
+<td style="background: #800">No</td>
+<td style="background: #080">Yes</td>
+<td style="background: #080">Yes</td>
 </tr>
 </tbody>
 </table>
