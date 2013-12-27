@@ -83,7 +83,7 @@ user> (path-for :index route)
 
 We ask bidi to use the same route definition to tell us the path that
 would match the `:index` hander. In this case, it tells us
-`index.html`. So if you were generating a link to this handler from
+`/index.html`. So if you were generating a link to this handler from
 another page, you could use this function in your view logic to create
 the link instead of hardcoding in the view template (This gives your
 code more resiliance to changes in the organisation of routes during
