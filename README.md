@@ -204,14 +204,12 @@ routes to form a Ring handler (similar to what Compojure's `routes` and
 
 ## Guards
 
-### Method guards
-
 By default, routes don't dispatch on the request method and behave like
 Compojure's `ANY` routes. That's fine if your handlers deal with the
 request methods themselves, as
 [Liberator](http://clojure-liberator.github.io/liberator/)'s
 do. However, you can specify a method by wrapping a route (or routes) in
-a pair, where the first element is a keyword denoting the methods.
+a pair, using a method-denoting keyword for the pattern.
 
 ```clojure
 ["/"
@@ -219,13 +217,13 @@ a pair, where the first element is a keyword denoting the methods.
    [[:get [["/index" (fn [req] {:status 200 :body "Index"})]]]]]]]
 ```
 
-### Other guards
+You can also restrict routes by any other request criteria. Guards are
+specified by maps. Map entries can specify a single value, a set of
+possible values or even a predicate to test a value.
 
-You can also restrict routes by other criteria. In this example, the
-`/zip` route is only matched if the server name in the request is
-`juxt.pro`. Guards are specified by maps. Map entries can specify a
-single value, a set of possible values or even a predicate to test a
-value.
+In this example, the `/zip` route is only matched if the server name in
+the request is `juxt.pro`. You can use this feature to restrict routes
+to virtual hosts or HTTP schemes.
 
 ```clojure
 ["/"
@@ -235,6 +233,9 @@ value.
      [["/zip" (fn [req] {:status 201 :body "Created"})]]]]
    ]]]
 ```
+
+Values in the guard map can be values, or predicate functions which afford
+greater control over the dispatch criteria.
 
 ## Route definitions
 
