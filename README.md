@@ -205,7 +205,7 @@ Path ::= String
 
 PatternSegment ::= String | Regex | Keyword | [ (String | Regex) Keyword ]
 
-Matched ::= Function | Symbol | Keyword | RoutePair | [ RoutePair+ ]
+Matched ::= Function | Symbol | Keyword | [ RoutePair+ ]
 ```
 
 ## Composeability
