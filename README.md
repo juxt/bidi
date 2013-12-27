@@ -45,8 +45,7 @@ Add the following dependency to your `project.clj` file
 
 ## Take 5 minutes to learn bidi (using the REPL)
 
-Let's create a route that matches `/index.html`. Routes are pairs, the
-first element is always a pattern.
+Let's create a route that matches `/index.html`. Routes are pairs: [*<pattern>* *<matched>*].
 
 ```clojure
     user> (def route ["/index.html" :index])
