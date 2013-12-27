@@ -112,6 +112,19 @@
                "/blog/articles/123abc/index.html"))
         ))))
 
+
+(deftest unmatching-routes-with-anonymous-fns-test
+  (testing "unmatching when routes contains a ref to anonymous function(s) should not throw exception"
+    (let [routes
+          ["/blog" [["/index.html" (fn [req] {:status 200 :body "Index"})]
+                    ["/list" 'list-blogs]
+                    ["/temp.html" :temp-html]]]]
+      (is (= (path-for 'list-blogs routes)
+             "/blog/list"))
+      (is (= (path-for :temp-html routes)
+             "/blog/temp.html")))))
+
+
 (deftest make-handler-test
 
   (testing "routes"
