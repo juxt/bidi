@@ -232,7 +232,7 @@ Consider the following route definition.
         ["/old" (bidi.bidi.Redirect. 307 my-handler)]]]
 ```
 
-Any requests to `/articles/old` yield *307 Temporary Redirect*
+Any requests to `/articles/old` yield [*307 Temporary Redirect*](http://en.wikipedia.org/wiki/HTTP_307#3xx_Redirection)
 responses with a *Location* header of `/articles/new`. This is a nice way
 of forming redirects in your code, since it guarantees that the
 *Location URI* matches an existing handler, both reducing the chance of
