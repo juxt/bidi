@@ -11,7 +11,7 @@
 
 (ns bidi.bidi
   (:import
-   (clojure.lang PersistentVector Symbol Keyword PersistentArrayMap Fn)))
+   (clojure.lang PersistentVector Symbol Keyword PersistentArrayMap PersistentHashSet Fn LazySeq Var)))
 
 ;; A PatternSegment is part of a segmented pattern, where the pattern is
 ;; given as a vector. Each segment can be of a different type, and each
@@ -23,7 +23,6 @@
   (param-key [_])
   (unmatch-segment [_ params])
   (matches? [_ s]))
-
 
 (extend-protocol PatternSegment
   String
@@ -99,7 +98,7 @@
   (unmatch-pattern [this _] this)
 
   java.util.regex.Pattern
-  (match-pattern [this m] (match-beginning (.pattern this) m))
+  (match-pattern [this m] (match-beginning (match-segment this) m))
 
   Boolean
   (match-pattern [this m] (when this m))
@@ -140,7 +139,15 @@
   (resolve-handler [this m] (first (keep #(match-pair % m) this)))
   (unresolve-handler [this m] (first (keep #(unmatch-pair % m) this)))
 
+  LazySeq
+  (resolve-handler [this m] (first (keep #(match-pair % m) this)))
+  (unresolve-handler [this m] (first (keep #(unmatch-pair % m) this)))
+
   Symbol
+  (resolve-handler [this m] (succeed this m))
+  (unresolve-handler [this m] (when (= this (:handler m)) ""))
+
+  Var
   (resolve-handler [this m] (succeed this m))
   (unresolve-handler [this m] (when (= this (:handler m)) ""))
 
@@ -150,13 +157,15 @@
 
   Fn
   (resolve-handler [this m] (succeed this m))
-  (unresolve-handler [this m] nil))
+  (unresolve-handler [this m] (when (= this (:handler m)) "")))
 
 (defn match-route
   "Given a route definition data structure and a path, return the
   handler, if any, that matches the path."
   [path route & {:as options}]
-  (match-pair route (merge options {:remainder path})))
+  (->
+   (match-pair route (merge options {:remainder path :routeset route}))
+   (dissoc :routeset)))
 
 (defn path-for
   "Given a route definition data structure and an option map, return a
@@ -176,3 +185,20 @@
         (handler (-> request
                      (assoc :route-params params)
                      (update-in [:params] #(merge params %))))))))
+
+;; Any types can be used which satisfy bidi protocols.
+
+;; Here are some built-in ones.
+
+;; The Redirect can be matched (appear on the right-hand-side of a
+;; route) and returns a handler that can redirect to the given target.
+(defrecord Redirect [status target]
+  Matched
+  (resolve-handler [this m]
+    (when (= "" (:remainder m))
+      (assoc (dissoc m :remainder)
+        :handler (fn [req]
+                   {:status status
+                    :headers {"Location" (path-for target (:routeset m))}
+                    :body ""}))))
+  (unresolve-handler [this m] nil))

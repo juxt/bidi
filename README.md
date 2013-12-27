@@ -219,6 +219,25 @@ number of parenthesis needed to create route structures by hand.
 The implementation is based on Clojure protocols which allows the route
 syntax to be extended outside of this library.
 
+An example `Redirect` record is included which satisfies the `Matched` protocol.
+
+Consider the following route definition.
+
+```clojure
+    (defn my-handler [req] {:status 200 :body "Hello World!"})
+
+    ["/articles"
+      [
+        ["/new" content-handler]
+        ["/old" (bidi.bidi.Redirect. 307 content-handler)]]]
+```
+
+Any requests to `/articles/old` return a *307 Temporary Redirect*
+response with a *Location* header of `/articles/new`. This is a nice way
+of forming redirects in your code, since it guarantees that the
+*Location URI* matches an existing handler, again reducing the chance of
+broken links.
+
 ## License
 
 Copyright © 2013, JUXT LTD. All Rights Reserved.

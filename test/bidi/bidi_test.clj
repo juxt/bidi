@@ -186,3 +186,13 @@
                                      {:artid "foo"})
                             (assoc :params {:artid "foo"})))
                {:status 200 :body "foo"}))))))
+
+(deftest redirect-test
+
+  (let [content-handler (fn [req] {:status 200 :body "Some content"})
+        routes ["/articles"
+                [["/new" content-handler]
+                 ["/old" (bidi.bidi.Redirect. 307 content-handler)]]]
+        handler (make-handler routes)]
+    (is (= (handler (request :get "/articles/old"))
+           {:status 307, :headers {"Location" "/articles/new"}, :body ""} ))))
