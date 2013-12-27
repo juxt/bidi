@@ -235,8 +235,9 @@ Consider the following route definition.
 Any requests to `/articles/old` return a *307 Temporary Redirect*
 response with a *Location* header of `/articles/new`. This is a nice way
 of forming redirects in your code, since it guarantees that the
-*Location URI* matches an existing handler, again reducing the chance of
-broken links.
+*Location URI* matches an existing handler, both reducing the chance of
+broken links and encouraging the practise of retaining old URIs (linking
+to new ones) after refactoring.
 
 ## License
 
