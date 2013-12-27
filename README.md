@@ -47,7 +47,7 @@ do. Separation of concerns and all that.
 
 ## Comparison with other routing libraries
 
-There are numerous Clojure routing libraries. The table below is designed to persuade you to consider bidi.
+There are numerous Clojure routing libraries. Here's a table to help you compare.
 
 <table>
 <thead>
@@ -88,6 +88,22 @@ There are numerous Clojure routing libraries. The table below is designed to per
 </tr>
 <tr>
 <td>Extensible via types?</td>
+<td>No</td>
+<td>No</td>
+<td>No</td>
+<td>No</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Based on protocols?</td>
+<td>No</td>
+<td>No</td>
+<td>No</td>
+<td>No</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Name begins with a B?</td>
 <td>No</td>
 <td>No</td>
 <td>No</td>
