@@ -330,7 +330,7 @@ Matched ::= Function | Symbol | Keyword | [ RoutePair+ ]
 
 Route structures are composeable. They are consistent and easy to
 generate. A future version of bidi may contain macros to reduce the
-number of parenthesis needed to create route structures by hand.
+number of brackets needed to create route structures by hand.
 
 ## Extensibility
 
