@@ -108,7 +108,7 @@ There are numerous Clojure routing libraries. Here's a table to help you compare
 <td>No</td>
 <td>No</td>
 <td>No</td>
-<td>Yes</td>
+<td>Yes!</td>
 </tr>
 </tbody>
 </table>
