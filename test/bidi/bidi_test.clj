@@ -208,3 +208,12 @@
 
     (is (= (path-for handler ["/index.html" (bidi.bidi.WrapMiddleware. handler wrap-test)]) "/index.html"))
     (is (= (path-for handler ["/index.html" handler]) "/index.html"))))
+
+
+(deftest wrap-alternates-test
+
+  (let [routes [(bidi.bidi.Alternates. ["/index.html" "/index"]) :index]]
+    (is (= (match-route "/index.html" routes) {:handler :index}))
+    (is (= (match-route "/index" routes) {:handler :index}))
+    (is (=(path-for :index routes) "/index.html")) ; first is the canonical one
+    ))

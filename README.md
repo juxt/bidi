@@ -10,7 +10,7 @@ Bi-directional URI dispatch. Like
 [Compojure](https://github.com/weavejester/compojure), but when you want
 to go both ways. If you are serving REST resources, you should be
 [providing links](http://en.wikipedia.org/wiki/HATEOAS) to other
-resources, and without full support for generating URIs from handlers
+resources, and without full support for forming URIs from handlers
 your code will become coupled with your routing. In short, hard-coded
 URIs will eventually break.
 
@@ -154,7 +154,7 @@ user> (path-for :index route)
 
 We ask bidi to use the same route definition to tell us the path that
 would match the `:index` hander. In this case, it tells us
-`/index.html`. So if you were generating a link to this handler from
+`/index.html`. So if you were forming a link to this handler from
 another page, you could use this function in your view logic to create
 the link instead of hardcoding in the view template (This gives your
 code more resiliance to changes in the organisation of routes during
@@ -231,7 +231,7 @@ user> (match-route "/articles/999/article.html" routes)
 {:handler :article, :params {:id "999"}}
 ```
 
-To generate the path we need to supply the value of `:id` as extra
+To form the path we need to supply the value of `:id` as extra
 arguments to the `path-for` function.
 
 ```clojure
@@ -335,7 +335,15 @@ number of brackets needed to create route structures by hand.
 The implementation is based on Clojure protocols which allows the route
 syntax to be extended outside of this library.
 
-An example `Redirect` record is included which satisfies the `Matched` protocol.
+Built in types are available but you can also create your own. Here are
+a list of the built-in ones, it should give you an idea what is
+possible. If you add your own types, please consider contributing them
+to the project so that others can benefit. Make sure you test that your
+types in both directions (for URI matching and formation).
+
+### Redirect
+
+The `Redirect` record is included which satisfies the `Matched` protocol.
 
 Consider the following route definition.
 
@@ -355,6 +363,42 @@ way of forming redirects in your code, since it guarantees that the
 *Location URI* matches an existing handler, both reducing the chance of
 broken links and encouraging the practise of retaining old URIs (linking
 to new ones) after refactoring. You can also use it for the common practice of adding a *welcome page* suffix, for example, adding `index.html` to a URI ending in `/`.
+
+### WrapMiddleware
+
+You can wrap the resulting handler in Ring middleware as usual. But
+sometimes you need to specify that the handlers from certain patterns
+are wrapped in particular middleware.
+
+For example :-
+
+```clojure
+(match-route "/index.html" ["/index.html" (bidi.bidi.WrapMiddleware. handler wrap-params)])
+```
+
+### Alternates
+
+Sometimes you want to specify a list of potential candidate patterns,
+which each match the handler. The first in the list is considered the
+canonical pattern for the purposes of URI formation.
+
+```clojure
+[(bidi.bidi.Alternates. ["/index.html" "/index"]) :index]
+```
+
+Any pattern can be used in the list. This allows quite sophisticated matching. For example, if you want to match on requests that are either HEAD or GET but not anything else.
+
+```clojure
+[(bidi.bidi.Alternates. [:head :get]) :index]
+```
+
+Or match is the server name is `juxt.pro` or `localhost`.
+
+```clojure
+    [(bidi.bidi.Alternates. [{:server-name "juxt.pro"}{:server-name "localhost"}])
+      [ ["/index.html" :index] ]
+    ]
+```
 
 ## Contributing
 

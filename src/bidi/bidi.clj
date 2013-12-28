@@ -190,8 +190,8 @@
 
 ;; Here are some built-in ones.
 
-;; The Redirect can be matched (appear on the right-hand-side of a
-;; route) and returns a handler that can redirect to the given target.
+;; Redirect can be matched (appear on the right-hand-side of a route)
+;; and returns a handler that can redirect to the given target.
 (defrecord Redirect [status target]
   Matched
   (resolve-handler [this m]
@@ -203,6 +203,8 @@
                     :body ""}))))
   (unresolve-handler [this m] nil))
 
+;; WrapMiddleware can be matched (appear on the right-hand-side of a route)
+;; and returns a handler wrapped in the given middleware.
 (defrecord WrapMiddleware [matched middleware]
   Matched
   (resolve-handler [this m] (let [r (resolve-handler matched m)]
@@ -211,3 +213,14 @@
                                 r
                                 )))
   (unresolve-handler [this m] (unresolve-handler matched m))) ; pure delegation
+
+;; Alternates can be used as a pattern. It is constructed with a vector
+;; of possible matching candidates. If one of the candidates matches,
+;; the route is matched. The first pattern in the vector is considered
+;; the canonical pattern for the purposes of URI formation with
+;; (path-for).
+(defrecord Alternates [routes]
+  Pattern
+  (match-pattern [this m] (some #(match-pattern % m) routes))
+  (unmatch-pattern [this m] (unmatch-pattern (first routes) m))
+  )
