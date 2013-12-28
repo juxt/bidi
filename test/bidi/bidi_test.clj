@@ -206,7 +206,7 @@
             {:uri "/index.html"})
            {:wrapper :evidence :status 200 :body "Test"}))
 
-    (is (= (path-for handler ["/index.html" (bidi.bidi.WrapMiddleware. handler wrap-test)]) "/index.html"))
+    (is (= (path-for handler ["/index.html" (bidi.bidi.WrapMiddleware. handler wrapper)]) "/index.html"))
     (is (= (path-for handler ["/index.html" handler]) "/index.html"))))
 
 
