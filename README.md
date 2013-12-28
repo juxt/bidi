@@ -160,7 +160,7 @@ the link instead of hardcoding in the view template (This gives your
 code more resiliance to changes in the organisation of routes during
 development).
 
-### Mutliple routes
+### Multiple routes
 
 Now let's suppose we have 2 routes. We match on their common prefix (or
 use `""` if necessary) and the 2 routes are contained in a vector.
