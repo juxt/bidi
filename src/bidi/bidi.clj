@@ -11,7 +11,7 @@
 
 (ns bidi.bidi
   (:import
-   (clojure.lang PersistentVector Symbol Keyword PersistentArrayMap PersistentHashSet Fn LazySeq Var)))
+   (clojure.lang PersistentVector Symbol Keyword PersistentArrayMap PersistentHashSet PersistentList Fn LazySeq Var)))
 
 ;; A PatternSegment is part of a segmented pattern, where the pattern is
 ;; given as a vector. Each segment can be of a different type, and each
@@ -202,3 +202,12 @@
                     :headers {"Location" (path-for target (:routeset m))}
                     :body ""}))))
   (unresolve-handler [this m] nil))
+
+(defrecord WrapMiddleware [matched middleware]
+  Matched
+  (resolve-handler [this m] (let [r (resolve-handler matched m)]
+                              (if-let [handler (:handler r)]
+                                (update-in r [:handler] middleware)
+                                r
+                                )))
+  (unresolve-handler [this m] (unresolve-handler matched m))) ; pure delegation

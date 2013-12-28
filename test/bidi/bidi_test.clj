@@ -196,3 +196,15 @@
         handler (make-handler routes)]
     (is (= (handler (request :get "/articles/old"))
            {:status 307, :headers {"Location" "/articles/new"}, :body ""} ))))
+
+
+(deftest wrap-middleware-test
+
+  (let [wrapper (fn [h] (fn [req] (assoc (h req) :wrapper :evidence)))
+        handler (fn [req] {:status 200 :body "Test"})]
+    (is (= ((:handler (match-route "/index.html" ["/index.html" (bidi.bidi.WrapMiddleware. handler wrapper)]))
+            {:uri "/index.html"})
+           {:wrapper :evidence :status 200 :body "Test"}))
+
+    (is (= (path-for handler ["/index.html" (bidi.bidi.WrapMiddleware. handler wrap-test)]) "/index.html"))
+    (is (= (path-for handler ["/index.html" handler]) "/index.html"))))
