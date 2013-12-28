@@ -86,16 +86,7 @@ There are numerous Clojure routing libraries. Here's a table to help you compare
 <td>Yes</td>
 </tr>
 <tr>
-<td>Extensible via types?</td>
-<td>No</td>
-<td>No</td>
-<td>No</td>
-<td>No</td>
-<td>No</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td>Based on protocols?</td>
+<td>Protocol extensibility?</td>
 <td>No</td>
 <td>No</td>
 <td>No</td>
