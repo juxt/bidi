@@ -49,6 +49,7 @@ There are numerous Clojure routing libraries. Here's a table to help you compare
 <tr>
 <th>Library</th>
 <th><a href="https://github.com/weavejester/compojure">Compojure</a></th>
+<th><a href="https://github.com/cgrand/moustache">Moustache</a></th>
 <th><a href="https://github.com/clojurewerkz/route-one">RouteOne</a></th>
 <th><a href="http://pedestal.io/">Pedestal</a></th>
 <th><a href="https://github.com/thatismatt/gudu">gudu</a></th>
@@ -60,6 +61,7 @@ There are numerous Clojure routing libraries. Here's a table to help you compare
 <tr>
 <td>Route syntax</td>
 <td>Macros</td>
+<td>Macro</td>
 <td>Macros</td>
 <td>Data literals</td>
 <td>Data literals</td>
@@ -68,6 +70,7 @@ There are numerous Clojure routing libraries. Here's a table to help you compare
 <tr>
 <td>Bidirectional?</td>
 <td>No</td>
+<td>No</td>
 <td>Yes</td>
 <td>Yes</td>
 <td>Yes</td>
@@ -75,6 +78,7 @@ There are numerous Clojure routing libraries. Here's a table to help you compare
 </tr>
 <tr>
 <td>Independent library?</td>
+<td>Yes</td>
 <td>Yes</td>
 <td>Yes</td>
 <td>No :-(</td>
@@ -87,6 +91,7 @@ There are numerous Clojure routing libraries. Here's a table to help you compare
 <td>No</td>
 <td>No</td>
 <td>No</td>
+<td>No</td>
 <td>Yes</td>
 </tr>
 <tr>
@@ -95,10 +100,12 @@ There are numerous Clojure routing libraries. Here's a table to help you compare
 <td>No</td>
 <td>No</td>
 <td>No</td>
+<td>No</td>
 <td>Yes</td>
 </tr>
 <tr>
 <td>Name begins with a B?</td>
+<td>No</td>
 <td>No</td>
 <td>No</td>
 <td>No</td>
