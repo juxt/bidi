@@ -111,7 +111,7 @@ There are numerous Clojure routing libraries. Here's a table to help you compare
 Add the following dependency to your `project.clj` file
 
 ```clojure
-[bidi "1.4.0"]
+[bidi "1.5.0"]
 ```
 
 ## Take 5 minutes to learn bidi (using the REPL)
