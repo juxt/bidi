@@ -50,7 +50,7 @@ There are numerous Clojure routing libraries. Here's a table to help you compare
 <th>Library</th>
 <th><a href="https://github.com/weavejester/compojure">Compojure</a></th>
 <th><a href="https://github.com/clojurewerkz/route-one">RouteOne</a></th>
-<th><a href=""http://pedestal.io/">Pedestal</a></th>
+<th><a href="http://pedestal.io/">Pedestal</a></th>
 <th><a href="https://github.com/thatismatt/gudu">gudu</a></th>
 <th>bidi</th>
 </tr>
