@@ -356,6 +356,19 @@ way of forming redirects in your code, since it guarantees that the
 broken links and encouraging the practise of retaining old URIs (linking
 to new ones) after refactoring. You can also use it for the common practice of adding a *welcome page* suffix, for example, adding `index.html` to a URI ending in `/`.
 
+## Contributing
+
+We welcome pull requests. If possible, please run the tests and make sure they pass before you submit one.
+
+```
+$ lein test
+
+lein test bidi.bidi-test
+
+Ran 5 tests containing 35 assertions.
+0 failures, 0 errors.
+```
+
 ## License
 
 Copyright © 2013, JUXT LTD. All Rights Reserved.
