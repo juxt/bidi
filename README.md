@@ -116,7 +116,7 @@ Add the following dependency to your `project.clj` file
 
 ## Take 5 minutes to learn bidi (using the REPL)
 
-Let's create a route that matches `/index.html`. All routes are pairs: [ *&lt;pattern&gt;* *&lt;matched&gt;* ]
+Let's create a route that matches `/index.html`.
 
 ```clojure
     user> (def route ["/index.html" :index])
@@ -298,14 +298,29 @@ to virtual hosts or HTTP schemes.
 Values in the guard map can be values, or predicate functions which afford
 greater control over the dispatch criteria.
 
-## Route definitions
+## Definition of a route pair
+
+A route structure is formed as a pair: [ *&lt;pattern&gt;* *&lt;matched&gt;* ]
+
+The left-hand-side of a pair is the pattern. It can match a path, either
+fully or partially. The simplest pattern is a string, but other types of
+patterns are also possible, including segmented paths, regular
+expressions, records, in various combinations.
+
+The right-hand-side indicates the result of the match (in the case that
+the pattern is matched fully) or a route sub-structure that attempts to
+match on the remainder of the path (in the case that the pattern is
+matched partially). The route structure is a recursive structure.
 
 This [BNF](http://en.wikipedia.org/wiki/Backus%E2%80%93Naur_Form)
-grammar describes the structure of the routes definition data
-structures.
+grammar formally defines the basic route structure, although it is
+possible extend these definitions by adding types that satisfy the
+protocols used in bidi.
 
 ```
-RoutePair ::= [Pattern Matched]
+RouteStructure := RoutePair
+
+RoutePair ::= [ Pattern Matched ]
 
 Pattern ::= Path | [ PatternSegment+ ] | MethodGuard | GeneralGuard
 
@@ -323,6 +338,9 @@ PatternSegment ::= String | Regex | Keyword | [ (String | Regex) Keyword ]
 
 Matched ::= Function | Symbol | Keyword | [ RoutePair+ ]
 ```
+
+In case of confusion, refer to bidi examples found in this README and in
+the test suite.
 
 ## Composeability
 
@@ -386,7 +404,9 @@ canonical pattern for the purposes of URI formation.
 [(bidi.bidi.Alternates. ["/index.html" "/index"]) :index]
 ```
 
-Any pattern can be used in the list. This allows quite sophisticated matching. For example, if you want to match on requests that are either HEAD or GET but not anything else.
+Any pattern can be used in the list. This allows quite sophisticated
+matching. For example, if you want to match on requests that are either
+HEAD or GET but not anything else.
 
 ```clojure
 [(bidi.bidi.Alternates. [:head :get]) :index]
@@ -402,7 +422,8 @@ Or match is the server name is `juxt.pro` or `localhost`.
 
 ## Contributing
 
-We welcome pull requests. If possible, please run the tests and make sure they pass before you submit one.
+We welcome pull requests. If possible, please run the tests and make
+sure they pass before you submit one.
 
 ```
 $ lein test
