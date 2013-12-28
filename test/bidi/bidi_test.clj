@@ -192,7 +192,7 @@
   (let [content-handler (fn [req] {:status 200 :body "Some content"})
         routes ["/articles"
                 [["/new" content-handler]
-                 ["/old" (bidi.bidi.Redirect. 307 content-handler)]]]
+                 ["/old" (->Redirect 307 content-handler)]]]
         handler (make-handler routes)]
     (is (= (handler (request :get "/articles/old"))
            {:status 307, :headers {"Location" "/articles/new"}, :body ""} ))))
@@ -202,17 +202,17 @@
 
   (let [wrapper (fn [h] (fn [req] (assoc (h req) :wrapper :evidence)))
         handler (fn [req] {:status 200 :body "Test"})]
-    (is (= ((:handler (match-route "/index.html" ["/index.html" (bidi.bidi.WrapMiddleware. handler wrapper)]))
+    (is (= ((:handler (match-route "/index.html" ["/index.html" (->WrapMiddleware handler wrapper)]))
             {:uri "/index.html"})
            {:wrapper :evidence :status 200 :body "Test"}))
 
-    (is (= (path-for handler ["/index.html" (bidi.bidi.WrapMiddleware. handler wrapper)]) "/index.html"))
+    (is (= (path-for handler ["/index.html" (->WrapMiddleware handler wrapper)]) "/index.html"))
     (is (= (path-for handler ["/index.html" handler]) "/index.html"))))
 
 
 (deftest wrap-alternates-test
 
-  (let [routes [(bidi.bidi.Alternates. ["/index.html" "/index"]) :index]]
+  (let [routes [(->Alternates ["/index.html" "/index"]) :index]]
     (is (= (match-route "/index.html" routes) {:handler :index}))
     (is (= (match-route "/index" routes) {:handler :index}))
     (is (=(path-for :index routes) "/index.html")) ; first is the canonical one

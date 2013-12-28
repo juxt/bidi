@@ -371,7 +371,7 @@ Consider the following route definition.
     ["/articles"
       [
         ["/new" my-handler]
-        ["/old" (bidi.bidi.Redirect. 307 my-handler)]]]
+        ["/old" (->Redirect 307 my-handler)]]]
 ```
 
 Any requests to `/articles/old` yield
@@ -391,7 +391,7 @@ are wrapped in particular middleware.
 For example :-
 
 ```clojure
-(match-route "/index.html" ["/index.html" (bidi.bidi.WrapMiddleware. handler wrap-params)])
+(match-route "/index.html" ["/index.html" (->WrapMiddleware handler wrap-params)])
 ```
 
 ### Alternates
@@ -401,7 +401,7 @@ which each match the handler. The first in the list is considered the
 canonical pattern for the purposes of URI formation.
 
 ```clojure
-[(bidi.bidi.Alternates. ["/index.html" "/index"]) :index]
+[(->Alternates ["/index.html" "/index"]) :index]
 ```
 
 Any pattern can be used in the list. This allows quite sophisticated
@@ -409,13 +409,13 @@ matching. For example, if you want to match on requests that are either
 HEAD or GET but not anything else.
 
 ```clojure
-[(bidi.bidi.Alternates. [:head :get]) :index]
+[(->Alternates [:head :get]) :index]
 ```
 
 Or match is the server name is `juxt.pro` or `localhost`.
 
 ```clojure
-    [(bidi.bidi.Alternates. [{:server-name "juxt.pro"}{:server-name "localhost"}])
+    [(->Alternates [{:server-name "juxt.pro"}{:server-name "localhost"}])
       [ ["/index.html" :index] ]
     ]
 ```
