@@ -412,7 +412,7 @@ HEAD or GET but not anything else.
 [(->Alternates [:head :get]) :index]
 ```
 
-Or match is the server name is `juxt.pro` or `localhost`.
+Or match if the server name is `juxt.pro` or `localhost`.
 
 ```clojure
     [(->Alternates [{:server-name "juxt.pro"}{:server-name "localhost"}])
