@@ -14,6 +14,10 @@
             [bidi.bidi :refer :all]
             [ring.mock.request :refer :all]))
 
+
+
+#_(match-pari "/blog/foo" [true 'foo])
+
 (deftest matching-routes-test
   (testing "misc-routes"
     (is (= (match-route "/blog/foo" ["/blog/foo" 'foo])

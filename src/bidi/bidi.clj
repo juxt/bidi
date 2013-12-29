@@ -76,17 +76,21 @@
   (resolve-handler [_ path])
   (unresolve-handler [_ m]))
 
-(defn match-pair [[pattern matched] m]
-    (when-let [pattern-map (match-pattern pattern m)]
-      (resolve-handler matched (merge m pattern-map))))
+(defn match-pair
+  "A pair contains a pattern to match (either fully or partially) and an
+  expression yielding a handler. The second parameter is a map
+  containing state, including the remaining path."
+  [[pattern matched] match-state]
+  (when-let [match-result (match-pattern pattern match-state)]
+    (resolve-handler matched (merge match-state match-result))))
 
 (defn match-beginning
   "Match the beginning of the :remainder value in m. If matched, update
   the :remainder value in m with the path that remains after matching."
-  [regex-pattern m]
+  [regex-pattern match-state]
   (when-let [path (last (re-matches (re-pattern (str regex-pattern "(.*)"))
-                                    (:remainder m)))]
-      (merge m {:remainder path})))
+                                    (:remainder match-state)))]
+    (assoc match-state :remainder path)))
 
 (defn succeed [handler m]
   (when (= (:remainder m) "")
@@ -94,37 +98,37 @@
 
 (extend-protocol Pattern
   String
-  (match-pattern [this m] (match-beginning (match-segment this) m))
+  (match-pattern [this match-state] (match-beginning (match-segment this) match-state))
   (unmatch-pattern [this _] this)
 
   java.util.regex.Pattern
-  (match-pattern [this m] (match-beginning (match-segment this) m))
+  (match-pattern [this match-state] (match-beginning (match-segment this) match-state))
 
   Boolean
-  (match-pattern [this m] (when this m))
+  (match-pattern [this match-state] (when this match-state))
 
   PersistentVector
-  (match-pattern [this m]
+  (match-pattern [this match-state]
     (let [pattern (re-pattern (str (reduce str (map match-segment this)) "(.*)"))]
-      (when-let [groups (next (re-matches pattern (:remainder m)))]
-        (-> m
+      (when-let [groups (next (re-matches pattern (:remainder match-state)))]
+        (-> match-state
             (assoc-in [:remainder] (last groups))
             (update-in [:params] merge (zipmap (keep param-key this) (butlast groups)))))))
   (unmatch-pattern [this m]
     (apply str (map #(unmatch-segment % (:params m)) this)))
 
   Keyword
-  (match-pattern [this m] (when (= this (:request-method m)) m))
+  (match-pattern [this match-state] (when (= this (:request-method match-state)) match-state))
   (unmatch-pattern [_ _] "")
 
   PersistentArrayMap
-  (match-pattern [this m]
+  (match-pattern [this match-state]
     (when (every? (fn [[k v]]
                     (cond
-                     (or (fn? v) (set? v)) (v (get m k))
-                     :otherwise (= v (get m k))))
+                     (or (fn? v) (set? v)) (v (get match-state k))
+                     :otherwise (= v (get match-state k))))
                   (seq this))
-      m))
+      match-state))
   (unmatch-pattern [_ _] ""))
 
 (defn unmatch-pair [v m]
