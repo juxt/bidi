@@ -10,6 +10,11 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns bidi.bidi
+  (:require
+   [clojure.java.io :as io]
+   [ring.util.response :refer (file-response url-response)]
+   [ring.middleware.content-type :refer (wrap-content-type)]
+   [ring.middleware.file-info :refer (wrap-file-info)])
   (:import
    (clojure.lang PersistentVector Symbol Keyword PersistentArrayMap PersistentHashSet PersistentList Fn LazySeq Var)))
 
@@ -126,7 +131,7 @@
   (match-pattern [this match-state]
     (when (every? (fn [[k v]]
                     (cond
-                     (or (fn? v) (set? v)) (v (get match-state k))
+                     (or (fn? v) (set? v)) (v (get match-state k)) ;; TODO use ifn? instead
                      :otherwise (= v (get match-state k))))
                   (seq this))
       match-state))
@@ -212,6 +217,29 @@
                     :body ""}))))
   (unresolve-handler [this m] nil))
 
+;; Use this to map to paths (e.g. /static) that are expected to resolve
+;; to a Java resource, and should fail-fast otherwise (returning a 404).
+(defrecord Resources [options]
+  Matched
+  (resolve-handler [this m]
+    (assoc (dissoc m :remainder)
+      :handler (if-let [res (io/resource (str (:prefix options) (:remainder m)))]
+                 (-> (fn [req] (url-response res))
+                     (wrap-file-info (:mime-types options))
+                     (wrap-content-type options))
+                 {:status 404}))))
+
+;; Use this to map to resources, will return nil if resource doesn't
+;; exist, allowing other routes to be tried. Use this to try the path as a resource, but to continue if not found.
+(defrecord ResourcesMaybe [options]
+  Matched
+  (resolve-handler [this m]
+    (when-let [res (io/resource (str (:prefix options) (:remainder m)))]
+      (assoc (dissoc m :remainder)
+        :handler (-> (fn [req] (url-response res))
+                     (wrap-file-info (:mime-types options))
+                     (wrap-content-type options))))))
+
 ;; WrapMiddleware can be matched (appear on the right-hand-side of a route)
 ;; and returns a handler wrapped in the given middleware.
 (defrecord WrapMiddleware [matched middleware]
@@ -231,5 +259,4 @@
 (defrecord Alternates [routes]
   Pattern
   (match-pattern [this m] (some #(match-pattern % m) routes))
-  (unmatch-pattern [this m] (unmatch-pattern (first routes) m))
-  )
+  (unmatch-pattern [this m] (unmatch-pattern (first routes) m)))
