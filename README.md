@@ -448,7 +448,7 @@ There is a test (`bidi.perf-test`) which demonstrates route
 compilation. When using this feature, performance of bidi reaches
 near-parity with that of Compojure.
 
-```clojure
+```
 Time for 1000 matches using Compojure routes
 "Elapsed time: 17.336491 msecs"
 Time for 1000 matches using uncompiled bidi routes
