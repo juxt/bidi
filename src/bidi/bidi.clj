@@ -227,7 +227,8 @@
                  (-> (fn [req] (url-response res))
                      (wrap-file-info (:mime-types options))
                      (wrap-content-type options))
-                 {:status 404}))))
+                 {:status 404})))
+  (unresolve-handler [this m] nil))
 
 ;; Use this to map to resources, will return nil if resource doesn't
 ;; exist, allowing other routes to be tried. Use this to try the path as a resource, but to continue if not found.
@@ -238,7 +239,8 @@
       (assoc (dissoc m :remainder)
         :handler (-> (fn [req] (url-response res))
                      (wrap-file-info (:mime-types options))
-                     (wrap-content-type options))))))
+                     (wrap-content-type options)))))
+  (unresolve-handler [this m] nil))
 
 ;; WrapMiddleware can be matched (appear on the right-hand-side of a route)
 ;; and returns a handler wrapped in the given middleware.
