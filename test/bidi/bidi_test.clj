@@ -14,10 +14,6 @@
             [bidi.bidi :refer :all]
             [ring.mock.request :refer :all]))
 
-
-
-#_(match-pari "/blog/foo" [true 'foo])
-
 (deftest matching-routes-test
   (testing "misc-routes"
     (is (= (match-route "/blog/foo" ["/blog/foo" 'foo])
@@ -61,11 +57,16 @@
       (is (= (match-route "/blog/articles/123abc/index.html"
                           ["/blog" [[["/articles/" [#"\d+" :id] [#"\p{Lower}+" :a] "/index.html"] 'foo]
                                     ["/text" 'bar]]])
+             {:handler 'foo :params {:id "123" :a "abc"}}))
+
+      (is (= (match-route "/blog/articles/123abc/index.html"
+                          [#"/bl\p{Lower}{2}+" [[["/articles/" [#"\d+" :id] [#"\p{Lower}+" :a] "/index.html"] 'foo]
+                                                ["/text" 'bar]]])
              {:handler 'foo :params {:id "123" :a "abc"}})))
-    (is (= (match-route "/blog/articles/123abc/index.html"
-                        [#"/bl\p{Lower}{2}+" [[["/articles/" [#"\d+" :id] [#"\p{Lower}+" :a] "/index.html"] 'foo]
-                                              ["/text" 'bar]]])
-           {:handler 'foo :params {:id "123" :a "abc"}}))))
+
+    (testing "boolean patterns"
+      (is (= (match-route "/any" [true :index]) {:handler :index}))
+      (is (= (match-route "/any" [false :index]) nil)))))
 
 (deftest unmatching-routes-test
   (let [routes ["/"

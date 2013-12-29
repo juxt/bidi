@@ -105,7 +105,8 @@
   (match-pattern [this match-state] (match-beginning (match-segment this) match-state))
 
   Boolean
-  (match-pattern [this match-state] (when this match-state))
+  (match-pattern [this match-state]
+    (when this (assoc match-state :remainder "")))
 
   PersistentVector
   (match-pattern [this match-state]
