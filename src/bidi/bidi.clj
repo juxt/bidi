@@ -11,12 +11,19 @@
 
 (ns bidi.bidi
   (:require
+   [clojure.core.match :refer (match)]
    [clojure.java.io :as io]
+   [clojure.walk :refer (postwalk)]
    [ring.util.response :refer (file-response url-response)]
    [ring.middleware.content-type :refer (wrap-content-type)]
    [ring.middleware.file-info :refer (wrap-file-info)])
   (:import
    (clojure.lang PersistentVector Symbol Keyword PersistentArrayMap PersistentHashSet PersistentList Fn LazySeq Var)))
+
+;; --------------------------------------------------------------------------------
+;; 1 & 2 Make it work and make it right
+;; http://c2.com/cgi/wiki?MakeItWorkMakeItRightMakeItFast
+;; --------------------------------------------------------------------------------
 
 ;; A PatternSegment is part of a segmented pattern, where the pattern is
 ;; given as a vector. Each segment can be of a different type, and each
@@ -103,7 +110,8 @@
 
 (extend-protocol Pattern
   String
-  (match-pattern [this match-state] (match-beginning (match-segment this) match-state))
+  (match-pattern [this match-state]
+    (match-beginning (match-segment this) match-state))
   (unmatch-pattern [this _] this)
 
   java.util.regex.Pattern
@@ -198,7 +206,9 @@
       (when handler
         (handler (-> request
                      (assoc :route-params params)
-                     (update-in [:params] #(merge params %))))))))
+                     ;; For perf. reasons
+                     #_(update-in [:params] #(merge params %))
+                     ))))))
 
 ;; Any types can be used which satisfy bidi protocols.
 
@@ -263,3 +273,27 @@
   Pattern
   (match-pattern [this m] (some #(match-pattern % m) routes))
   (unmatch-pattern [this m] (unmatch-pattern (first routes) m)))
+
+;; --------------------------------------------------------------------------------
+;; 3. Make it fast
+;; --------------------------------------------------------------------------------
+
+(defrecord CompiledPrefix [prefix regex]
+  Pattern
+  (match-pattern [this env]
+    (when-let [path (last (re-matches regex (:remainder env)))]
+      (assoc env :remainder path)))
+  (unmatch-pattern [this env] prefix))
+
+(defn compile-prefix
+  "Improve performance by composing the regex pattern ahead of time."
+  [s] (->CompiledPrefix s (re-pattern (format "\\Q%s\\E(.*)" s))))
+
+(defn compile-route [routes]
+  (postwalk
+   #(match
+     %
+     [(s :guard string?) h] [(compile-prefix s) h]
+     ;; TODO put other performance optimizations here
+     :else %)
+   routes))
