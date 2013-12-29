@@ -344,9 +344,10 @@ the test suite.
 
 ## Composeability
 
-Route structures are composeable. They are consistent and easy to
-generate. A future version of bidi may contain macros to reduce the
-number of brackets needed to create route structures by hand.
+As they are simply nested vectors, route structures are highly
+composeable. They are consistent and easy to generate. A future version
+of bidi may contain macros to reduce the number of brackets needed to
+create route structures by hand.
 
 ## Extensibility
 
