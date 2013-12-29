@@ -438,8 +438,8 @@ behaviour but higher performance.
 (def compiled-routes (compile-route routes))
 ```
 
-Since compiled route structures are slightly more unwiedly, the decision
-of whether and when to compile a route structure is left to the library
+Since compiled route structures are more unwieldy, the decision of
+whether and when to compile a route structure is left to the library
 user (you). For example, it is a good idea to serialize route structures
 in their uncompiled forms and compile just-in-time prior to the route
 structure being used for route matching.
