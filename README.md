@@ -135,7 +135,7 @@ Let's try to match that route to a path.
 ```clojure
 user> (use 'bidi.bidi)
 nil
-user> (match-route "/index.html" route)
+user> (match-route route "/index.html")
 {:handler :index}
 ```
 
@@ -146,7 +146,7 @@ look up a Ring handler in a map mapping keywords to Ring handlers.
 What happens if we try a different path?
 
 ```clojure
-user> (match-route "/another.html" route)
+user> (match-route route "/another.html")
 nil
 ```
 
@@ -155,7 +155,7 @@ We get a `nil`. Nil means 'no route matched'.
 Now, let's go in the other direction.
 
 ```clojure
-user> (path-for :index route)
+user> (path-for route :index)
 "/index.html"
 ```
 
@@ -197,16 +197,16 @@ recursively.
 We can match these routes as before :-
 
 ```clojure
-user> (match-route "/index.html" routes)
+user> (match-route routes "/index.html")
 {:handler :index}
-user> (match-route "/articles/article.html" routes)
+user> (match-route routes "/articles/article.html")
 {:handler :article}
 ```
 
 and in reverse too :-
 
 ```clojure
-user> (path-for :article-index routes)
+user> (path-for routes :article-index)
 "/articles/index.html"
 ```
 
@@ -232,9 +232,9 @@ left hand side of the route pair.
 Now, when we match on an article path, the keyword values are extracted into a map.
 
 ```clojure
-user> (match-route "/articles/123/article.html" routes)
+user> (match-route routes "/articles/123/article.html")
 {:handler :article, :params {:id "123"}}
-user> (match-route "/articles/999/article.html" routes)
+user> (match-route routes "/articles/999/article.html")
 {:handler :article, :params {:id "999"}}
 ```
 
@@ -242,9 +242,9 @@ To form the path we need to supply the value of `:id` as extra
 arguments to the `path-for` function.
 
 ```clojure
-user> (path-for :article routes :id 123)
+user> (path-for routes :article :id 123)
 "/articles/123/article.html"
-user> (path-for :article routes :id 999)
+user> (path-for routes :article :id 999)
 "/articles/999/article.html"
 ```
 
@@ -376,10 +376,8 @@ Consider the following route definition.
 ```clojure
     (defn my-handler [req] {:status 200 :body "Hello World!"})
 
-    ["/articles"
-      [
-        ["/new" my-handler]
-        ["/old" (->Redirect 307 my-handler)]]]
+    ["/articles" {"/new" my-handler
+                  "/old" (->Redirect 307 my-handler)}]
 ```
 
 Any requests to `/articles/old` yield
@@ -399,7 +397,8 @@ are wrapped in particular middleware.
 For example :-
 
 ```clojure
-(match-route "/index.html" ["/index.html" (->WrapMiddleware handler wrap-params)])
+(match-route ["/index.html" (->WrapMiddleware handler wrap-params)]
+             "/index.html")
 ```
 
 ### Alternates
@@ -424,8 +423,7 @@ Or match if the server name is `juxt.pro` or `localhost`.
 
 ```clojure
     [(->Alternates [{:server-name "juxt.pro"}{:server-name "localhost"}])
-      [ ["/index.html" :index] ]
-    ]
+       {"/index.html" :index}]
 ```
 
 ## Performance
@@ -475,7 +473,15 @@ $ lein test
 
 lein test bidi.bidi-test
 
-Ran 5 tests containing 35 assertions.
+lein test bidi.perf-test
+Time for 1000 matches using Compojure routes
+"Elapsed time: 17.645077 msecs"
+Time for 1000 matches using uncompiled bidi routes
+"Elapsed time: 66.449164 msecs"
+Time for 1000 matches using compiled bidi routes
+"Elapsed time: 21.269446 msecs"
+
+Ran 9 tests containing 47 assertions.
 0 failures, 0 errors.
 ```
 
