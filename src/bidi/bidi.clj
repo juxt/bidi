@@ -204,11 +204,8 @@
   (fn [{:keys [uri] :as request}]
     (let [{:keys [handler params]} (apply match-route uri route (apply concat (seq request)))]
       (when handler
-        (handler (-> request
-                     (assoc :route-params params)
-                     ;; For perf. reasons
-                     #_(update-in [:params] #(merge params %))
-                     ))))))
+        (handler (-> request (assoc :route-params params)))))))
+
 
 ;; Any types can be used which satisfy bidi protocols.
 
