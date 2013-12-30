@@ -106,6 +106,13 @@ There are numerous Clojure routing libraries. Here's a table to help you compare
 </tbody>
 </table>
 
+bidi is written to do
+['one thing well'](http://en.wikipedia.org/wiki/Unix_philosophy) (URI
+formation and dispatch) and is intended for use with Ring middleware,
+HTTP servers (including Jetty, [http-kit](http://http-kit.org/) and
+[aleph](https://github.com/ztellman/aleph)) and is fully compatible with
+[Liberator](http://clojure-liberator.github.io/liberator/).
+
 ## Installation
 
 Add the following dependency to your `project.clj` file
