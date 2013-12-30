@@ -79,24 +79,24 @@
     (testing "unmatching"
 
       (is
-       (= (path-for 'blog-index routes)
+       (= (path-for routes 'blog-index)
           "/blog/index.html"))
       (is
-       (= (path-for 'blog-article-handler routes :id 1239)
+       (= (path-for routes 'blog-article-handler :id 1239)
           "/blog/article/1239.html"))
       (is
        ;; If not all the parameters are specified we expect an error to be thrown
-       (thrown? clojure.lang.ExceptionInfo (path-for 'archive-handler routes :id 1239)
+       (thrown? clojure.lang.ExceptionInfo (path-for routes 'archive-handler :id 1239)
                 "/blog/archive/1239/section.html"))
       (is
-       (= (path-for 'archive-handler routes :id 1239 :page "section")
+       (= (path-for routes 'archive-handler :id 1239 :page "section")
           "/blog/archive/1239/section.html"))
       (is
-       (= (path-for 'image-handler routes :path "")
+       (= (path-for routes 'image-handler :path "")
           "/images/"))
 
       (is
-       (= (path-for 'image-handler routes :path "123.png")
+       (= (path-for routes 'image-handler :path "123.png")
           "/images/123.png")))
 
     (testing "unmatching with constraints"
@@ -105,15 +105,15 @@
                           [[:get [[["/index"] :index]]]
                            [{:request-method :post :server-name "juxt.pro"}
                             [[["/articles/" :artid] :new-article-handler]]]]]]]]
-        (is (= (path-for :index routes)
+        (is (= (path-for routes :index)
                "/blog/index"))
-        (is (= (path-for :new-article-handler routes :artid 10)
+        (is (= (path-for routes :new-article-handler :artid 10)
                "/blog/articles/10"))))
     (testing "unmatching with regexes"
       (let [routes
             ["/blog" [[["/articles/" [#"\d+" :id] [#"\p{Lower}+" :a] "/index.html"] 'foo]
                       ["/text" 'bar]]]]
-        (is (= (path-for 'foo routes :id "123" :a "abc")
+        (is (= (path-for routes 'foo :id "123" :a "abc")
                "/blog/articles/123abc/index.html"))
         ))))
 
@@ -124,9 +124,9 @@
           ["/blog" [["/index.html" (fn [req] {:status 200 :body "Index"})]
                     ["/list" 'list-blogs]
                     ["/temp.html" :temp-html]]]]
-      (is (= (path-for 'list-blogs routes)
+      (is (= (path-for routes 'list-blogs)
              "/blog/list"))
-      (is (= (path-for :temp-html routes)
+      (is (= (path-for routes :temp-html)
              "/blog/temp.html")))))
 
 
@@ -169,8 +169,7 @@
                                (fn [req] {:status 200 :body "Index"})]
                               [["/article/" :artid "/article.html"]
                                (fn [req] {:status 200 :body (get-in req [:route-params :artid])})]
-                              [["/article/" :artid "/another.html"]
-                               (fn [req] {:status 200 :body (get-in req [:params :artid])})]]]
+                              ]]
                             [{:request-method :post :server-name "juxt.pro"}
                              [["/zip"
                                (fn [req] {:status 201 :body "Created"})]]]]]]])]
@@ -182,15 +181,7 @@
       (is (nil? (handler (request :post "/blog/zip"))))
       (testing "artid makes it into :route-params")
       (is (= (handler (request :get "/blog/article/123/article.html"))
-             {:status 200 :body "123"}))
-      (testing "artid makes it into :params"
-        (is (= (handler (request :get "/blog/article/123/another.html"))
-               {:status 200 :body "123"})))
-      (testing "artid makes it into :params, but non-destructively"
-        (is (= (handler (-> (request :get "/blog/article/123/another.html"
-                                     {:artid "foo"})
-                            (assoc :params {:artid "foo"})))
-               {:status 200 :body "foo"}))))))
+             {:status 200 :body "123"})))))
 
 (deftest redirect-test
 
@@ -211,8 +202,8 @@
             {:uri "/index.html"})
            {:wrapper :evidence :status 200 :body "Test"}))
 
-    (is (= (path-for handler ["/index.html" (->WrapMiddleware handler wrapper)]) "/index.html"))
-    (is (= (path-for handler ["/index.html" handler]) "/index.html"))))
+    (is (= (path-for ["/index.html" (->WrapMiddleware handler wrapper)] handler) "/index.html"))
+    (is (= (path-for ["/index.html" handler] handler) "/index.html"))))
 
 
 (deftest wrap-alternates-test
@@ -220,5 +211,5 @@
   (let [routes [(->Alternates ["/index.html" "/index"]) :index]]
     (is (= (match-route "/index.html" routes) {:handler :index}))
     (is (= (match-route "/index" routes) {:handler :index}))
-    (is (=(path-for :index routes) "/index.html")) ; first is the canonical one
+    (is (=(path-for routes :index) "/index.html")) ; first is the canonical one
     ))

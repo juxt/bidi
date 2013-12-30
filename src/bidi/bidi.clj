@@ -186,23 +186,23 @@
   handler, if any, that matches the path."
   [path route & {:as options}]
   (->
-   (match-pair route (merge options {:remainder path :routeset route}))
-   (dissoc :routeset)))
+   (match-pair route (merge options {:remainder path :route route}))
+   (dissoc :route)))
 
 (defn path-for
   "Given a route definition data structure and an option map, return a
   path that would route to the handler entry in the map. The map must
   also contain the values to any parameters required to create the path."
-  [handler routes & {:as params}]
-  (unmatch-pair routes {:handler handler :params params}))
+  [route handler & {:as params}]
+  (unmatch-pair route {:handler handler :params params}))
 
 (defn make-handler
   "Create a Ring handler from the route definition data
   structure. Matches a handler from the uri in the request, and invokes
   it with the request as a parameter."
-  [routes]
+  [route]
   (fn [{:keys [uri] :as request}]
-    (let [{:keys [handler params]} (apply match-route uri routes (apply concat (seq request)))]
+    (let [{:keys [handler params]} (apply match-route uri route (apply concat (seq request)))]
       (when handler
         (handler (-> request
                      (assoc :route-params params)
@@ -223,7 +223,7 @@
       (assoc (dissoc m :remainder)
         :handler (fn [req]
                    {:status status
-                    :headers {"Location" (path-for target (:routeset m))}
+                    :headers {"Location" (path-for (:route m) target)}
                     :body ""}))))
   (unresolve-handler [this m] nil))
 
@@ -257,11 +257,9 @@
 ;; and returns a handler wrapped in the given middleware.
 (defrecord WrapMiddleware [matched middleware]
   Matched
-  (resolve-handler [this m] (let [r (resolve-handler matched m)]
-                              (if-let [handler (:handler r)]
-                                (update-in r [:handler] middleware)
-                                r
-                                )))
+  (resolve-handler [this m]
+    (let [r (resolve-handler matched m)]
+      (if (:handler r) (update-in r [:handler] middleware) r)))
   (unresolve-handler [this m] (unresolve-handler matched m))) ; pure delegation
 
 ;; Alternates can be used as a pattern. It is constructed with a vector
@@ -289,11 +287,11 @@
   "Improve performance by composing the regex pattern ahead of time."
   [s] (->CompiledPrefix s (re-pattern (format "\\Q%s\\E(.*)" s))))
 
-(defn compile-route [routes]
+(defn compile-route [route]
   (postwalk
    #(match
      %
      [(s :guard string?) h] [(compile-prefix s) h]
      ;; TODO put other performance optimizations here
      :else %)
-   routes))
+   route))

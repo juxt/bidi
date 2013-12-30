@@ -46,12 +46,12 @@
     (testing "Uncompiled routes"
       (let [h (make-handler rtes)]
         (is (= (h req) {:status 200 :body "e"}))
-        (is (= (path-for :d rtes) "/d.html"))
+        (is (= (path-for rtes :d) "/d.html"))
         (println "Time for 1000 matches using uncompiled bidi routes")
         (time (dotimes [_ 1000] (h req)))))
     (testing "Compiled routes"
       (let [h (make-handler (compile-route rtes))]
         (is (= (h req) {:status 200 :body "e"}))
-        (is (= (path-for :d rtes) "/d.html"))
+        (is (= (path-for rtes :d) "/d.html"))
         (println "Time for 1000 matches using compiled bidi routes")
         (time (dotimes [_ 1000] (h req)))))))
