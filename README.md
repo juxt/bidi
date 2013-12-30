@@ -169,14 +169,12 @@ development).
 
 ### Multiple routes
 
-Now let's suppose we have 2 routes. We match on their common prefix (or
-use `""` if necessary) and the 2 routes are contained in a vector.
+Now let's suppose we have 2 routes. We match partially on their common
+prefix (which can be `""` if necessary), and the remaining patterns can be specified in a map (or vector of pairs, if order is important).
 
 ```clojure
-    user> (def routes ["/" [
-            ["index.html" :index]
-            ["article.html" :article]
-           ]])
+    user> (def routes ["/" {"index.html" :index
+                            "article.html" :article}])
     #'user/routes
 ```
 
@@ -184,13 +182,9 @@ Since each element in the vector is itself a route, you can nest these
 recursively.
 
 ```clojure
-    user> (def routes ["/" [
-            ["index.html" :index]
-            ["articles/" [
-              ["index.html" :article-index]
-              ["article.html" :article]
-            ]]
-           ]])
+    user> (def routes ["/" {"index.html" :index
+                            "articles/" {"index.html" :article-index
+                                         "article.html" :article}}])
     #'user/routes
 ```
 
@@ -219,13 +213,9 @@ strings, we construct the pattern in segments using a Clojure vector
 left hand side of the route pair.
 
 ```clojure
-    user> (def routes ["/" [
-            ["index.html" :index]
-            ["articles/" [
-              ["index.html" :article-index]
-              [[:id "/article.html"] :article]
-            ]]
-           ]])
+    user> (def routes ["/" {"index.html" :index
+                            "articles/" {"index.html" :article-index
+                                         [:id "/article.html"] :article}}])
     #'user/routes
 ```
 
@@ -280,9 +270,7 @@ do. However, you can specify a method by wrapping a route (or routes) in
 a pair, using a method-denoting keyword for the pattern.
 
 ```clojure
-["/"
- [["blog"
-   [[:get [["/index" (fn [req] {:status 200 :body "Index"})]]]]]]]
+["/" {"blog {:get {"/index" (fn [req] {:status 200 :body "Index"})}}}]
 ```
 
 You can also restrict routes by any other request criteria. Guards are
@@ -294,12 +282,10 @@ the request is `juxt.pro`. You can use this feature to restrict routes
 to virtual hosts or HTTP schemes.
 
 ```clojure
-["/"
- [["blog"
-   [[:get [["/index" (fn [req] {:status 200 :body "Index"})]]]
-    [{:request-method :post :server-name "juxt.pro"}
-     [["/zip" (fn [req] {:status 201 :body "Created"})]]]]
-   ]]]
+["/" {"blog" {:get
+                {"/index" (fn [req] {:status 200 :body "Index"})}}
+              {:request-method :post :server-name "juxt.pro"}
+                {"/zip" (fn [req] {:status 201 :body "Created"})}}]
 ```
 
 Values in the guard map can be values, or predicate functions which afford
@@ -423,7 +409,7 @@ Or match if the server name is `juxt.pro` or `localhost`.
 
 ```clojure
     [(->Alternates [{:server-name "juxt.pro"}{:server-name "localhost"}])
-       {"/index.html" :index}]
+     {"/index.html" :index}]
 ```
 
 ## Performance
@@ -436,12 +422,10 @@ replaces terms of the route structure with records that have the same
 behaviour but higher performance.
 
 ```clojure
-(def routes ["/" [
-            ["index.html" :index]
-            ["article.html" :article]
-           ]])
+    (def routes ["/" {"index.html" :index
+                      "article.html" :article}])
 
-(def compiled-routes (compile-route routes))
+    (def compiled-routes (compile-route routes))
 ```
 
 Since compiled route structures are more unwieldy, the decision of
