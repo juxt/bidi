@@ -170,7 +170,8 @@ development).
 ### Multiple routes
 
 Now let's suppose we have 2 routes. We match partially on their common
-prefix (which can be `""` if necessary), and the remaining patterns can be specified in a map (or vector of pairs, if order is important).
+prefix (which can be `""` if necessary), and the remaining patterns can
+be specified in a map (or vector of pairs, if order is important).
 
 ```clojure
     user> (def routes ["/" {"index.html" :index
@@ -178,7 +179,7 @@ prefix (which can be `""` if necessary), and the remaining patterns can be speci
     #'user/routes
 ```
 
-Since each element in the vector is itself a route, you can nest these
+Since each entry in the map is itself a route, you can nest these
 recursively.
 
 ```clojure
