@@ -18,7 +18,7 @@
    [ring.middleware.content-type :refer (wrap-content-type)]
    [ring.middleware.file-info :refer (wrap-file-info)])
   (:import
-   (clojure.lang PersistentVector Symbol Keyword PersistentArrayMap PersistentHashSet PersistentList Fn LazySeq Var)))
+   (clojure.lang PersistentVector Symbol Keyword PersistentArrayMap PersistentHashMap PersistentHashSet PersistentList Fn LazySeq Var)))
 
 ;; --------------------------------------------------------------------------------
 ;; 1 & 2 Make it work and make it right
@@ -162,6 +162,10 @@
   (unresolve-handler [this m] (first (keep #(unmatch-pair % m) this)))
 
   PersistentArrayMap
+  (resolve-handler [this m] (first (keep #(match-pair % m) this)))
+  (unresolve-handler [this m] (first (keep #(unmatch-pair % m) this)))
+
+  PersistentHashMap
   (resolve-handler [this m] (first (keep #(match-pair % m) this)))
   (unresolve-handler [this m] (first (keep #(unmatch-pair % m) this)))
 
