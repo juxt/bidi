@@ -53,7 +53,7 @@
   (unmatch-segment [this params]
     (if-let [v (this params)]
       (str v)
-      (throw (ex-info (format "No parameter value given for %s" this) {}))))
+      (throw (ex-info (format "Cannot form URI without a value given for %s parameter" this) {}))))
   (param-key [this] this)
 
   PersistentVector
