@@ -188,7 +188,7 @@
 (defn match-route
   "Given a route definition data structure and a path, return the
   handler, if any, that matches the path."
-  [path route & {:as options}]
+  [route path & {:as options}]
   (->
    (match-pair route (merge options {:remainder path :route route}))
    (dissoc :route)))
@@ -206,7 +206,7 @@
   it with the request as a parameter."
   [route]
   (fn [{:keys [uri] :as request}]
-    (let [{:keys [handler params]} (apply match-route uri route (apply concat (seq request)))]
+    (let [{:keys [handler params]} (apply match-route route uri (apply concat (seq request)))]
       (when handler
         (handler (-> request (assoc :route-params params)))))))
 

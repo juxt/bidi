@@ -16,66 +16,66 @@
 
 (deftest matching-routes-test
   (testing "misc-routes"
-    (is (= (match-route "/blog/foo" ["/blog/foo" 'foo])
+    (is (= (match-route ["/blog/foo" 'foo] "/blog/foo")
            {:handler 'foo}))
 
     ;; In the case of a partial match, the right hand side of a pair can
     ;; contain further candidates to try. Multiple routes are contained
     ;; in a vector and tried in order.
-    (is (= (match-route "/blog/bar/abc"
-                        ["/blog" [["/foo" 'foo]
-                                  ["/bar" [["/abc" :bar]]]]])
+    (is (= (match-route ["/blog" [["/foo" 'foo]
+                                  ["/bar" [["/abc" :bar]]]]]
+                        "/blog/bar/abc")
            {:handler :bar}))
 
     ;; If no determinstic order is required, a map can also be used.
-    (is (= (match-route "/blog/bar/abc"
-                        ["/blog" {"/foo" 'foo
-                                  "/bar" [["/abc" :bar]]}])
+    (is (= (match-route ["/blog" {"/foo" 'foo
+                                  "/bar" [["/abc" :bar]]}]
+                        "/blog/bar/abc")
            {:handler :bar}))
 
-    (is (= (match-route "/blog/bar/articles/123/index.html"
-                        ["/blog" [["/foo" 'foo]
-                                  [["/bar" :path] :bar]]])
+    (is (= (match-route ["/blog" [["/foo" 'foo]
+                                  [["/bar" :path] :bar]]]
+                        "/blog/bar/articles/123/index.html")
            {:handler :bar :params {:path "/articles/123/index.html"}}))
 
     ;; The example in the README, so make sure it passes!
-    (is (= (match-route "/blog/bar/articles/123/index.html"
-                        ["/blog" [["/index.html" 'index]
-                                  [["/bar/articles/" :artid "/index.html"] 'article]]])
+    (is (= (match-route ["/blog" [["/index.html" 'index]
+                                  [["/bar/articles/" :artid "/index.html"] 'article]]]
+                        "/blog/bar/articles/123/index.html")
            {:handler 'article :params {:artid "123"}}))
 
-    (is (= (match-route "/blog/bar/articles/123/index.html"
-                        ["/blog" [["/foo" 'foo]
-                                  [["/bar/articles/" :artid "/index.html"] 'bar]]])
+    (is (= (match-route ["/blog" [["/foo" 'foo]
+                                  [["/bar/articles/" :artid "/index.html"] 'bar]]]
+                        "/blog/bar/articles/123/index.html")
            {:handler 'bar :params {:artid "123"}}))
 
-    (is (= (match-route "/blog/articles/123/index.html"
-                        ["/blog" [[["/articles/" :id "/index.html"] 'foo]
-                                  ["/text" 'bar]]])
+    (is (= (match-route ["/blog" [[["/articles/" :id "/index.html"] 'foo]
+                                  ["/text" 'bar]]]
+                        "/blog/articles/123/index.html")
            {:handler 'foo :params {:id "123"}}))
 
     (testing "regex"
-      (is (= (match-route "/blog/articles/123/index.html"
-                          ["/blog" [[["/articles/" [#"\d+" :id] "/index.html"] 'foo]
-                                    ["/text" 'bar]]])
+      (is (= (match-route ["/blog" [[["/articles/" [#"\d+" :id] "/index.html"] 'foo]
+                                    ["/text" 'bar]]]
+                          "/blog/articles/123/index.html")
              {:handler 'foo :params {:id "123"}}))
-      (is (= (match-route "/blog/articles/123a/index.html"
-                          ["/blog" [[["/articles/" [#"\d+" :id] "/index.html"] 'foo]
-                                    ["/text" 'bar]]])
+      (is (= (match-route ["/blog" [[["/articles/" [#"\d+" :id] "/index.html"] 'foo]
+                                    ["/text" 'bar]]]
+                          "/blog/articles/123a/index.html")
              nil))
-      (is (= (match-route "/blog/articles/123abc/index.html"
-                          ["/blog" [[["/articles/" [#"\d+" :id] [#"\p{Lower}+" :a] "/index.html"] 'foo]
-                                    ["/text" 'bar]]])
+      (is (= (match-route ["/blog" [[["/articles/" [#"\d+" :id] [#"\p{Lower}+" :a] "/index.html"] 'foo]
+                                    ["/text" 'bar]]]
+                          "/blog/articles/123abc/index.html")
              {:handler 'foo :params {:id "123" :a "abc"}}))
 
-      (is (= (match-route "/blog/articles/123abc/index.html"
-                          [#"/bl\p{Lower}{2}+" [[["/articles/" [#"\d+" :id] [#"\p{Lower}+" :a] "/index.html"] 'foo]
-                                                ["/text" 'bar]]])
+      (is (= (match-route [#"/bl\p{Lower}{2}+" [[["/articles/" [#"\d+" :id] [#"\p{Lower}+" :a] "/index.html"] 'foo]
+                                                ["/text" 'bar]]]
+                          "/blog/articles/123abc/index.html")
              {:handler 'foo :params {:id "123" :a "abc"}})))
 
     (testing "boolean patterns"
-      (is (= (match-route "/any" [true :index]) {:handler :index}))
-      (is (= (match-route "/any" [false :index]) nil)))))
+      (is (= (match-route [true :index] "/any") {:handler :index}))
+      (is (= (match-route [false :index] "/any") nil)))))
 
 (deftest unmatching-routes-test
   (let [routes ["/"
@@ -188,9 +188,9 @@
       (is (= (handler (request :post "http://juxt.pro/blog/zip"))
              {:status 201 :body "Created"}))
       (is (nil? (handler (request :post "/blog/zip"))))
-      (testing "artid makes it into :route-params")
-      (is (= (handler (request :get "/blog/article/123/article.html"))
-             {:status 200 :body "123"})))))
+      (testing "artid makes it into :route-params"
+        (is (= (handler (request :get "/blog/article/123/article.html"))
+               {:status 200 :body "123"}))))))
 
 (deftest redirect-test
 
@@ -207,7 +207,7 @@
 
   (let [wrapper (fn [h] (fn [req] (assoc (h req) :wrapper :evidence)))
         handler (fn [req] {:status 200 :body "Test"})]
-    (is (= ((:handler (match-route "/index.html" ["/index.html" (->WrapMiddleware handler wrapper)]))
+    (is (= ((:handler (match-route ["/index.html" (->WrapMiddleware handler wrapper)] "/index.html"))
             {:uri "/index.html"})
            {:wrapper :evidence :status 200 :body "Test"}))
 
@@ -218,7 +218,7 @@
 (deftest wrap-alternates-test
 
   (let [routes [(->Alternates ["/index.html" "/index"]) :index]]
-    (is (= (match-route "/index.html" routes) {:handler :index}))
-    (is (= (match-route "/index" routes) {:handler :index}))
+    (is (= (match-route routes "/index.html") {:handler :index}))
+    (is (= (match-route routes "/index") {:handler :index}))
     (is (=(path-for routes :index) "/index.html")) ; first is the canonical one
     ))
