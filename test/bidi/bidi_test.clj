@@ -19,9 +19,18 @@
     (is (= (match-route "/blog/foo" ["/blog/foo" 'foo])
            {:handler 'foo}))
 
+    ;; In the case of a partial match, the right hand side of a pair can
+    ;; contain further candidates to try. Multiple routes are contained
+    ;; in a vector and tried in order.
     (is (= (match-route "/blog/bar/abc"
                         ["/blog" [["/foo" 'foo]
                                   ["/bar" [["/abc" :bar]]]]])
+           {:handler :bar}))
+
+    ;; If no determinstic order is required, a map can also be used.
+    (is (= (match-route "/blog/bar/abc"
+                        ["/blog" {"/foo" 'foo
+                                  "/bar" [["/abc" :bar]]}])
            {:handler :bar}))
 
     (is (= (match-route "/blog/bar/articles/123/index.html"

@@ -336,7 +336,7 @@ Path ::= String
 
 PatternSegment ::= String | Regex | Keyword | [ (String | Regex) Keyword ]
 
-Matched ::= Function | Symbol | Keyword | [ RoutePair+ ]
+Matched ::= Function | Symbol | Keyword | [ RoutePair+ ] { RoutePair+ }
 ```
 
 In case of confusion, refer to bidi examples found in this README and in
@@ -344,10 +344,10 @@ the test suite.
 
 ## Composeability
 
-As they are simply nested vectors, route structures are highly
-composeable. They are consistent and easy to generate. A future version
-of bidi may contain macros to reduce the number of brackets needed to
-create route structures by hand.
+As they are simply nested data structures (strings, vectors, maps) route
+structures are highly composeable. They are consistent and easy to
+generate. A future version of bidi may contain macros to reduce the
+number of brackets needed to create route structures by hand.
 
 ## Extensibility
 

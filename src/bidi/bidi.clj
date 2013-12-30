@@ -161,6 +161,10 @@
   (resolve-handler [this m] (first (keep #(match-pair % m) this)))
   (unresolve-handler [this m] (first (keep #(unmatch-pair % m) this)))
 
+  PersistentArrayMap
+  (resolve-handler [this m] (first (keep #(match-pair % m) this)))
+  (unresolve-handler [this m] (first (keep #(unmatch-pair % m) this)))
+
   LazySeq
   (resolve-handler [this m] (first (keep #(match-pair % m) this)))
   (unresolve-handler [this m] (first (keep #(unmatch-pair % m) this)))
