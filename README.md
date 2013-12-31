@@ -127,8 +127,8 @@ Let's create a route that matches `/index.html`. A route is simply a
 pair, containing a pattern and a result.
 
 ```clojure
-    user> (def route ["/index.html" :index])
-    #'user/route
+user> (def route ["/index.html" :index])
+#'user/route
 ```
 
 Let's try to match that route to a path.
@@ -176,19 +176,19 @@ no common prefix. The patterns for the remaining path can be specified
 in a map (or vector of pairs, if order is important).
 
 ```clojure
-    user> (def routes ["/" {"index.html" :index
-                            "article.html" :article}])
-    #'user/routes
+user> (def routes ["/" {"index.html" :index
+                        "article.html" :article}])
+#'user/routes
 ```
 
 Since each entry in the map is itself a route, you can nest these
 recursively.
 
 ```clojure
-    user> (def routes ["/" {"index.html" :index
-                            "articles/" {"index.html" :article-index
-                                         "article.html" :article}}])
-    #'user/routes
+user> (def routes ["/" {"index.html" :index
+                        "articles/" {"index.html" :article-index
+                                     "article.html" :article}}])
+#'user/routes
 ```
 
 We can match these routes as before :-
@@ -216,10 +216,10 @@ strings, we construct the pattern in segments using a Clojure vector
 left hand side of the route pair.
 
 ```clojure
-    user> (def routes ["/" {"index.html" :index
-                            "articles/" {"index.html" :article-index
-                                         [:id "/article.html"] :article}}])
-    #'user/routes
+user> (def routes ["/" {"index.html" :index
+                        "articles/" {"index.html" :article-index
+                                     [:id "/article.html"] :article}}])
+#'user/routes
 ```
 
 Now, when we match on an article path, the keyword values are extracted into a map.
@@ -254,11 +254,11 @@ routes to form a Ring handler (similar to what Compojure's `routes` and
 `defroutes` does).
 
 ```clojure
-    (require '[bidi.bidi :refer (make-handler)])
+(require '[bidi.bidi :refer (make-handler)])
 
-    (def handler
-      (make-handler ["/" {"index.html" :index
-                          ["articles/" :id "/article.html"] :article}]))
+(def handler
+  (make-handler ["/" {"index.html" :index
+                      ["articles/" :id "/article.html"] :article}]))
 ```
 
 ## Guards
@@ -362,10 +362,10 @@ The `Redirect` record is included which satisfies the `Matched` protocol.
 Consider the following route definition.
 
 ```clojure
-    (defn my-handler [req] {:status 200 :body "Hello World!"})
+(defn my-handler [req] {:status 200 :body "Hello World!"})
 
-    ["/articles" {"/new" my-handler
-                  "/old" (->Redirect 307 my-handler)}]
+["/articles" {"/new" my-handler
+              "/old" (->Redirect 307 my-handler)}]
 ```
 
 Any requests to `/articles/old` yield
@@ -412,8 +412,8 @@ HEAD or GET but not anything else.
 Or match if the server name is `juxt.pro` or `localhost`.
 
 ```clojure
-    [(->Alternates [{:server-name "juxt.pro"}{:server-name "localhost"}])
-     {"/index.html" :index}]
+[(->Alternates [{:server-name "juxt.pro"}{:server-name "localhost"}])
+ {"/index.html" :index}]
 ```
 
 ## Performance
@@ -426,10 +426,10 @@ replaces terms of the route structure with records that have the same
 behaviour but higher performance.
 
 ```clojure
-    (def routes ["/" {"index.html" :index
-                      "article.html" :article}])
+(def routes ["/" {"index.html" :index
+                  "article.html" :article}])
 
-    (def compiled-routes (compile-route routes))
+(def compiled-routes (compile-route routes))
 ```
 
 Since compiled route structures are more unwieldy, the decision of
