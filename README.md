@@ -294,9 +294,9 @@ to virtual hosts or HTTP schemes.
 Values in the guard map can be values, or predicate functions which afford
 greater control over the dispatch criteria.
 
-## Definition of a route pair
+## Route definitions
 
-A route structure is formed as a pair: [ *&lt;pattern&gt;* *&lt;matched&gt;* ]
+A route is formed as a pair: [ *&lt;pattern&gt;* *&lt;matched&gt;* ]
 
 The left-hand-side of a pair is the pattern. It can match a path, either
 fully or partially. The simplest pattern is a string, but other types of
@@ -311,7 +311,7 @@ matched partially). The route structure is a recursive structure.
 This [BNF](http://en.wikipedia.org/wiki/Backus%E2%80%93Naur_Form)
 grammar formally defines the basic route structure, although it is
 possible extend these definitions by adding types that satisfy the
-protocols used in bidi.
+protocols used in bidi (more on this later).
 
 ```
 RouteStructure := RoutePair
@@ -340,8 +340,8 @@ the test suite.
 
 ## Composeability
 
-As they are simply nested data structures (strings, vectors, maps) route
-structures are highly composeable. They are consistent and easy to
+As they are simply nested data structures (strings, vectors, maps),
+route structures are highly composeable. They are consistent and easy to
 generate. A future version of bidi may contain macros to reduce the
 number of brackets needed to create route structures by hand.
 
@@ -350,11 +350,11 @@ number of brackets needed to create route structures by hand.
 The implementation is based on Clojure protocols which allows the route
 syntax to be extended outside of this library.
 
-Built in types are available but you can also create your own. Here are
-a list of the built-in ones, it should give you an idea what is
-possible. If you add your own types, please consider contributing them
-to the project so that others can benefit. Make sure you test that your
-types in both directions (for URI matching and formation).
+Built-in records are available but you can also create your own. Below
+is a description of the built-in ones and should give you an idea what
+is possible. If you add your own types, please consider contributing
+them to the project. Make sure you test that your types in both
+directions (for URI matching and formation).
 
 ### Redirect
 
