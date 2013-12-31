@@ -75,7 +75,7 @@
                         (throw (ex-info (format "If a PatternSegment is represented by a vector, the second element must be the key associated with the pattern: %s" this) {}))))))
 
 ;; A Route is a pair. The pair has two halves: a pattern on the left,
-;; something that is matched by the pattern on the right.
+;; while the right contains the result if the pattern matches.
 
 (defprotocol Pattern
   ;; Return truthy if the given pattern matches the given path. By
