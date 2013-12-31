@@ -248,10 +248,10 @@ README, that's basically it. Your five minutes are up!
 
 ## Wrapping as a Ring handler
 
-You can use functions (or symbols that represent them) as pattern
-targets. If you choose to do this a benefit it that you can wrap your
-routes to form a Ring handler (similar to what Compojure's `routes` and
-`defroutes` does).
+Match results can be any value, but are typically functions (either
+in-line or via a symbol reference). You can easily wrap your routes to
+form a Ring handler (similar to what Compojure's `routes` and
+`defroutes` does) with the `make-handler` function.
 
 ```clojure
 (require '[bidi.bidi :refer (make-handler)])
