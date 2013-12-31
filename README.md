@@ -263,12 +263,13 @@ form a Ring handler (similar to what Compojure's `routes` and
 
 ## Guards
 
-By default, routes don't dispatch on the request method and behave like
-Compojure's `ANY` routes. That's fine if your handlers deal with the
-request methods themselves, as
+By default, routes ignore the request method, behaving like Compojure's
+`ANY` routes. That's fine if your handlers deal with the request methods
+themselves, as
 [Liberator](http://clojure-liberator.github.io/liberator/)'s
-do. However, you can specify a method by wrapping a route (or routes) in
-a pair, using a method-denoting keyword for the pattern.
+do. However, if you want to limit a route to a request method, you can
+wrap the route in a pair (or map entry), using a keyword for the
+pattern. The keyword denotes the request method (`:get`, `:put`, etc.)
 
 ```clojure
 ["/" {"blog {:get {"/index" (fn [req] {:status 200 :body "Index"})}}}]
