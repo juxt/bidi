@@ -291,8 +291,9 @@ to virtual hosts or HTTP schemes.
                 {"/zip" (fn [req] {:status 201 :body "Created"})}}]
 ```
 
-Values in the guard map can be values, or predicate functions which afford
-greater control over the dispatch criteria.
+Values in the guard map can be values, sets of acceptable values, or
+even predicate functions to give fine-grained control over the dispatch
+criteria.
 
 ## Route definitions
 
