@@ -254,13 +254,11 @@ routes to form a Ring handler (similar to what Compojure's `routes` and
 `defroutes` does).
 
 ```clojure
-(require '[bidi.bidi :refer (make-handler)])
+    (require '[bidi.bidi :refer (make-handler)])
 
-(def handler
-  (make-handler ["/" [
-                      ["index.html" :index]
-                      [["articles/" :id "/article.html"] :article]
-                     ]])
+    (def handler
+      (make-handler ["/" {"index.html" :index
+                          ["articles/" :id "/article.html"] :article}]))
 ```
 
 ## Guards
