@@ -123,7 +123,8 @@ Add the following dependency to your `project.clj` file
 
 ## Take 5 minutes to learn bidi (using the REPL)
 
-Let's create a route that matches `/index.html`.
+Let's create a route that matches `/index.html`. A route is simply a
+pair, containing a pattern and a result.
 
 ```clojure
     user> (def route ["/index.html" :index])
@@ -170,8 +171,9 @@ development).
 ### Multiple routes
 
 Now let's suppose we have 2 routes. We match partially on their common
-prefix (which can be `""` if necessary), and the remaining patterns can
-be specified in a map (or vector of pairs, if order is important).
+prefix, which in this case is `"/"` but we could use `""` if there were
+no common prefix. The patterns for the remaining path can be specified
+in a map (or vector of pairs, if order is important).
 
 ```clojure
     user> (def routes ["/" {"index.html" :index
@@ -373,7 +375,9 @@ responses with a *Location* header of `/articles/new`. This is a robust
 way of forming redirects in your code, since it guarantees that the
 *Location URI* matches an existing handler, both reducing the chance of
 broken links and encouraging the practise of retaining old URIs (linking
-to new ones) after refactoring. You can also use it for the common practice of adding a *welcome page* suffix, for example, adding `index.html` to a URI ending in `/`.
+to new ones) after refactoring. You can also use it for the common
+practice of adding a *welcome page* suffix, for example, adding
+`index.html` to a URI ending in `/`.
 
 ### WrapMiddleware
 
