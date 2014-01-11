@@ -270,7 +270,7 @@ wrap the route in a pair (or map entry), using a keyword for the
 pattern. The keyword denotes the request method (`:get`, `:put`, etc.)
 
 ```clojure
-["/" {"blog {:get {"/index" (fn [req] {:status 200 :body "Index"})}}}]
+["/" {"blog" {:get {"/index" (fn [req] {:status 200 :body "Index"})}}}]
 ```
 
 You can also restrict routes by any other request criteria. Guards are
