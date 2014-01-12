@@ -259,6 +259,17 @@
                      (wrap-content-type options)))))
   (unresolve-handler [this m] nil))
 
+;; Use this to map to files, using file-response. Options sbould include
+;; :dir, the root directory containing the files.
+(defrecord Files [options]
+  Matched
+  (resolve-handler [this m]
+    (assoc (dissoc m :remainder)
+      :handler (-> (fn [req] (file-response (:remainder m) {:root (:dir options)}))
+                   (wrap-file-info (:mime-types options))
+                   (wrap-content-type options))))
+  (unresolve-handler [this m] nil))
+
 ;; WrapMiddleware can be matched (appear on the right-hand-side of a route)
 ;; and returns a handler wrapped in the given middleware.
 (defrecord WrapMiddleware [matched middleware]
