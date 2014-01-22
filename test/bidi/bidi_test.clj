@@ -34,7 +34,7 @@
            {:handler :bar}))
 
     (is (= (match-route ["/blog" [["/foo" 'foo]
-                                  [["/bar" :path] :bar]]]
+                                  [["/bar" [#".*" :path]] :bar]]]
                         "/blog/bar/articles/123/index.html")
            {:handler :bar :params {:path "/articles/123/index.html"}}))
 
