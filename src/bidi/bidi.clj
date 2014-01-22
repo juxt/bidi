@@ -49,7 +49,7 @@
 
   Keyword
   ;; By default, a keyword can represent any string.
-  (match-segment [_] "(.*)")
+  (match-segment [_] "[^/]+")
   (unmatch-segment [this params]
     (if-let [v (this params)]
       (str v)
