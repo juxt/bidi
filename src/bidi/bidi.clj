@@ -132,6 +132,8 @@
   (unmatch-pattern [this m]
     (apply str (map #(unmatch-segment % (:params m)) this)))
 
+  ;;(match-route [[#"(.*)" :path] 'doit'] "foo-bar")
+
   Keyword
   (match-pattern [this env] (when (= this (:request-method env)) env))
   (unmatch-pattern [_ _] "")
