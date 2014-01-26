@@ -55,6 +55,8 @@
            {:handler 'foo :params {:id "123"}}))
 
     (testing "regex"
+      (is (= (match-route [[#"(.*)" :path] 'foo] "/blog/articles")
+             {:handler 'foo :params {:path "/blog/articles"}}))
       (is (= (match-route ["/blog" [[["/articles/" [#"\d+" :id] "/index.html"] 'foo]
                                     ["/text" 'bar]]]
                           "/blog/articles/123/index.html")
