@@ -519,6 +519,12 @@ Ran 9 tests containing 47 assertions.
 0 failures, 0 errors.
 ```
 
+A big thank you to everyone who have helped bidi so far, including
+
+* Dene Simpson
+* James Henderson
+* Matt Mitchell
+
 ## License
 
 Copyright © 2013, JUXT LTD. All Rights Reserved.
