@@ -493,6 +493,10 @@ Time for 1000 matches using compiled bidi routes
 "Elapsed time: 21.111658 msecs"
 ```
 
+## Patterns
+
+[Some patterns have been added here](doc/patterns.md).
+
 ## Contributing
 
 We welcome pull requests. If possible, please run the tests and make
