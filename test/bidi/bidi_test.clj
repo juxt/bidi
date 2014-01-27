@@ -71,7 +71,13 @@
       (is (= (match-route [#"/bl\p{Lower}{2}+" [[["/articles/" [#"\d+" :id] [#"\p{Lower}+" :a] "/index.html"] 'foo]
                                                 ["/text" 'bar]]]
                           "/blog/articles/123abc/index.html")
-             {:handler 'foo :params {:id "123" :a "abc"}})))
+             {:handler 'foo :params {:id "123" :a "abc"}}))
+
+      (is (= (match-route [["/blog/articles/123/" :path] 'foo]
+                          "/blog/articles/123/index.html")
+             {:handler 'foo :params {:path "index.html"}})))
+
+
 
     (testing "boolean patterns"
       (is (= (match-route [true :index] "/any") {:handler :index}))

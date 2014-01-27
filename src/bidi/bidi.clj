@@ -48,7 +48,7 @@
   (matches? [this s] (re-matches this s))
 
   Keyword
-  ;; By default, a keyword can represent any string.
+  ;; By default, a keyword represents anything that isn't a forward-slash
   (match-segment [_] "([^/]+)")
   (unmatch-segment [this params]
     (if-let [v (this params)]

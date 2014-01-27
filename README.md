@@ -259,6 +259,27 @@ form a Ring handler (similar to what Compojure's `routes` and
                       ["articles/" :id "/article.html"] :article}]))
 ```
 
+## Regular Expressions
+
+We've already seen how keywords can be used to extract segments from a path. By default, keywords capture anything that isn't a forward slash. If you want it to capture something else you can replace the keyword with a pair, containing a regular expression and the keyword.
+
+For example, these 2 patterns are equivalent :-
+
+```clojure
+    [ [ "foo/"            :id   "/bar ] :handler ]
+    [ [ "foo/" [ #"[^/]+" :id ] "/bar ] :handler ]
+```
+
+Both would match strings `foo/123/bar` and `foo/abc/bar`.
+
+But if we wanted `:id` to match only a string of one or more numbers, we could do this :-
+
+```clojure
+    [ [ "foo/" [ #"\d+" :id ] "/bar ] :handler ]
+```
+
+which would match the string `foo/123/bar` but not `foo/abc/bar`.
+
 ## Guards
 
 By default, routes ignore the request method, behaving like Compojure's
