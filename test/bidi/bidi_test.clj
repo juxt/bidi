@@ -78,7 +78,6 @@
              {:handler 'foo :params {:path "index.html"}})))
 
 
-
     (testing "boolean patterns"
       (is (= (match-route [true :index] "/any") {:handler :index}))
       (is (= (match-route [false :index] "/any") nil)))))
@@ -199,7 +198,6 @@
                {:status 200 :body "123"}))))))
 
 (deftest redirect-test
-
   (let [content-handler (fn [req] {:status 200 :body "Some content"})
         routes ["/articles"
                 [["/new" content-handler]
@@ -208,9 +206,7 @@
     (is (= (handler (request :get "/articles/old"))
            {:status 307, :headers {"Location" "/articles/new"}, :body ""} ))))
 
-
 (deftest wrap-middleware-test
-
   (let [wrapper (fn [h] (fn [req] (assoc (h req) :wrapper :evidence)))
         handler (fn [req] {:status 200 :body "Test"})]
     (is (= ((:handler (match-route ["/index.html" (->WrapMiddleware handler wrapper)] "/index.html"))
@@ -220,11 +216,17 @@
     (is (= (path-for ["/index.html" (->WrapMiddleware handler wrapper)] handler) "/index.html"))
     (is (= (path-for ["/index.html" handler] handler) "/index.html"))))
 
-
 (deftest wrap-alternates-test
-
   (let [routes [(->Alternates ["/index.html" "/index"]) :index]]
     (is (= (match-route routes "/index.html") {:handler :index}))
     (is (= (match-route routes "/index") {:handler :index}))
     (is (=(path-for routes :index) "/index.html")) ; first is the canonical one
     ))
+
+(deftest labelled-handlers
+  (let [routes ["/" [["foo" (->TaggedMatch :foo (fn [req] "foo!"))]
+                     [["bar/" :id] (->TaggedMatch :bar (fn [req] "bar!"))]]]]
+    (is (= ((make-handler routes) (request :get "/foo")) "foo!"))
+    (is (= ((make-handler routes) (request :get "/bar/123")) "bar!"))
+    (is (= (path-for routes :foo) "/foo"))
+    (is (= (path-for routes :bar :id "123") "/bar/123"))))

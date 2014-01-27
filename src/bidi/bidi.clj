@@ -289,6 +289,18 @@
   (match-pattern [this m] (some #(match-pattern % m) routes))
   (unmatch-pattern [this m] (unmatch-pattern (first routes) m)))
 
+;; If you have multiple routes which match the same handler, but need to
+;; label them so that you can form the correct URI, wrap the handler in
+;; a TaggedMatch.
+(defrecord TaggedMatch [name delegate]
+  Matched
+  (resolve-handler [this m]
+    (resolve-handler delegate m))
+  (unresolve-handler [this m]
+    (if (keyword? (:handler m))
+      (when (= name (:handler m)) "")
+      (unresolve-handler delegate m))))
+
 ;; --------------------------------------------------------------------------------
 ;; 3. Make it fast
 ;; --------------------------------------------------------------------------------

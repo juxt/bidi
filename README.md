@@ -436,6 +436,28 @@ Or match if the server name is `juxt.pro` or `localhost`.
  {"/index.html" :index}]
 ```
 
+### TaggedMatch
+
+Sometimes you have multiple routes handled by a common handler. How then
+to indicate which path to create using `path-for`? One solution is to
+wrap the handler and a keyword using `TaggedMatch`. Now you can use the
+keyword rather than the handler itself to create the path.
+
+For example.
+
+```clojure
+["/" [["foo" (->TaggedMatch :foo common-handler)]
+      [["bar/" :id] (->TaggedMatch :bar common-handler)]]]
+```
+
+Paths can now be creaed like this :-
+
+```clojure
+(path-for routes :foo)
+(path-for routes :bar :id "123")
+
+```
+
 ## Performance
 
 Route matching in Compojure is very fast, due to the fact that Compojure
