@@ -95,13 +95,13 @@ There are numerous Clojure routing libraries. Here's a table to help you compare
 <td>Yes</td>
 </tr>
 <tr>
-<td>Name begins with a B?</td>
-<td>No</td>
-<td>No</td>
-<td>No</td>
+<td>Name begins with a R?</td>
 <td>No</td>
 <td>No</td>
 <td>Yes!</td>
+<td>No</td>
+<td>No</td>
+<td>No</td>
 </tr>
 </tbody>
 </table>
