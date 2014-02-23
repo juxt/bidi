@@ -280,6 +280,20 @@ But if we wanted `:id` to match only a string of one or more numbers, we could d
 
 which would match the string `foo/123/bar` but not `foo/abc/bar`.
 
+## Keywords
+
+Sometimes you want segments of the URI to be extracted as keywords rather than strings, and in the reverse direction, to use keywords as values to be encoded into URIs.
+
+You can construct a pattern similarly to how you specify regular expressions but instead of the regex you use specify `keyword` core function.
+
+```clojure
+   [ "foo/" [ keyword :db/ident ] "/bar" ]
+```
+
+When matching the path `foo/bidi/bar`, the `:params` of the result would be `{:db/ident :bidi}`. To construct the path, you would use `(path-for routes handler :db/ident :bidi)`, which results in `foo/bidi/bar` (the colon of the stringified keyword is omitted).
+
+Namespaced keywords are also supported. Note that in the URI the `/` that separates the keyword's namespace from its name is URL encoded to %2F, rather than `/`.
+
 ## Guards
 
 By default, routes ignore the request method, behaving like Compojure's

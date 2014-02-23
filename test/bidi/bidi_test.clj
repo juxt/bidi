@@ -230,3 +230,19 @@
     (is (= ((make-handler routes) (request :get "/bar/123")) "bar!"))
     (is (= (path-for routes :foo) "/foo"))
     (is (= (path-for routes :bar :id "123") "/bar/123"))))
+
+
+(deftest keywords
+  (let [routes ["/" [["foo/" :x]
+                     [["foo/" [keyword :id]] :y]
+                     [["foo/" [keyword :id] "/bar"] :z]]]]
+    (is (= (:handler (match-route routes "/foo/")) :x))
+
+    (is (= (:handler (match-route routes "/foo/abc")) :y))
+    (is (= (:params (match-route routes "/foo/abc")) {:id :abc}))
+    (is (= (:params (match-route routes "/foo/abc%2Fdef")) {:id :abc/def}))
+    (is (= (path-for routes :y :id :abc) "/foo/abc"))
+    (is (= (path-for routes :y :id :abc/def) "/foo/abc%2Fdef"))
+
+    (is (= (:handler (match-route routes "/foo/abc/bar")) :z))
+    (is (= (path-for routes :z :id :abc) "/foo/abc/bar"))))

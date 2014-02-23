@@ -18,12 +18,48 @@
    [ring.middleware.content-type :refer (wrap-content-type)]
    [ring.middleware.file-info :refer (wrap-file-info)])
   (:import
-   (clojure.lang PersistentVector Symbol Keyword PersistentArrayMap PersistentHashMap PersistentHashSet PersistentList Fn LazySeq Var)))
+   (clojure.lang PersistentVector Symbol Keyword PersistentArrayMap PersistentHashMap PersistentHashSet PersistentList Fn LazySeq Var)
+   (java.net URLEncoder URLDecoder)))
+
+(defn decode [s]
+  (println "s is" s)
+  (println "result is" (URLDecoder/decode s))
+  (URLDecoder/decode s)
+)
 
 ;; --------------------------------------------------------------------------------
 ;; 1 & 2 Make it work and make it right
 ;; http://c2.com/cgi/wiki?MakeItWorkMakeItRightMakeItFast
 ;; --------------------------------------------------------------------------------
+
+;; When forming paths, parameters are encoded into the URI according to
+;; the parameter value type.
+
+(defprotocol ParameterEncoding
+  (encode-parameter [_]))
+
+(extend-protocol ParameterEncoding
+  ;; We don't URL encode strings, we leave the choice of whether to do so
+  ;; to the caller.
+  String
+  (encode-parameter [s] s)
+
+  CharSequence
+  (encode-parameter [s] s)
+
+  Long
+  (encode-parameter [s] s)
+
+
+  ;; We do URL encode keywords, however. Namespaced
+  ;; keywords use a separated of %2F (a URL encoded forward slash).
+
+  Keyword
+  (encode-parameter [k]
+    (URLEncoder/encode
+     (str (namespace k)
+          (when (namespace k) "/")
+          (name k)))))
 
 ;; A PatternSegment is part of a segmented pattern, where the pattern is
 ;; given as a vector. Each segment can be of a different type, and each
@@ -31,48 +67,81 @@
 ;; a route parameter.
 
 (defprotocol PatternSegment
+  ;; match-segment must return the regex pattern that will consume the
+  ;; segment, when matching routes.
   (match-segment [_])
+  ;; param-key, if non nil, specifies the key in the parameter map which
+  ;; holds the segment's value, returned from matching a route
   (param-key [_])
+  ;; transform specifies a function that will be applied the value
+  ;; extracted from the URI when matching routes.
+  (transform-param [_])
+
+  ;; unmatch-segment generates the part of the URI (a string) represented by
+  ;; the segment, when forming URIs.
   (unmatch-segment [_ params])
+  ;; matches? is used to check if the type or value of the parameter
+  ;; satisfies the segment qualifier when forming a URI.
   (matches? [_ s]))
 
 (extend-protocol PatternSegment
   String
-  (match-segment [this] (format "\\Q%s\\E" this))
-  (unmatch-segment [this _] this)
+  (match-segment [this] (format "(\\Q%s\\E)" this))
   (param-key [_] nil)
+  (transform-param [_] identity)
+  (unmatch-segment [this _] this)
 
   java.util.regex.Pattern
-  (match-segment [this] (.pattern this))
+  (match-segment [this] (format "(%s)" (.pattern this)))
   (param-key [_] nil)
-  (matches? [this s] (re-matches this s))
-
-  Keyword
-  ;; By default, a keyword represents anything that isn't a forward-slash
-  (match-segment [_] "([^/]+)")
-  (unmatch-segment [this params]
-    (if-let [v (this params)]
-      (str v)
-      (throw (ex-info (format "Cannot form URI without a value given for %s parameter" this) {}))))
-  (param-key [this] this)
+  (transform-param [_] identity)
+  (matches? [this s] (re-matches this (str s)))
 
   PersistentVector
   ;; A vector allows a keyword to be associated with a segment. The
-  ;; segment comes first, then the keyword.
-  (match-segment [this] (format "(%s)" (match-segment (first this))))
+  ;; qualifier for the segment comes first, then the keyword. The qualifier is usually a regex
+  (match-segment [this] (match-segment (first this)))
+  (param-key [this] (let [k (second this)]
+                      (if (keyword? k)
+                        k
+                        (throw (ex-info (format "If a PatternSegment is represented by a vector, the second element must be the keyword associated with the pattern: %s" this) {})))))
+  (transform-param [[f _]]
+    (if (fn? f)
+      (condp = f
+        ;; keyword is close, but must be applied to a decoded string, to work with namespaced keywords
+        keyword (comp keyword #(URLDecoder/decode %))
+        (throw (ex-info (format "Unrecognized function" f) {})))
+      identity))
+
   (unmatch-segment [this params]
     (let [k (second this)]
       (if-not (keyword? k)
         (throw (ex-info (format "If a PatternSegment is represented by a vector, the second element must be the key associated with the pattern: %s" this) {})))
       (if-let [v (get params k)]
         (if (matches? (first this) v)
-          v
+          (encode-parameter v)
           (throw (ex-info (format "Parameter value of %s (key %s) is not compatible with the route pattern %s" v k this) {})))
         (throw (ex-info (format "No parameter found in params for key %s" k) {})))))
-  (param-key [this] (let [k (second this)]
-                      (if (keyword? k)
-                        k
-                        (throw (ex-info (format "If a PatternSegment is represented by a vector, the second element must be the key associated with the pattern: %s" this) {}))))))
+
+  Keyword
+  ;; By default, a keyword represents anything that isn't a forward-slash
+  ;; TODO Rewrite in terms of PersistentVector, because Keyword is a special case of PersistentVector's general case.
+  (match-segment [_] "([^/]+)")
+  (param-key [this] this)
+  (transform-param [_] identity)
+  (unmatch-segment [this params]
+    (if-let [v (this params)]
+      (encode-parameter v)
+      (throw (ex-info (format "Cannot form URI without a value given for %s parameter" this) {}))))
+
+  Fn
+  (match-segment [this]
+    (cond
+     ;; TODO: This needs to match anything that's can in a Clojure keyword
+     (= this keyword) (.pattern #"([A-Za-z0-9\.\-]+(?:%2F[A-Za-z0-9\.\-]+)?)")
+     :otherwise (throw (ex-info (format "Unidentified function qualifier to pattern segment: %s" this)))))
+  (matches? [this s]
+    (when (= this keyword) (keyword? s))))
 
 ;; A Route is a pair. The pair has two halves: a pattern on the left,
 ;; while the right contains the result if the pattern matches.
@@ -124,11 +193,25 @@
 
   PersistentVector
   (match-pattern [this env]
-    (let [pattern (re-pattern (str (reduce str (map match-segment this)) "(.*)"))]
+    (let [pattern (-> (reduce str (map match-segment this))
+                      (str "(.*)") ; add the 'remainder' group
+                      re-pattern ; form a pattern
+                      )]
       (when-let [groups (next (re-matches pattern (:remainder env)))]
-        (-> env
-            (assoc-in [:remainder] (last groups))
-            (update-in [:params] merge (zipmap (keep param-key this) (butlast groups)))))))
+        (let [params (->> groups
+                          butlast ; except the 'remainder' group
+                          ;; Transform parameter values if necessary
+                          (map list) (map apply (map transform-param this))
+                          ;; Pair up with the parameter keys
+                          (map vector (map param-key this))
+                          ;; Only where such keys are specified
+                          (filter first)
+                          ;; Merge all key/values into a map
+                          (into {}))]
+          (-> env
+              (assoc-in [:remainder] (last groups))
+              (update-in [:params] merge params))))))
+
   (unmatch-pattern [this m]
     (apply str (map #(unmatch-segment % (:params m)) this)))
 
@@ -214,7 +297,6 @@
     (let [{:keys [handler params]} (apply match-route route uri (apply concat (seq request)))]
       (when handler
         (handler (-> request (assoc :route-params params)))))))
-
 
 ;; Any types can be used which satisfy bidi protocols.
 
