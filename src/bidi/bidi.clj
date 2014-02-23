@@ -67,9 +67,9 @@
 ;; a route parameter.
 
 (defprotocol PatternSegment
-  ;; match-segment must return the regex pattern that will consume the
+  ;; segment-regex-group must return the regex pattern that will consume the
   ;; segment, when matching routes.
-  (match-segment [_])
+  (segment-regex-group [_])
   ;; param-key, if non nil, specifies the key in the parameter map which
   ;; holds the segment's value, returned from matching a route
   (param-key [_])
@@ -86,13 +86,13 @@
 
 (extend-protocol PatternSegment
   String
-  (match-segment [this] (format "(\\Q%s\\E)" this))
+  (segment-regex-group [this] (format "(\\Q%s\\E)" this))
   (param-key [_] nil)
   (transform-param [_] identity)
   (unmatch-segment [this _] this)
 
   java.util.regex.Pattern
-  (match-segment [this] (format "(%s)" (.pattern this)))
+  (segment-regex-group [this] (format "(%s)" (.pattern this)))
   (param-key [_] nil)
   (transform-param [_] identity)
   (matches? [this s] (re-matches this (str s)))
@@ -100,7 +100,7 @@
   PersistentVector
   ;; A vector allows a keyword to be associated with a segment. The
   ;; qualifier for the segment comes first, then the keyword. The qualifier is usually a regex
-  (match-segment [this] (match-segment (first this)))
+  (segment-regex-group [this] (segment-regex-group (first this)))
   (param-key [this] (let [k (second this)]
                       (if (keyword? k)
                         k
@@ -126,7 +126,7 @@
   Keyword
   ;; By default, a keyword represents anything that isn't a forward-slash
   ;; TODO Rewrite in terms of PersistentVector, because Keyword is a special case of PersistentVector's general case.
-  (match-segment [_] "([^/]+)")
+  (segment-regex-group [_] "([^/]+)")
   (param-key [this] this)
   (transform-param [_] identity)
   (unmatch-segment [this params]
@@ -135,7 +135,7 @@
       (throw (ex-info (format "Cannot form URI without a value given for %s parameter" this) {}))))
 
   Fn
-  (match-segment [this]
+  (segment-regex-group [this]
     (cond
      ;; TODO: This needs to match anything that's can in a Clojure keyword
      (= this keyword) (.pattern #"([A-Za-z0-9\.\-]+(?:%2F[A-Za-z0-9\.\-]+)?)")
@@ -181,11 +181,11 @@
 
   String
   (match-pattern [this env]
-    (match-beginning (match-segment this) env))
+    (match-beginning (segment-regex-group this) env))
   (unmatch-pattern [this _] this)
 
   java.util.regex.Pattern
-  (match-pattern [this env] (match-beginning (match-segment this) env))
+  (match-pattern [this env] (match-beginning (segment-regex-group this) env))
 
   Boolean
   (match-pattern [this env]
@@ -193,7 +193,7 @@
 
   PersistentVector
   (match-pattern [this env]
-    (let [pattern (-> (reduce str (map match-segment this))
+    (let [pattern (-> (reduce str (map segment-regex-group this))
                       (str "(.*)") ; add the 'remainder' group
                       re-pattern ; form a pattern
                       )]
