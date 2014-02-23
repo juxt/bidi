@@ -86,13 +86,13 @@
 
 (extend-protocol PatternSegment
   String
-  (segment-regex-group [this] (format "(\\Q%s\\E)" this))
+  (segment-regex-group [this] (format "\\Q%s\\E" this))
   (param-key [_] nil)
   (transform-param [_] identity)
   (unmatch-segment [this _] this)
 
   java.util.regex.Pattern
-  (segment-regex-group [this] (format "(%s)" (.pattern this)))
+  (segment-regex-group [this] (.pattern this))
   (param-key [_] nil)
   (transform-param [_] identity)
   (matches? [this s] (re-matches this (str s)))
@@ -126,7 +126,7 @@
   Keyword
   ;; By default, a keyword represents anything that isn't a forward-slash
   ;; TODO Rewrite in terms of PersistentVector, because Keyword is a special case of PersistentVector's general case.
-  (segment-regex-group [_] "([^/]+)")
+  (segment-regex-group [_] "[^/]+")
   (param-key [this] this)
   (transform-param [_] identity)
   (unmatch-segment [this params]
@@ -138,7 +138,7 @@
   (segment-regex-group [this]
     (cond
      ;; TODO: This needs to match anything that's can in a Clojure keyword
-     (= this keyword) (.pattern #"([A-Za-z0-9\.\-]+(?:%2F[A-Za-z0-9\.\-]+)?)")
+     (= this keyword) #"[A-Za-z0-9\.\-]+(?:%2F[A-Za-z0-9\.\-]+)?"
      :otherwise (throw (ex-info (format "Unidentified function qualifier to pattern segment: %s" this)))))
   (matches? [this s]
     (when (= this keyword) (keyword? s))))
@@ -181,11 +181,11 @@
 
   String
   (match-pattern [this env]
-    (match-beginning (segment-regex-group this) env))
+    (match-beginning (format "(%s)" (segment-regex-group this)) env))
   (unmatch-pattern [this _] this)
 
   java.util.regex.Pattern
-  (match-pattern [this env] (match-beginning (segment-regex-group this) env))
+  (match-pattern [this env] (match-beginning (format "(%s)" (segment-regex-group this)) env))
 
   Boolean
   (match-pattern [this env]
@@ -193,24 +193,30 @@
 
   PersistentVector
   (match-pattern [this env]
-    (let [pattern (-> (reduce str (map segment-regex-group this))
-                      (str "(.*)") ; add the 'remainder' group
-                      re-pattern ; form a pattern
-                      )]
-      (when-let [groups (next (re-matches pattern (:remainder env)))]
-        (let [params (->> groups
-                          butlast ; except the 'remainder' group
-                          ;; Transform parameter values if necessary
-                          (map list) (map apply (map transform-param this))
-                          ;; Pair up with the parameter keys
-                          (map vector (map param-key this))
-                          ;; Only where such keys are specified
-                          (filter first)
-                          ;; Merge all key/values into a map
-                          (into {}))]
-          (-> env
-              (assoc-in [:remainder] (last groups))
-              (update-in [:params] merge params))))))
+    (when-let [groups (as-> this %
+                       ;; Make regexes of each segment in the vector
+                       (map segment-regex-group %)
+                       ;; Form a regexes group from each
+                       (map (partial format "(%s)") %)
+                       (reduce str %)
+                       ;; Add the 'remainder' group
+                       (str % "(.*)")
+                       (re-pattern %)
+                       (re-matches % (:remainder env))
+                       (next %))]
+      (let [params (->> groups
+                        butlast       ; except the 'remainder' group
+                        ;; Transform parameter values if necessary
+                        (map list) (map apply (map transform-param this))
+                        ;; Pair up with the parameter keys
+                        (map vector (map param-key this))
+                        ;; Only where such keys are specified
+                        (filter first)
+                        ;; Merge all key/values into a map
+                        (into {}))]
+        (-> env
+            (assoc-in [:remainder] (last groups))
+            (update-in [:params] merge params)))))
 
   (unmatch-pattern [this m]
     (apply str (map #(unmatch-segment % (:params m)) this)))
