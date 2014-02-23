@@ -124,9 +124,8 @@
         (throw (ex-info (format "No parameter found in params for key %s" k) {})))))
 
   Keyword
-  ;; By default, a keyword represents anything that isn't a forward-slash
-  ;; TODO Rewrite in terms of PersistentVector, because Keyword is a special case of PersistentVector's general case.
-  (segment-regex-group [_] "[^/]+")
+  ;; This is a very common form, so we're conservative as a defence against injection attacks.
+  (segment-regex-group [_] "[A-Za-z0-9\\-\\_\\.]+")
   (param-key [this] this)
   (transform-param [_] identity)
   (unmatch-segment [this params]
@@ -137,8 +136,7 @@
   Fn
   (segment-regex-group [this]
     (cond
-     ;; TODO: This needs to match anything that's can in a Clojure keyword
-     (= this keyword) #"[A-Za-z0-9\.\-]+(?:%2F[A-Za-z0-9\.\-]+)?"
+     (= this keyword) "[A-Za-z]+[A-Za-z0-9\\*\\+\\!\\-\\_\\?]*(?:%2F[A-Za-z]+[A-Za-z0-9\\*\\+\\!\\-\\_\\?]*)?"
      :otherwise (throw (ex-info (format "Unidentified function qualifier to pattern segment: %s" this)))))
   (matches? [this s]
     (when (= this keyword) (keyword? s))))

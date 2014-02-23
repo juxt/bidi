@@ -77,7 +77,6 @@
                           "/blog/articles/123/index.html")
              {:handler 'foo :params {:path "index.html"}})))
 
-
     (testing "boolean patterns"
       (is (= (match-route [true :index] "/any") {:handler :index}))
       (is (= (match-route [false :index] "/any") nil)))))
