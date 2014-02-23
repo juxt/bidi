@@ -9,7 +9,7 @@
 ;;
 ;; You must not remove this notice, or any other, from this software.
 
-(defproject bidi "1.9.5-SNAPSHOT"
+(defproject bidi "1.10.0-SNAPSHOT"
   :description "Bidirectional URI routing"
   :url "https://github.com/juxt/bidi"
   :license {:name "Eclipse Public License"
