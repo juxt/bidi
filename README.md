@@ -117,7 +117,6 @@ HTTP servers (including Jetty, [http-kit](http://http-kit.org/) and
 
 Add the following dependency to your `project.clj` file
 
-
 [![Current Version](https://clojars.org/bidi/latest-version.svg)](https://clojars.org/bidi)
 
 ## Take 5 minutes to learn bidi (using the REPL)
@@ -245,7 +244,11 @@ If you don't specify a required parameter an exception is thrown.
 Apart from a few extra bells and whistles documented in the rest of this
 README, that's basically it. Your five minutes are up!
 
-## Wrapping as a Ring handler
+## Going further
+
+Here are some extra topics you'll need to know to use bidi in a project.
+
+### Wrapping as a Ring handler
 
 Match results can be any value, but are typically functions (either
 in-line or via a symbol reference). You can easily wrap your routes to
@@ -260,20 +263,17 @@ form a Ring handler (similar to what Compojure's `routes` and
                       ["articles/" :id "/article.html"] :article}]))
 ```
 
-## Regular Expressions
+### Regular Expressions
 
-We've already seen how keywords can be used to extract segments from a path. By default, keywords capture anything that isn't a forward slash. If you want it to capture something else you can replace the keyword with a pair, containing a regular expression and the keyword.
+We've already seen how keywords can be used to extract segments from a path. By default, keywords only capture numbers and simple identifiers. This is on purpose, in a defence against injection attacks. Often you'll want to specify exactly what you're trying to capture using a regular expression.
 
-For example, these 2 patterns are equivalent :-
+If we want `:id` to match a number only, we can substitute the keyword with a pair, containing a regular expression followed by the keyword. For example, instead of this :-
 
 ```clojure
-    [ [ "foo/"            :id   "/bar" ] :handler ]
-    [ [ "foo/" [ #"[^/]+" :id ] "/bar" ] :handler ]
+    [ [ "foo/" :id "/bar" ] :handler ]
 ```
 
-Both would match strings `foo/123/bar` and `foo/abc/bar`.
-
-But if we wanted `:id` to match only a string of one or more numbers, we could do this :-
+we write this :-
 
 ```clojure
     [ [ "foo/" [ #"\d+" :id ] "/bar" ] :handler ]
@@ -281,21 +281,12 @@ But if we wanted `:id` to match only a string of one or more numbers, we could d
 
 which would match the string `foo/123/bar` but not `foo/abc/bar`.
 
-## Keywords
+## Advanced topics
 
-Sometimes you want segments of the URI to be extracted as keywords rather than strings, and in the reverse direction, to use keywords as values to be encoded into URIs.
+These features are optional, you don't need to know about them to use
+bidi, but they may come in useful.
 
-You can construct a pattern similarly to how you specify regular expressions but instead of the regex you use specify `keyword` core function.
-
-```clojure
-   [ "foo/" [ keyword :db/ident ] "/bar" ]
-```
-
-When matching the path `foo/bidi/bar`, the `:params` of the result would be `{:db/ident :bidi}`. To construct the path, you would use `(path-for routes handler :db/ident :bidi)`, which results in `foo/bidi/bar` (the colon of the stringified keyword is omitted).
-
-Namespaced keywords are also supported. Note that in the URI the `/` that separates the keyword's namespace from its name is URL encoded to %2F, rather than `/`.
-
-## Guards
+### Guards
 
 By default, routes ignore the request method, behaving like Compojure's
 `ANY` routes. That's fine if your handlers deal with the request methods
@@ -327,6 +318,20 @@ to virtual hosts or HTTP schemes.
 Values in the guard map can be values, sets of acceptable values, or
 even predicate functions to give fine-grained control over the dispatch
 criteria.
+
+### Keywords
+
+Sometimes you want segments of the URI to be extracted as keywords rather than strings, and in the reverse direction, to use keywords as values to be encoded into URIs.
+
+You can construct a pattern similarly to how you specify regular expressions but instead of the regex you use specify `keyword` core function.
+
+```clojure
+   [ "foo/" [ keyword :db/ident ] "/bar" ]
+```
+
+When matching the path `foo/bidi/bar`, the `:params` of the result would be `{:db/ident :bidi}`. To construct the path, you would use `(path-for routes handler :db/ident :bidi)`, which results in `foo/bidi/bar` (the colon of the stringified keyword is omitted).
+
+Namespaced keywords are also supported. Note that in the URI the `/` that separates the keyword's namespace from its name is URL encoded to %2F, rather than `/`.
 
 ## Route definitions
 
