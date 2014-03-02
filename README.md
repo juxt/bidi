@@ -118,7 +118,7 @@ HTTP servers (including Jetty, [http-kit](http://http-kit.org/) and
 Add the following dependency to your `project.clj` file
 
 ```clojure
-[bidi "1.10.1"]
+[bidi "1.10.2"]
 ```
 
 ## Take 5 minutes to learn bidi (using the REPL)
