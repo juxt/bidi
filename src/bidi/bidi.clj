@@ -290,6 +290,8 @@
   path that would route to the handler entry in the map. The map must
   also contain the values to any parameters required to create the path."
   [route handler & {:as params}]
+  (when (nil? handler)
+    (throw (ex-info "Cannot form URI from a nil handler" {})))
   (unmatch-pair route {:handler handler :params params}))
 
 (defn make-handler
