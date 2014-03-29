@@ -299,6 +299,7 @@
   structure. Matches a handler from the uri in the request, and invokes
   it with the request as a parameter."
   [route]
+  (assert route "Cannot create a Ring handler with a nil Route(s) parameter")
   (fn [{:keys [uri] :as request}]
     (let [{:keys [handler params]} (apply match-route route uri (apply concat (seq request)))]
       (when handler
