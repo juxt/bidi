@@ -152,7 +152,7 @@
   (unmatch-pattern [_ m]))
 
 (defprotocol Matched
-  (resolve-handler [_ path])
+  (resolve-handler [_ m])
   (unresolve-handler [_ m]))
 
 (defn match-pair
