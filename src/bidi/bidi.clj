@@ -316,10 +316,13 @@
   (resolve-handler [this m]
     (when (= "" (:remainder m))
       (assoc (dissoc m :remainder)
-        :handler (fn [req]
-                   {:status status
-                    :headers {"Location" (path-for (:route m) target)}
-                    :body ""}))))
+        :handler
+        (fn [req]
+          (let [location (apply path-for (:route m) target
+                                (apply concat (seq (:params m))))]
+            {:status status
+             :headers {"Location" location}
+             :body (str "Redirect to " location)})))))
   (unresolve-handler [this m] nil))
 
 ;; Use this to map to paths (e.g. /static) that are expected to resolve

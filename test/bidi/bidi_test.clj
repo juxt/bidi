@@ -198,12 +198,12 @@
 
 (deftest redirect-test
   (let [content-handler (fn [req] {:status 200 :body "Some content"})
-        routes ["/articles"
-                [["/new" content-handler]
-                 ["/old" (->Redirect 307 content-handler)]]]
+        routes ["/articles/"
+                [[[:artid "/new"] content-handler]
+                 [[:artid "/old"] (->Redirect 307 content-handler)]]]
         handler (make-handler routes)]
-    (is (= (handler (request :get "/articles/old"))
-           {:status 307, :headers {"Location" "/articles/new"}, :body ""} ))))
+    (is (= (handler (request :get "/articles/123/old"))
+           {:status 307, :headers {"Location" "/articles/123/new"}, :body "Redirect to /articles/123/new"} ))))
 
 (deftest wrap-middleware-test
   (let [wrapper (fn [h] (fn [req] (assoc (h req) :wrapper :evidence)))
