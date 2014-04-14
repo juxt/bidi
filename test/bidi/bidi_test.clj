@@ -212,6 +212,10 @@
             {:uri "/index.html"})
            {:wrapper :evidence :status 200 :body "Test"}))
 
+    (is (= ((:handler (match-route ["/index.html" (->WrapMiddleware handler wrapper)] "/index.html"))
+            {:path-info "/index.html"})
+           {:wrapper :evidence :status 200 :body "Test"}))
+
     (is (= (path-for ["/index.html" (->WrapMiddleware handler wrapper)] handler) "/index.html"))
     (is (= (path-for ["/index.html" handler] handler) "/index.html"))))
 
