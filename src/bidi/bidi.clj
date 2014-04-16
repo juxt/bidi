@@ -300,8 +300,9 @@
   it with the request as a parameter."
   [route]
   (assert route "Cannot create a Ring handler with a nil Route(s) parameter")
-  (fn [{:keys [uri] :as request}]
-    (let [{:keys [handler params]} (apply match-route route uri (apply concat (seq request)))]
+  (fn [{:keys [uri path-info] :as request}]
+    (let [path (or path-info uri)
+          {:keys [handler params]} (apply match-route route path (apply concat (seq request)))]
       (when handler
         (handler (-> request (assoc :route-params params)))))))
 
