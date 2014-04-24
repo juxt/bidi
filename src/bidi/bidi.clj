@@ -304,7 +304,7 @@
     (let [path (or path-info uri)
           {:keys [handler params]} (apply match-route route path (apply concat (seq request)))]
       (when handler
-        (handler (-> request (assoc :route-params params)))))))
+        (handler (update-in request [:route-params] merge params))))))
 
 ;; Any types can be used which satisfy bidi protocols.
 
