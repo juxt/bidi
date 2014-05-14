@@ -422,7 +422,7 @@ practice of adding a *welcome page* suffix, for example, adding
 
 ### WrapMiddleware
 
-You can wrap the resulting handler in Ring middleware as usual. But
+You can wrap the target handler in Ring middleware as usual. But
 sometimes you need to specify that the handlers from certain patterns
 are wrapped in particular middleware.
 
@@ -432,6 +432,15 @@ For example :-
 (match-route ["/index.html" (->WrapMiddleware handler wrap-params)]
              "/index.html")
 ```
+
+Use this with caution. If you are using this you are probably doing it wrong.
+
+Bidi separates URI routing from request handling. Ring middleware is
+something that should apply to handlers, not routes. If you have a set
+of middleware common to a group of handlers, you should apply the
+middleware to each handler in turn, rather than use
+`->WrapMiddleware`. Better to map a middleware applying function over
+your handlers rather than use this feature.
 
 ### Alternates
 
