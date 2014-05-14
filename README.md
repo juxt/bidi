@@ -433,7 +433,7 @@ For example :-
              "/index.html")
 ```
 
-Use this with caution. If you are using this you are probably doing it wrong.
+Use this with caution. If you are using this _you are probably doing it wrong_.
 
 Bidi separates URI routing from request handling. Ring middleware is
 something that should apply to handlers, not routes. If you have a set
