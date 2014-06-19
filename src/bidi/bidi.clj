@@ -173,7 +173,7 @@
 
 (defn succeed [handler m]
   (when (= (:remainder m) "")
-      (merge (dissoc m :remainder) {:handler handler})))
+    (merge (dissoc m :remainder) {:handler handler})))
 
 (extend-protocol Pattern
 
@@ -214,7 +214,7 @@
                         (into {}))]
         (-> env
             (assoc-in [:remainder] (last groups))
-            (update-in [:params] merge params)))))
+            (update-in [:route-params] merge params)))))
 
   (unmatch-pattern [this m]
     (apply str (map #(unmatch-segment % (:params m)) this)))
@@ -302,15 +302,19 @@
   (assert route "Cannot create a Ring handler with a nil Route(s) parameter")
   (fn [{:keys [uri path-info] :as request}]
     (let [path (or path-info uri)
-          {:keys [handler params]} (apply match-route route path (apply concat (seq request)))]
+          {:keys [handler route-params]} (apply match-route route path (apply concat (seq request)))]
       (when handler
-        (handler (update-in request [:route-params] merge params))))))
+        (handler
+         (-> request
+             (update-in [:params] merge route-params)
+             (update-in [:route-params] merge route-params)))))))
 
 ;; Any types can be used which satisfy bidi protocols.
 
 ;; Here are some built-in ones.
 
 ;; Redirect can be matched (appear on the right-hand-side of a route)
+
 ;; and returns a handler that can redirect to the given target.
 (defrecord Redirect [status target]
   Matched
@@ -320,7 +324,7 @@
         :handler
         (fn [req]
           (let [location (apply path-for (:route m) target
-                                (apply concat (seq (:params m))))]
+                                (apply concat (seq (:route-params m))))]
             {:status status
              :headers {"Location" location}
              :body (str "Redirect to " location)})))))

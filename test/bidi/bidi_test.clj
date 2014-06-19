@@ -36,29 +36,29 @@
     (is (= (match-route ["/blog" [["/foo" 'foo]
                                   [["/bar" [#".*" :path]] :bar]]]
                         "/blog/bar/articles/123/index.html")
-           {:handler :bar :params {:path "/articles/123/index.html"}}))
+           {:handler :bar :route-params {:path "/articles/123/index.html"}}))
 
     ;; The example in the README, so make sure it passes!
     (is (= (match-route ["/blog" [["/index.html" 'index]
                                   [["/bar/articles/" :artid "/index.html"] 'article]]]
                         "/blog/bar/articles/123/index.html")
-           {:handler 'article :params {:artid "123"}}))
+           {:handler 'article :route-params {:artid "123"}}))
 
     (is (= (match-route ["/blog" [["/foo" 'foo]
                                   [["/bar/articles/" :artid "/index.html"] 'bar]]]
                         "/blog/bar/articles/123/index.html")
-           {:handler 'bar :params {:artid "123"}}))
+           {:handler 'bar :route-params {:artid "123"}}))
 
     (is (= (match-route ["/blog" [[["/articles/" :id "/index.html"] 'foo]
                                   ["/text" 'bar]]]
                         "/blog/articles/123/index.html")
-           {:handler 'foo :params {:id "123"}}))
+           {:handler 'foo :route-params {:id "123"}}))
 
     (testing "regex"
       (is (= (match-route ["/blog" [[["/articles/" [#"\d+" :id] "/index.html"] 'foo]
                                     ["/text" 'bar]]]
                           "/blog/articles/123/index.html")
-             {:handler 'foo :params {:id "123"}}))
+             {:handler 'foo :route-params {:id "123"}}))
       (is (= (match-route ["/blog" [[["/articles/" [#"\d+" :id] "/index.html"] 'foo]
                                     ["/text" 'bar]]]
                           "/blog/articles/123a/index.html")
@@ -66,16 +66,16 @@
       (is (= (match-route ["/blog" [[["/articles/" [#"\d+" :id] [#"\p{Lower}+" :a] "/index.html"] 'foo]
                                     ["/text" 'bar]]]
                           "/blog/articles/123abc/index.html")
-             {:handler 'foo :params {:id "123" :a "abc"}}))
+             {:handler 'foo :route-params {:id "123" :a "abc"}}))
 
       (is (= (match-route [#"/bl\p{Lower}{2}+" [[["/articles/" [#"\d+" :id] [#"\p{Lower}+" :a] "/index.html"] 'foo]
                                                 ["/text" 'bar]]]
                           "/blog/articles/123abc/index.html")
-             {:handler 'foo :params {:id "123" :a "abc"}}))
+             {:handler 'foo :route-params {:id "123" :a "abc"}}))
 
       (is (= (match-route [["/blog/articles/123/" :path] 'foo]
                           "/blog/articles/123/index.html")
-             {:handler 'foo :params {:path "index.html"}})))
+             {:handler 'foo :route-params {:path "index.html"}})))
 
     (testing "boolean patterns"
       (is (= (match-route [true :index] "/any") {:handler :index}))
@@ -223,7 +223,7 @@
   (let [routes [(->Alternates ["/index.html" "/index"]) :index]]
     (is (= (match-route routes "/index.html") {:handler :index}))
     (is (= (match-route routes "/index") {:handler :index}))
-    (is (=(path-for routes :index) "/index.html")) ; first is the canonical one
+    (is (= (path-for routes :index) "/index.html")) ; first is the canonical one
     ))
 
 (deftest labelled-handlers
@@ -242,10 +242,23 @@
     (is (= (:handler (match-route routes "/foo/")) :x))
 
     (is (= (:handler (match-route routes "/foo/abc")) :y))
-    (is (= (:params (match-route routes "/foo/abc")) {:id :abc}))
-    (is (= (:params (match-route routes "/foo/abc%2Fdef")) {:id :abc/def}))
+    (is (= (:route-params (match-route routes "/foo/abc")) {:id :abc}))
+    (is (= (:route-params (match-route routes "/foo/abc%2Fdef")) {:id :abc/def}))
     (is (= (path-for routes :y :id :abc) "/foo/abc"))
     (is (= (path-for routes :y :id :abc/def) "/foo/abc%2Fdef"))
 
     (is (= (:handler (match-route routes "/foo/abc/bar")) :z))
     (is (= (path-for routes :z :id :abc) "/foo/abc/bar"))))
+
+(deftest route-params-hygiene-test
+  (testing "other request constraints"
+    (let [handler
+          (make-handler [["/blog/user/" :userid "/article"]
+                         (fn [req] {:status 201 :body (:route-params req)})])]
+
+      (is handler)
+      (testing "specified params like userid make it into :route-params
+                but other params do not"
+        (is (= (handler (-> (request :put "/blog/user/8888/article")
+                            (assoc :params {"foo" "bar"})))
+               {:status 201 :body {:userid "8888"}}))))))
