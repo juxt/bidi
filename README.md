@@ -556,6 +556,7 @@ A big thank you to everyone who have helped bidi so far, including
 * James Henderson
 * Matt Mitchell
 * Neale Swinnerton
+* Oliy Hine
 
 ## License
 
