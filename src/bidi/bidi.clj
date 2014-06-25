@@ -345,7 +345,12 @@
 
 ;; Use this to map to resources, will return nil if resource doesn't
 ;; exist, allowing other routes to be tried. Use this to try the path as
-;; a resource, but to continue if not found.
+;; a resource, but to continue if not found.  Warning: Java considers
+;; directories as resources, so this will yield a positive match on
+;; directories, including "/", which will prevent subsequent patterns
+;; being tried. The workaround is to be more specific in your
+;; patterns. For example, use /js and /css rather than just /. This
+;; problem does not affect Files (below).
 (defrecord ResourcesMaybe [options]
   Matched
   (resolve-handler [this m]
