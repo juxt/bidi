@@ -137,7 +137,7 @@
   (segment-regex-group [this]
     (cond
      (= this keyword) "[A-Za-z]+[A-Za-z0-9\\*\\+\\!\\-\\_\\?\\.]*(?:%2F[A-Za-z]+[A-Za-z0-9\\*\\+\\!\\-\\_\\?\\.]*)?"
-     :otherwise (throw (ex-info (format "Unidentified function qualifier to pattern segment: %s" this)))))
+     :otherwise (throw (ex-info (format "Unidentified function qualifier to pattern segment: %s" this) {}))))
   (matches? [this s]
     (when (= this keyword) (keyword? s))))
 
