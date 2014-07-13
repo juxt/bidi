@@ -142,6 +142,13 @@
       (is (= (path-for routes :temp-html)
              "/blog/temp.html")))))
 
+(defn dummy-function [_] :dummy)
+
+(deftest unidentified-function-qualifier-test
+  (let [routes [[["/" :dummy] dummy-function]]
+        handler (make-handler routes)]
+    (is (thrown? clojure.lang.ExceptionInfo (handler (request :get "/dummy"))))))
+
 
 (deftest make-handler-test
 
