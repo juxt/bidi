@@ -251,14 +251,13 @@
     (is (= (path-for routes :z :id :abc) "/foo/abc/bar"))))
 
 (deftest route-params-hygiene-test
-  (testing "other request constraints"
-    (let [handler
-          (make-handler [["/blog/user/" :userid "/article"]
-                         (fn [req] {:status 201 :body (:route-params req)})])]
+  (let [handler
+        (make-handler [["/blog/user/" :userid "/article"]
+                       (fn [req] {:status 201 :body (:route-params req)})])]
 
-      (is handler)
-      (testing "specified params like userid make it into :route-params
+    (is handler)
+    (testing "specified params like userid make it into :route-params
                 but other params do not"
-        (is (= (handler (-> (request :put "/blog/user/8888/article")
-                            (assoc :params {"foo" "bar"})))
-               {:status 201 :body {:userid "8888"}}))))))
+      (is (= (handler (-> (request :put "/blog/user/8888/article")
+                          (assoc :params {"foo" "bar"})))
+             {:status 201 :body {:userid "8888"}})))))
