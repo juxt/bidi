@@ -298,6 +298,9 @@
     {:path path
      :params (into {} params)}))
 
+(defn route-params [route handler]
+  (set (keys (:params (path-and-params route handler {})))))
+
 (defn path-for
   "Given a route definition data structure and an option map, return a
   path that would route to the handler entry in the map. The map must

@@ -110,7 +110,8 @@
 
       (is
        (= (path-for routes 'image-handler :path "123.png")
-          "/images/123.png")))
+          "/images/123.png"))
+      (is (= #{:path} (route-params routes 'image-handler))))
 
     (testing "unmatching with constraints"
 
@@ -121,13 +122,15 @@
         (is (= (path-for routes :index)
                "/blog/index"))
         (is (= (path-for routes :new-article-handler :artid 10)
-               "/blog/articles/10"))))
+               "/blog/articles/10"))
+        (is (= #{:artid} (route-params routes :new-article-handler)))))
     (testing "unmatching with regexes"
       (let [routes
             ["/blog" [[["/articles/" [#"\d+" :id] [#"\p{Lower}+" :a] "/index.html"] 'foo]
                       ["/text" 'bar]]]]
         (is (= (path-for routes 'foo :id "123" :a "abc")
                "/blog/articles/123abc/index.html"))
+        (is (= #{:id :a} (route-params routes 'foo)))
         ))))
 
 
@@ -224,7 +227,7 @@
     (is (= (match-route routes "/index.html") {:handler :index}))
     (is (= (match-route routes "/index") {:handler :index}))
     (is (= (path-for routes :index) "/index.html")) ; first is the canonical one
-    ))
+    (is (= #{} (route-params routes :index)))))
 
 (deftest labelled-handlers
   (let [routes ["/" [["foo" (->TaggedMatch :foo (fn [req] "foo!"))]
@@ -232,7 +235,9 @@
     (is (= ((make-handler routes) (request :get "/foo")) "foo!"))
     (is (= ((make-handler routes) (request :get "/bar/123")) "bar!"))
     (is (= (path-for routes :foo) "/foo"))
-    (is (= (path-for routes :bar :id "123") "/bar/123"))))
+    (is (= #{} (route-params routes :z)))
+    (is (= (path-for routes :bar :id "123") "/bar/123"))
+    (is (= #{:id} (route-params routes :bar)))))
 
 
 (deftest keywords
@@ -240,15 +245,18 @@
                      [["foo/" [keyword :id]] :y]
                      [["foo/" [keyword :id] "/bar"] :z]]]]
     (is (= (:handler (match-route routes "/foo/")) :x))
+    (is (= #{} (route-params routes :x)))
 
     (is (= (:handler (match-route routes "/foo/abc")) :y))
     (is (= (:route-params (match-route routes "/foo/abc")) {:id :abc}))
     (is (= (:route-params (match-route routes "/foo/abc%2Fdef")) {:id :abc/def}))
     (is (= (path-for routes :y :id :abc) "/foo/abc"))
     (is (= (path-for routes :y :id :abc/def) "/foo/abc%2Fdef"))
+    (is (= #{:id} (route-params routes :y)))
 
     (is (= (:handler (match-route routes "/foo/abc/bar")) :z))
-    (is (= (path-for routes :z :id :abc) "/foo/abc/bar"))))
+    (is (= (path-for routes :z :id :abc) "/foo/abc/bar"))
+    (is (= #{:id} (route-params routes :z)))))
 
 (deftest route-params-hygiene-test
   (let [handler
