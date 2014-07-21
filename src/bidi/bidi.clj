@@ -16,7 +16,8 @@
    [clojure.walk :refer (postwalk)]
    [ring.util.response :refer (file-response url-response)]
    [ring.middleware.content-type :refer (wrap-content-type)]
-   [ring.middleware.file-info :refer (wrap-file-info)])
+   [ring.middleware.file-info :refer (wrap-file-info)]
+   [ring.util.codec :refer (form-encode)])
   (:import
    (clojure.lang PersistentVector Symbol Keyword PersistentArrayMap PersistentHashMap PersistentHashSet PersistentList Fn LazySeq Var)
    (java.net URLEncoder URLDecoder)))
@@ -24,8 +25,7 @@
 (defn decode [s]
   (println "s is" s)
   (println "result is" (URLDecoder/decode s))
-  (URLDecoder/decode s)
-)
+  (URLDecoder/decode s))
 
 ;; --------------------------------------------------------------------------------
 ;; 1 & 2 Make it work and make it right
@@ -290,7 +290,7 @@
    (match-pair route (merge options {:remainder path :route route}))
    (dissoc :route)))
 
-(defn path-and-params
+(defn- path-and-params
   [route handler params]
   (when (nil? handler)
     (throw (ex-info "Cannot form URI from a nil handler" {})))
@@ -298,19 +298,35 @@
     {:path path
      :params (into {} params)}))
 
-(defn route-params [route handler]
+(defn route-params
+  "Given a route definition data structure and a handler returns a set of the params which
+   must be satisfied in order to construct the path to that handler"
+  [route handler]
   (set (keys (:params (path-and-params route handler {})))))
 
 (defn path-for
-  "Given a route definition data structure and an option map, return a
-  path that would route to the handler entry in the map. The map must
-  also contain the values to any parameters required to create the path."
+  "Given a route definition data structure, a handler and an option map, return a
+  path that would route to the handler. The map must contain the values to any
+  parameters required to create the path, and extra values are silently ignored."
   [route handler & {:as params}]
   (let [{:keys [path params]} (path-and-params route handler params)]
     (reduce (fn [url token]
               (str url (if-let [f (get params token)]
                          (f)
                          token))) path)))
+
+(defn path-with-query-for
+  "Like path-for, but extra parameters will be appended to the url as query parameters
+   rather than silently ignored"
+  [route handler & {:as all-params}]
+  (let [{:keys [path params]} (path-and-params route handler all-params)
+        path (reduce (fn [url token]
+                       (str url (if-let [f (get params token)]
+                                  (f)
+                                  token))) path)
+        query-params (not-empty (into (sorted-map) (apply dissoc all-params (keys params))))]
+    (apply str path (when query-params
+                      ["?" (form-encode query-params)]))))
 
 (defn make-handler
   "Create a Ring handler from the route definition data
@@ -431,6 +447,7 @@
     (when-let [path (last (re-matches regex (:remainder env)))]
       (assoc env :remainder path)))
   (unmatch-pattern [this env] {:path [prefix]}))
+
 (defn compile-prefix
   "Improve performance by composing the regex pattern ahead of time."
   [s] (->CompiledPrefix s (re-pattern (format "\\Q%s\\E(.*)" s))))

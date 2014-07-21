@@ -269,3 +269,13 @@
       (is (= (handler (-> (request :put "/blog/user/8888/article")
                           (assoc :params {"foo" "bar"})))
              {:status 201 :body {:userid "8888"}})))))
+
+(deftest path-with-query-for-test
+  (let [routes [["/blog/user/" :userid "/article"] :index]]
+
+    (is (= (path-with-query-for routes :index :userid 123)
+           "/blog/user/123/article"))
+    (is (= (path-with-query-for routes :index :userid 123 :page 1)
+           "/blog/user/123/article?page=1"))
+    (is (= (path-with-query-for routes :index :userid 123 :page 1 :foo "bar")
+           "/blog/user/123/article?foo=bar&page=1"))))
