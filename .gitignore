@@ -8,3 +8,5 @@ pom.xml.asc
 /.lein-*
 /.nrepl-port
 /todo.org
+.repl/
+out/
