@@ -22,10 +22,7 @@
    (java.net URLEncoder URLDecoder)))
 
 (defn decode [s]
-  (println "s is" s)
-  (println "result is" (URLDecoder/decode s))
-  (URLDecoder/decode s)
-)
+  (URLDecoder/decode s))
 
 ;; --------------------------------------------------------------------------------
 ;; 1 & 2 Make it work and make it right
