@@ -15,7 +15,8 @@
    [clojure.walk :refer (postwalk)]
    [ring.util.response :refer (file-response url-response)]
    [ring.middleware.content-type :refer (wrap-content-type)]
-   [ring.middleware.file-info :refer (wrap-file-info)])
+   [ring.middleware.file-info :refer (wrap-file-info)]
+   [ring.util.codec :refer (form-encode)])
   (:import
    (clojure.lang PersistentVector Symbol Keyword PersistentArrayMap PersistentHashMap PersistentHashSet PersistentList Fn LazySeq Var)
    (java.net URLEncoder URLDecoder)))
@@ -85,7 +86,7 @@
   (segment-regex-group [this] (format "\\Q%s\\E" this))
   (param-key [_] nil)
   (transform-param [_] identity)
-  (unmatch-segment [this _] this)
+  (unmatch-segment [this _] {:path [this]})
 
   java.util.regex.Pattern
   (segment-regex-group [this] (.pattern this))
@@ -113,11 +114,13 @@
     (let [k (second this)]
       (if-not (keyword? k)
         (throw (ex-info (format "If a PatternSegment is represented by a vector, the second element must be the key associated with the pattern: %s" this) {})))
-      (if-let [v (get params k)]
-        (if (matches? (first this) v)
-          (encode-parameter v)
-          (throw (ex-info (format "Parameter value of %s (key %s) is not compatible with the route pattern %s" v k this) {})))
-        (throw (ex-info (format "No parameter found in params for key %s" k) {})))))
+      {:path [k]
+       :params [[k
+                 #(if-let [v (get params k)]
+                    (if (matches? (first this) v)
+                      (encode-parameter v)
+                      (throw (ex-info (format "Parameter value of %s (key %s) is not compatible with the route pattern %s" v k this) {})))
+                    (throw (ex-info (format "No parameter found in params for key %s" k) {})))]]}))
 
   Keyword
   ;; This is a very common form, so we're conservative as a defence against injection attacks.
@@ -125,9 +128,11 @@
   (param-key [this] this)
   (transform-param [_] identity)
   (unmatch-segment [this params]
-    (if-let [v (this params)]
-      (encode-parameter v)
-      (throw (ex-info (format "Cannot form URI without a value given for %s parameter" this) {}))))
+    {:path [this]
+     :params [[this
+               #(if-let [v (this params)]
+                  (encode-parameter v)
+                  (throw (ex-info (format "Cannot form URI without a value given for %s parameter" this) {})))]]})
 
   Fn
   (segment-regex-group [this]
@@ -176,7 +181,7 @@
   String
   (match-pattern [this env]
     (match-beginning (format "(%s)" (segment-regex-group this)) env))
-  (unmatch-pattern [this _] this)
+  (unmatch-pattern [this _] {:path [this]})
 
   java.util.regex.Pattern
   (match-pattern [this env] (match-beginning (format "(%s)" (segment-regex-group this)) env))
@@ -213,11 +218,12 @@
             (update-in [:route-params] merge params)))))
 
   (unmatch-pattern [this m]
-    (apply str (map #(unmatch-segment % (:params m)) this)))
+    (apply merge-with concat
+           (map #(unmatch-segment % (:params m)) this)))
 
   Keyword
   (match-pattern [this env] (when (= this (:request-method env)) env))
-  (unmatch-pattern [_ _] "")
+  (unmatch-pattern [this _] nil)
 
   PersistentArrayMap
   (match-pattern [this env]
@@ -227,11 +233,11 @@
                      :otherwise (= v (get env k))))
                   (seq this))
       env))
-  (unmatch-pattern [_ _] ""))
+  (unmatch-pattern [_ _] nil))
 
 (defn unmatch-pair [v m]
   (when-let [r (unresolve-handler (second v) m)]
-    (str (unmatch-pattern (first v) m) r)))
+    (merge-with concat (unmatch-pattern (first v) m) r)))
 
 (extend-protocol Matched
   String
@@ -281,14 +287,43 @@
    (match-pair route (merge options {:remainder path :route route}))
    (dissoc :route)))
 
-(defn path-for
-  "Given a route definition data structure and an option map, return a
-  path that would route to the handler entry in the map. The map must
-  also contain the values to any parameters required to create the path."
-  [route handler & {:as params}]
+(defn- path-and-params
+  [route handler params]
   (when (nil? handler)
     (throw (ex-info "Cannot form URI from a nil handler" {})))
-  (unmatch-pair route {:handler handler :params params}))
+  (let [{:keys [path params]} (unmatch-pair route {:handler handler :params params})]
+    {:path path
+     :params (into {} params)}))
+
+(defn route-params
+  "Given a route definition data structure and a handler returns a set of the params which
+   must be satisfied in order to construct the path to that handler"
+  [route handler]
+  (set (keys (:params (path-and-params route handler {})))))
+
+(defn path-for
+  "Given a route definition data structure, a handler and an option map, return a
+  path that would route to the handler. The map must contain the values to any
+  parameters required to create the path, and extra values are silently ignored."
+  [route handler & {:as params}]
+  (let [{:keys [path params]} (path-and-params route handler params)]
+    (reduce (fn [url token]
+              (str url (if-let [f (get params token)]
+                         (f)
+                         token))) path)))
+
+(defn path-with-query-for
+  "Like path-for, but extra parameters will be appended to the url as query parameters
+   rather than silently ignored"
+  [route handler & {:as all-params}]
+  (let [{:keys [path params]} (path-and-params route handler all-params)
+        path (reduce (fn [url token]
+                       (str url (if-let [f (get params token)]
+                                  (f)
+                                  token))) path)
+        query-params (not-empty (into (sorted-map) (apply dissoc all-params (keys params))))]
+    (apply str path (when query-params
+                      ["?" (form-encode query-params)]))))
 
 (defn make-handler
   "Create a Ring handler from the route definition data
@@ -408,7 +443,7 @@
   (match-pattern [this env]
     (when-let [path (last (re-matches regex (:remainder env)))]
       (assoc env :remainder path)))
-  (unmatch-pattern [this env] prefix))
+  (unmatch-pattern [this env] {:path [prefix]}))
 
 (defn compile-prefix
   "Improve performance by composing the regex pattern ahead of time."
