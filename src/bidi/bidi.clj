@@ -11,7 +11,6 @@
 
 (ns bidi.bidi
   (:require
-   [clojure.core.match :refer (match)]
    [clojure.java.io :as io]
    [clojure.walk :refer (postwalk)]
    [ring.util.response :refer (file-response url-response)]

@@ -14,9 +14,9 @@
   :url "https://github.com/juxt/bidi"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.5.1"]
-                 [org.clojure/core.match "0.2.0"]
+  :dependencies [[org.clojure/clojure "1.6.0"]
+                 [org.clojure/clojurescript "0.0-2202"]
                  [ring/ring-core "1.2.1"]]
   :lein-release {:deploy-via :clojars}
   :profiles {:dev {:dependencies [[ring-mock "0.1.5"]
-                                  [compojure "1.1.6"]]}})
+                                  #_[compojure "1.1.6"]]}})
