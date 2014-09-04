@@ -197,7 +197,14 @@
       (is (nil? (handler (request :post "/blog/zip"))))
       (testing "artid makes it into :route-params"
         (is (= (handler (request :get "/blog/article/123/article.html"))
-               {:status 200 :body "123"}))))))
+               {:status 200 :body "123"})))))
+
+  (testing "applying optional function to handler"
+
+    (let [handler-lookup {:my-handler (fn [req] {:status 200 :body "Index"})}
+          handler (make-handler ["/" :my-handler] (fn [handler-id] (handler-id handler-lookup)))]
+      (is handler)
+      (is (= (handler (request :get "/")) {:status 200 :body "Index"})))))
 
 (deftest redirect-test
   (let [content-handler (fn [req] {:status 200 :body "Some content"})

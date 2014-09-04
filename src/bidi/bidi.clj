@@ -16,7 +16,8 @@
    [ring.util.response :refer (file-response url-response)]
    [ring.middleware.content-type :refer (wrap-content-type)]
    [ring.middleware.file-info :refer (wrap-file-info)]
-   [ring.util.codec :refer (form-encode)])
+   [ring.util.codec :refer (form-encode)]
+   [clojure.core.match :refer [match]])
   (:import
    (clojure.lang PersistentVector Symbol Keyword PersistentArrayMap PersistentHashMap PersistentHashSet PersistentList Fn LazySeq Var)
    (java.net URLEncoder URLDecoder)))
@@ -329,16 +330,17 @@
   "Create a Ring handler from the route definition data
   structure. Matches a handler from the uri in the request, and invokes
   it with the request as a parameter."
-  [route]
-  (assert route "Cannot create a Ring handler with a nil Route(s) parameter")
-  (fn [{:keys [uri path-info] :as request}]
-    (let [path (or path-info uri)
-          {:keys [handler route-params]} (apply match-route route path (apply concat (seq request)))]
-      (when handler
-        (handler
-         (-> request
-             (update-in [:params] merge route-params)
-             (update-in [:route-params] merge route-params)))))))
+  ([route handler-fn]
+      (assert route "Cannot create a Ring handler with a nil Route(s) parameter")
+      (fn [{:keys [uri path-info] :as request}]
+        (let [path (or path-info uri)
+              {:keys [handler route-params]} (apply match-route route path (apply concat (seq request)))]
+          (when handler
+            ((handler-fn handler)
+             (-> request
+                 (update-in [:params] merge route-params)
+                 (update-in [:route-params] merge route-params)))))))
+   ([route] (make-handler route identity)))
 
 ;; Any types can be used which satisfy bidi protocols.
 
