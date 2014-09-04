@@ -17,7 +17,9 @@
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [org.clojure/clojurescript "0.0-2202"]
                  [ring/ring-core "1.2.1"]
-                 [org.clojure/core.match "0.2.1"]]
+                 [org.clojure/core.match "0.2.1"]
+                 [compojure "1.1.8"]
+                 ]
   :lein-release {:deploy-via :clojars}
   :profiles {:dev {:dependencies [[ring-mock "0.1.5"]
                                   #_[compojure "1.1.6"]]}})
