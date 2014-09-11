@@ -107,7 +107,7 @@
     (if (fn? f)
       (condp = f
         ;; keyword is close, but must be applied to a decoded string, to work with namespaced keywords
-        keyword (comp keyword #(URLDecoder/decode %))
+        keyword (comp keyword decode)
         (throw (ex-info (format "Unrecognized function" f) {})))
       identity))
 
