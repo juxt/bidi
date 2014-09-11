@@ -245,24 +245,24 @@
   (unresolve-handler [_ _] nil)
 
   PersistentVector
-  (resolve-handler [this m] (first (keep #(match-pair % m) this)))
-  (unresolve-handler [this m] (first (keep #(unmatch-pair % m) this)))
+  (resolve-handler [this m] (some #(match-pair % m) this))
+  (unresolve-handler [this m] (some #(unmatch-pair % m) this))
 
   PersistentList
-  (resolve-handler [this m] (first (keep #(match-pair % m) this)))
-  (unresolve-handler [this m] (first (keep #(unmatch-pair % m) this)))
+  (resolve-handler [this m] (some #(match-pair % m) this))
+  (unresolve-handler [this m] (some #(unmatch-pair % m) this))
 
   PersistentArrayMap
-  (resolve-handler [this m] (first (keep #(match-pair % m) this)))
-  (unresolve-handler [this m] (first (keep #(unmatch-pair % m) this)))
+  (resolve-handler [this m] (some #(match-pair % m) this))
+  (unresolve-handler [this m] (some #(unmatch-pair % m) this))
 
   PersistentHashMap
-  (resolve-handler [this m] (first (keep #(match-pair % m) this)))
-  (unresolve-handler [this m] (first (keep #(unmatch-pair % m) this)))
+  (resolve-handler [this m] (some #(match-pair % m) this))
+  (unresolve-handler [this m] (some #(unmatch-pair % m) this))
 
   LazySeq
-  (resolve-handler [this m] (first (keep #(match-pair % m) this)))
-  (unresolve-handler [this m] (first (keep #(unmatch-pair % m) this)))
+  (resolve-handler [this m] (some #(match-pair % m) this))
+  (unresolve-handler [this m] (some #(unmatch-pair % m) this))
 
   Symbol
   (resolve-handler [this m] (succeed this m))
