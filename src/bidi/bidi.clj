@@ -103,8 +103,7 @@
                       (if (keyword? k)
                         k
                         (throw (ex-info (format "If a PatternSegment is represented by a vector, the second element must be the keyword associated with the pattern: %s" this) {})))))
-  (transform-param [[f _]]
-    (transform-param f))
+  (transform-param [this] (transform-param (first this)))
   (unmatch-segment [this params]
     (let [k (second this)]
       (if-not (keyword? k)
