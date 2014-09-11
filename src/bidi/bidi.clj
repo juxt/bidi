@@ -104,13 +104,7 @@
                         k
                         (throw (ex-info (format "If a PatternSegment is represented by a vector, the second element must be the keyword associated with the pattern: %s" this) {})))))
   (transform-param [[f _]]
-    (if (fn? f)
-      (condp = f
-        ;; keyword is close, but must be applied to a decoded string, to work with namespaced keywords
-        keyword (comp keyword decode)
-        (throw (ex-info (format "Unrecognized function" f) {})))
-      identity))
-
+    (transform-param f))
   (unmatch-segment [this params]
     (let [k (second this)]
       (if-not (keyword? k)
@@ -140,6 +134,11 @@
     (cond
      (= this keyword) "[A-Za-z]+[A-Za-z0-9\\*\\+\\!\\-\\_\\?\\.]*(?:%2F[A-Za-z]+[A-Za-z0-9\\*\\+\\!\\-\\_\\?\\.]*)?"
      :otherwise (throw (ex-info (format "Unidentified function qualifier to pattern segment: %s" this) {}))))
+  (transform-param [this]
+    (condp = this
+      ;; keyword is close, but must be applied to a decoded string, to work with namespaced keywords
+      keyword (comp keyword decode)
+      (throw (ex-info (format "Unrecognized function" this) {}))))
   (matches? [this s]
     (when (= this keyword) (keyword? s))))
 
