@@ -280,7 +280,10 @@
 
     (is (= (:handler (match-route routes "/foo/0/bar")) :z))
     (is (= (path-for routes :z :id 12) "/foo/12/bar"))
-    (is (= #{:id} (route-params routes :z)))))
+    (is (= #{:id} (route-params routes :z)))
+
+    (testing "bigger than longs"
+      (is (nil? (match-route routes "/foo/1012301231111111111111111111"))))))
 
 (deftest route-params-hygiene-test
   (let [handler

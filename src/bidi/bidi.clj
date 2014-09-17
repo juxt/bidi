@@ -132,7 +132,7 @@
   (segment-regex-group [this]
     (condp = this
      keyword "[A-Za-z]+[A-Za-z0-9\\*\\+\\!\\-\\_\\?\\.]*(?:%2F[A-Za-z]+[A-Za-z0-9\\*\\+\\!\\-\\_\\?\\.]*)?"
-     long "-?\\d+"
+     long "-?\\d{1,19}"
      :otherwise (throw (ex-info (format "Unidentified function qualifier to pattern segment: %s" this) {}))))
   (transform-param [this]
     (condp = this
@@ -143,7 +143,7 @@
   (matches? [this s]
     (condp = this
       keyword (keyword? s)
-      long (integer? s))))
+      long (some #(instance? % s) [Byte Short Integer Long]))))
 
 ;; A Route is a pair. The pair has two halves: a pattern on the left,
 ;; while the right contains the result if the pattern matches.
