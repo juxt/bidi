@@ -130,16 +130,20 @@
 
   Fn
   (segment-regex-group [this]
-    (cond
-     (= this keyword) "[A-Za-z]+[A-Za-z0-9\\*\\+\\!\\-\\_\\?\\.]*(?:%2F[A-Za-z]+[A-Za-z0-9\\*\\+\\!\\-\\_\\?\\.]*)?"
+    (condp = this
+     keyword "[A-Za-z]+[A-Za-z0-9\\*\\+\\!\\-\\_\\?\\.]*(?:%2F[A-Za-z]+[A-Za-z0-9\\*\\+\\!\\-\\_\\?\\.]*)?"
+     long "-?\\d+"
      :otherwise (throw (ex-info (format "Unidentified function qualifier to pattern segment: %s" this) {}))))
   (transform-param [this]
     (condp = this
       ;; keyword is close, but must be applied to a decoded string, to work with namespaced keywords
       keyword (comp keyword decode)
+      long #(Long/parseLong %)
       (throw (ex-info (format "Unrecognized function" this) {}))))
   (matches? [this s]
-    (when (= this keyword) (keyword? s))))
+    (condp = this
+      keyword (keyword? s)
+      long (integer? s))))
 
 ;; A Route is a pair. The pair has two halves: a pattern on the left,
 ;; while the right contains the result if the pattern matches.
