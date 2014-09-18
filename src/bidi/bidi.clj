@@ -103,14 +103,7 @@
                       (if (keyword? k)
                         k
                         (throw (ex-info (format "If a PatternSegment is represented by a vector, the second element must be the keyword associated with the pattern: %s" this) {})))))
-  (transform-param [[f _]]
-    (if (fn? f)
-      (condp = f
-        ;; keyword is close, but must be applied to a decoded string, to work with namespaced keywords
-        keyword (comp keyword #(URLDecoder/decode %))
-        (throw (ex-info (format "Unrecognized function" f) {})))
-      identity))
-
+  (transform-param [this] (transform-param (first this)))
   (unmatch-segment [this params]
     (let [k (second this)]
       (if-not (keyword? k)
@@ -137,11 +130,20 @@
 
   Fn
   (segment-regex-group [this]
-    (cond
-     (= this keyword) "[A-Za-z]+[A-Za-z0-9\\*\\+\\!\\-\\_\\?\\.]*(?:%2F[A-Za-z]+[A-Za-z0-9\\*\\+\\!\\-\\_\\?\\.]*)?"
+    (condp = this
+     keyword "[A-Za-z]+[A-Za-z0-9\\*\\+\\!\\-\\_\\?\\.]*(?:%2F[A-Za-z]+[A-Za-z0-9\\*\\+\\!\\-\\_\\?\\.]*)?"
+     long "-?\\d{1,19}"
      :otherwise (throw (ex-info (format "Unidentified function qualifier to pattern segment: %s" this) {}))))
+  (transform-param [this]
+    (condp = this
+      ;; keyword is close, but must be applied to a decoded string, to work with namespaced keywords
+      keyword (comp keyword decode)
+      long #(Long/parseLong %)
+      (throw (ex-info (format "Unrecognized function" this) {}))))
   (matches? [this s]
-    (when (= this keyword) (keyword? s))))
+    (condp = this
+      keyword (keyword? s)
+      long (some #(instance? % s) [Byte Short Integer Long]))))
 
 ;; A Route is a pair. The pair has two halves: a pattern on the left,
 ;; while the right contains the result if the pattern matches.
@@ -245,24 +247,24 @@
   (unresolve-handler [_ _] nil)
 
   PersistentVector
-  (resolve-handler [this m] (first (keep #(match-pair % m) this)))
-  (unresolve-handler [this m] (first (keep #(unmatch-pair % m) this)))
+  (resolve-handler [this m] (some #(match-pair % m) this))
+  (unresolve-handler [this m] (some #(unmatch-pair % m) this))
 
   PersistentList
-  (resolve-handler [this m] (first (keep #(match-pair % m) this)))
-  (unresolve-handler [this m] (first (keep #(unmatch-pair % m) this)))
+  (resolve-handler [this m] (some #(match-pair % m) this))
+  (unresolve-handler [this m] (some #(unmatch-pair % m) this))
 
   PersistentArrayMap
-  (resolve-handler [this m] (first (keep #(match-pair % m) this)))
-  (unresolve-handler [this m] (first (keep #(unmatch-pair % m) this)))
+  (resolve-handler [this m] (some #(match-pair % m) this))
+  (unresolve-handler [this m] (some #(unmatch-pair % m) this))
 
   PersistentHashMap
-  (resolve-handler [this m] (first (keep #(match-pair % m) this)))
-  (unresolve-handler [this m] (first (keep #(unmatch-pair % m) this)))
+  (resolve-handler [this m] (some #(match-pair % m) this))
+  (unresolve-handler [this m] (some #(unmatch-pair % m) this))
 
   LazySeq
-  (resolve-handler [this m] (first (keep #(match-pair % m) this)))
-  (unresolve-handler [this m] (first (keep #(unmatch-pair % m) this)))
+  (resolve-handler [this m] (some #(match-pair % m) this))
+  (unresolve-handler [this m] (some #(unmatch-pair % m) this))
 
   Symbol
   (resolve-handler [this m] (succeed this m))
