@@ -15,7 +15,8 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.5.1"]
-                 [org.clojure/core.match "0.2.0"]
+                 [org.clojure/clojurescript "0.0-2202"]
+                 [org.clojure/core.match "0.2.1"]
                  [ring/ring-core "1.2.1"]]
   :lein-release {:deploy-via :clojars}
   :profiles {:dev {:dependencies [[ring-mock "0.1.5"]

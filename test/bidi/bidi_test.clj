@@ -197,7 +197,14 @@
       (is (nil? (handler (request :post "/blog/zip"))))
       (testing "artid makes it into :route-params"
         (is (= (handler (request :get "/blog/article/123/article.html"))
-               {:status 200 :body "123"}))))))
+               {:status 200 :body "123"})))))
+
+  (testing "applying optional function to handler"
+
+    (let [handler-lookup {:my-handler (fn [req] {:status 200 :body "Index"})}
+          handler (make-handler ["/" :my-handler] (fn [handler-id] (handler-id handler-lookup)))]
+      (is handler)
+      (is (= (handler (request :get "/")) {:status 200 :body "Index"})))))
 
 (deftest redirect-test
   (let [content-handler (fn [req] {:status 200 :body "Some content"})
@@ -257,6 +264,26 @@
     (is (= (:handler (match-route routes "/foo/abc/bar")) :z))
     (is (= (path-for routes :z :id :abc) "/foo/abc/bar"))
     (is (= #{:id} (route-params routes :z)))))
+
+(deftest long-test
+  (let [routes ["/" [["foo/" :x]
+                     [["foo/" [long :id]] :y]
+                     [["foo/" [long :id] "/bar"] :z]]]]
+    (is (= (:handler (match-route routes "/foo/")) :x))
+    (is (= #{} (route-params routes :x)))
+
+    (is (= (:handler (match-route routes "/foo/345")) :y))
+    (is (= (:route-params (match-route routes "/foo/345")) {:id 345}))
+    (is (= (path-for routes :y :id -1000) "/foo/-1000"))
+    (is (= (path-for routes :y :id 1234567) "/foo/1234567"))
+    (is (= #{:id} (route-params routes :y)))
+
+    (is (= (:handler (match-route routes "/foo/0/bar")) :z))
+    (is (= (path-for routes :z :id 12) "/foo/12/bar"))
+    (is (= #{:id} (route-params routes :z)))
+
+    (testing "bigger than longs"
+      (is (nil? (match-route routes "/foo/1012301231111111111111111111"))))))
 
 (deftest route-params-hygiene-test
   (let [handler

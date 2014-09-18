@@ -17,7 +17,8 @@
    [ring.util.response :refer (file-response url-response)]
    [ring.middleware.content-type :refer (wrap-content-type)]
    [ring.middleware.file-info :refer (wrap-file-info)]
-   [ring.util.codec :refer (form-encode)])
+   [ring.util.codec :refer (form-encode)]
+   [clojure.core.match :refer [match]])
   (:import
    (clojure.lang PersistentVector Symbol Keyword PersistentArrayMap PersistentHashMap PersistentHashSet PersistentList Fn LazySeq Var)
    (java.net URLEncoder URLDecoder)))
@@ -103,14 +104,7 @@
                       (if (keyword? k)
                         k
                         (throw (ex-info (format "If a PatternSegment is represented by a vector, the second element must be the keyword associated with the pattern: %s" this) {})))))
-  (transform-param [[f _]]
-    (if (fn? f)
-      (condp = f
-        ;; keyword is close, but must be applied to a decoded string, to work with namespaced keywords
-        keyword (comp keyword #(URLDecoder/decode %))
-        (throw (ex-info (format "Unrecognized function" f) {})))
-      identity))
-
+  (transform-param [this] (transform-param (first this)))
   (unmatch-segment [this params]
     (let [k (second this)]
       (if-not (keyword? k)
@@ -137,11 +131,20 @@
 
   Fn
   (segment-regex-group [this]
-    (cond
-     (= this keyword) "[A-Za-z]+[A-Za-z0-9\\*\\+\\!\\-\\_\\?\\.]*(?:%2F[A-Za-z]+[A-Za-z0-9\\*\\+\\!\\-\\_\\?\\.]*)?"
+    (condp = this
+     keyword "[A-Za-z]+[A-Za-z0-9\\*\\+\\!\\-\\_\\?\\.]*(?:%2F[A-Za-z]+[A-Za-z0-9\\*\\+\\!\\-\\_\\?\\.]*)?"
+     long "-?\\d{1,19}"
      :otherwise (throw (ex-info (format "Unidentified function qualifier to pattern segment: %s" this) {}))))
+  (transform-param [this]
+    (condp = this
+      ;; keyword is close, but must be applied to a decoded string, to work with namespaced keywords
+      keyword (comp keyword decode)
+      long #(Long/parseLong %)
+      (throw (ex-info (format "Unrecognized function" this) {}))))
   (matches? [this s]
-    (when (= this keyword) (keyword? s))))
+    (condp = this
+      keyword (keyword? s)
+      long (some #(instance? % s) [Byte Short Integer Long]))))
 
 ;; A Route is a pair. The pair has two halves: a pattern on the left,
 ;; while the right contains the result if the pattern matches.
@@ -245,24 +248,24 @@
   (unresolve-handler [_ _] nil)
 
   PersistentVector
-  (resolve-handler [this m] (first (keep #(match-pair % m) this)))
-  (unresolve-handler [this m] (first (keep #(unmatch-pair % m) this)))
+  (resolve-handler [this m] (some #(match-pair % m) this))
+  (unresolve-handler [this m] (some #(unmatch-pair % m) this))
 
   PersistentList
-  (resolve-handler [this m] (first (keep #(match-pair % m) this)))
-  (unresolve-handler [this m] (first (keep #(unmatch-pair % m) this)))
+  (resolve-handler [this m] (some #(match-pair % m) this))
+  (unresolve-handler [this m] (some #(unmatch-pair % m) this))
 
   PersistentArrayMap
-  (resolve-handler [this m] (first (keep #(match-pair % m) this)))
-  (unresolve-handler [this m] (first (keep #(unmatch-pair % m) this)))
+  (resolve-handler [this m] (some #(match-pair % m) this))
+  (unresolve-handler [this m] (some #(unmatch-pair % m) this))
 
   PersistentHashMap
-  (resolve-handler [this m] (first (keep #(match-pair % m) this)))
-  (unresolve-handler [this m] (first (keep #(unmatch-pair % m) this)))
+  (resolve-handler [this m] (some #(match-pair % m) this))
+  (unresolve-handler [this m] (some #(unmatch-pair % m) this))
 
   LazySeq
-  (resolve-handler [this m] (first (keep #(match-pair % m) this)))
-  (unresolve-handler [this m] (first (keep #(unmatch-pair % m) this)))
+  (resolve-handler [this m] (some #(match-pair % m) this))
+  (unresolve-handler [this m] (some #(unmatch-pair % m) this))
 
   Symbol
   (resolve-handler [this m] (succeed this m))
@@ -330,16 +333,17 @@
   "Create a Ring handler from the route definition data
   structure. Matches a handler from the uri in the request, and invokes
   it with the request as a parameter."
-  [route]
-  (assert route "Cannot create a Ring handler with a nil Route(s) parameter")
-  (fn [{:keys [uri path-info] :as request}]
-    (let [path (or path-info uri)
-          {:keys [handler route-params]} (apply match-route route path (apply concat (seq request)))]
-      (when handler
-        (handler
-         (-> request
-             (update-in [:params] merge route-params)
-             (update-in [:route-params] merge route-params)))))))
+  ([route handler-fn]
+      (assert route "Cannot create a Ring handler with a nil Route(s) parameter")
+      (fn [{:keys [uri path-info] :as request}]
+        (let [path (or path-info uri)
+              {:keys [handler route-params]} (apply match-route route path (apply concat (seq request)))]
+          (when handler
+            ((handler-fn handler)
+             (-> request
+                 (update-in [:params] merge route-params)
+                 (update-in [:route-params] merge route-params)))))))
+   ([route] (make-handler route identity)))
 
 ;; Any types can be used which satisfy bidi protocols.
 
