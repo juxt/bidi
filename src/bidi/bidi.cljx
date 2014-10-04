@@ -10,21 +10,11 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns bidi.bidi
-  (:require
-   [clojure.core.match :refer (match)]
-   [clojure.java.io :as io]
-   [clojure.walk :refer (postwalk)]
-   [ring.util.response :refer (file-response url-response)]
-   [ring.middleware.content-type :refer (wrap-content-type)]
-   [ring.middleware.file-info :refer (wrap-file-info)]
-   [ring.util.codec :refer (form-encode)]
-   [clojure.core.match :refer [match]])
-  (:import
-   (clojure.lang PersistentVector Symbol Keyword PersistentArrayMap PersistentHashMap PersistentHashSet PersistentList Fn LazySeq Var)
-   (java.net URLEncoder URLDecoder)))
-
-(defn decode [s]
-  (URLDecoder/decode s))
+  #+cljs (:require-macros [cljs.core.match.macros :refer [match]])
+  (:require [clojure.walk :as walk :refer [postwalk]]
+            [cemerick.url :as url :refer [url-encode url-decode]]
+            #+cljs [cljs.core.match]
+            #+clj [clojure.core.match :refer [match]]))
 
 ;; --------------------------------------------------------------------------------
 ;; 1 & 2 Make it work and make it right
@@ -40,22 +30,24 @@
 (extend-protocol ParameterEncoding
   ;; We don't URL encode strings, we leave the choice of whether to do so
   ;; to the caller.
-  String
+  #+clj String
+  #+cljs string
   (encode-parameter [s] s)
 
-  CharSequence
-  (encode-parameter [s] s)
+  #+clj CharSequence
+  #+clj (encode-parameter [s] s)
 
-  Long
+  #+clj Long
+  #+cljs number
   (encode-parameter [s] s)
-
 
   ;; We do URL encode keywords, however. Namespaced
   ;; keywords use a separated of %2F (a URL encoded forward slash).
 
-  Keyword
+  #+clj clojure.lang.Keyword
+  #+cljs cljs.core.Keyword
   (encode-parameter [k]
-    (URLEncoder/encode
+    (url-encode
      (str (namespace k)
           (when (namespace k) "/")
           (name k)))))
@@ -75,7 +67,6 @@
   ;; transform specifies a function that will be applied the value
   ;; extracted from the URI when matching routes.
   (transform-param [_])
-
   ;; unmatch-segment generates the part of the URI (a string) represented by
   ;; the segment, when forming URIs.
   (unmatch-segment [_ params])
@@ -84,40 +75,59 @@
   (matches? [_ s]))
 
 (extend-protocol PatternSegment
-  String
-  (segment-regex-group [this] (format "\\Q%s\\E" this))
+  #+clj String
+  #+cljs string
+  (segment-regex-group [this]
+    #+clj (str "\\Q" this "\\E")
+    #+cljs (.replace this #"/(\W)/g" "\\$1"))
   (param-key [_] nil)
   (transform-param [_] identity)
   (unmatch-segment [this _] {:path [this]})
 
-  java.util.regex.Pattern
-  (segment-regex-group [this] (.pattern this))
+  #+clj java.util.regex.Pattern
+  #+cljs js/RegExp
+  (segment-regex-group [this]
+    #+clj (.pattern this)
+    #+cljs (str this))
   (param-key [_] nil)
   (transform-param [_] identity)
   (matches? [this s] (re-matches this (str s)))
 
-  PersistentVector
+  #+clj clojure.lang.APersistentVector
+  #+cljs cljs.core.PersistentVector
   ;; A vector allows a keyword to be associated with a segment. The
-  ;; qualifier for the segment comes first, then the keyword. The qualifier is usually a regex
+  ;; qualifier for the segment comes first, then the keyword.
+  ;; The qualifier is usually a regex
   (segment-regex-group [this] (segment-regex-group (first this)))
-  (param-key [this] (let [k (second this)]
-                      (if (keyword? k)
-                        k
-                        (throw (ex-info (format "If a PatternSegment is represented by a vector, the second element must be the keyword associated with the pattern: %s" this) {})))))
+  (param-key [this]
+    (let [k (second this)]
+      (if (keyword? k)
+        k
+        (throw (ex-info (str "If a PatternSegment is represented by a vector, the second
+                              element must be the keyword associated with the pattern: "
+                             this)
+                        {})))))
   (transform-param [this] (transform-param (first this)))
   (unmatch-segment [this params]
     (let [k (second this)]
       (if-not (keyword? k)
-        (throw (ex-info (format "If a PatternSegment is represented by a vector, the second element must be the key associated with the pattern: %s" this) {})))
+        (throw (ex-info (str "If a PatternSegment is represented by a vector, the second element
+                              must be the key associated with the pattern: "
+                             this)
+                        {})))
       {:path [k]
        :params [[k
                  #(if-let [v (get params k)]
                     (if (matches? (first this) v)
                       (encode-parameter v)
-                      (throw (ex-info (format "Parameter value of %s (key %s) is not compatible with the route pattern %s" v k this) {})))
-                    (throw (ex-info (format "No parameter found in params for key %s" k) {})))]]}))
+                      (throw (ex-info (str "Parameter value of " v " (key " k ") "
+                                           "is not compatible with the route pattern " this)
+                                      {})))
+                    (throw (ex-info (str "No parameter found in params for key " k)
+                                    {})))]]}))
 
-  Keyword
+  #+clj clojure.lang.Keyword
+  #+cljs cljs.core.Keyword
   ;; This is a very common form, so we're conservative as a defence against injection attacks.
   (segment-regex-group [_] "[A-Za-z0-9\\-\\_\\.]+")
   (param-key [this] this)
@@ -127,24 +137,27 @@
      :params [[this
                #(if-let [v (this params)]
                   (encode-parameter v)
-                  (throw (ex-info (format "Cannot form URI without a value given for %s parameter" this) {})))]]})
+                  (throw (ex-info (str "Cannot form URI without a value given for "
+                                       this " parameter")
+                                  {})))]]})
 
-  Fn
+  #+clj clojure.lang.Fn
+  #+cljs function
   (segment-regex-group [this]
     (condp = this
      keyword "[A-Za-z]+[A-Za-z0-9\\*\\+\\!\\-\\_\\?\\.]*(?:%2F[A-Za-z]+[A-Za-z0-9\\*\\+\\!\\-\\_\\?\\.]*)?"
      long "-?\\d{1,19}"
-     :otherwise (throw (ex-info (format "Unidentified function qualifier to pattern segment: %s" this) {}))))
+     :otherwise (throw (ex-info (str "Unidentified function qualifier to pattern segment: " this) {}))))
   (transform-param [this]
     (condp = this
       ;; keyword is close, but must be applied to a decoded string, to work with namespaced keywords
-      keyword (comp keyword decode)
-      long #(Long/parseLong %)
-      (throw (ex-info (format "Unrecognized function" this) {}))))
+      keyword (comp keyword url-decode)
+      long #+clj #(Long/parseLong %) #+cljs #(js/Number %)
+      (throw (ex-info (str "Unrecognized function " this) {}))))
   (matches? [this s]
     (condp = this
       keyword (keyword? s)
-      long (some #(instance? % s) [Byte Short Integer Long]))))
+      long #+clj (isa? (class s) java.lang.Number) #+cljs (not (js/isNaN (js/Number s))))))
 
 ;; A Route is a pair. The pair has two halves: a pattern on the left,
 ;; while the right contains the result if the pattern matches.
@@ -181,26 +194,30 @@
     (merge (dissoc m :remainder) {:handler handler})))
 
 (extend-protocol Pattern
-
-  String
+  #+clj String
+  #+cljs string
   (match-pattern [this env]
-    (match-beginning (format "(%s)" (segment-regex-group this)) env))
+    (match-beginning (str "(" (segment-regex-group this) ")") env))
   (unmatch-pattern [this _] {:path [this]})
 
-  java.util.regex.Pattern
-  (match-pattern [this env] (match-beginning (format "(%s)" (segment-regex-group this)) env))
+  #+clj java.util.regex.Pattern
+  #+cljs js/RegExp
+  (match-pattern [this env]
+    (match-beginning (str "(" (segment-regex-group this) ")") env))
 
-  Boolean
+  #+clj Boolean
+  #+cljs boolean
   (match-pattern [this env]
     (when this (assoc env :remainder "")))
 
-  PersistentVector
+  #+clj clojure.lang.APersistentVector
+  #+cljs cljs.core.PersistentVector
   (match-pattern [this env]
     (when-let [groups (as-> this %
                        ;; Make regexes of each segment in the vector
                        (map segment-regex-group %)
                        ;; Form a regexes group from each
-                       (map (partial format "(%s)") %)
+                       (map (fn [x] (str "(" x ")")) %)
                        (reduce str %)
                        ;; Add the 'remainder' group
                        (str % "(.*)")
@@ -225,11 +242,13 @@
     (apply merge-with concat
            (map #(unmatch-segment % (:params m)) this)))
 
-  Keyword
+  #+clj clojure.lang.Keyword
+  #+cljs cljs.core.Keyword
   (match-pattern [this env] (when (= this (:request-method env)) env))
   (unmatch-pattern [this _] nil)
 
-  PersistentArrayMap
+  #+clj clojure.lang.APersistentMap
+  #+cljs cljs.core.PersistentArrayMap
   (match-pattern [this env]
     (when (every? (fn [[k v]]
                     (cond
@@ -244,42 +263,46 @@
     (merge-with concat (unmatch-pattern (first v) m) r)))
 
 (extend-protocol Matched
-  String
+  #+clj String
+  #+cljs string
   (unresolve-handler [_ _] nil)
 
-  PersistentVector
+  #+clj clojure.lang.APersistentVector
+  #+cljs cljs.core.PersistentVector
   (resolve-handler [this m] (some #(match-pair % m) this))
   (unresolve-handler [this m] (some #(unmatch-pair % m) this))
 
-  PersistentList
+  #+clj clojure.lang.PersistentList
+  #+cljs cljs.core.List
   (resolve-handler [this m] (some #(match-pair % m) this))
   (unresolve-handler [this m] (some #(unmatch-pair % m) this))
 
-  PersistentArrayMap
+  #+clj clojure.lang.APersistentMap
+  #+cljs cljs.core.PersistentArrayMap
   (resolve-handler [this m] (some #(match-pair % m) this))
   (unresolve-handler [this m] (some #(unmatch-pair % m) this))
 
-  PersistentHashMap
+  #+clj clojure.lang.LazySeq
+  #+cljs cljs.core.LazySeq
   (resolve-handler [this m] (some #(match-pair % m) this))
   (unresolve-handler [this m] (some #(unmatch-pair % m) this))
 
-  LazySeq
-  (resolve-handler [this m] (some #(match-pair % m) this))
-  (unresolve-handler [this m] (some #(unmatch-pair % m) this))
-
-  Symbol
+  #+clj clojure.lang.Symbol
+  #+cljs cljs.core.Symbol
   (resolve-handler [this m] (succeed this m))
   (unresolve-handler [this m] (when (= this (:handler m)) ""))
 
-  Var
+  #+clj clojure.lang.Var
+  #+clj (resolve-handler [this m] (succeed this m))
+  #+clj (unresolve-handler [this m] (when (= this (:handler m)) ""))
+
+  #+clj clojure.lang.Keyword
+  #+cljs cljs.core.Keyword
   (resolve-handler [this m] (succeed this m))
   (unresolve-handler [this m] (when (= this (:handler m)) ""))
 
-  Keyword
-  (resolve-handler [this m] (succeed this m))
-  (unresolve-handler [this m] (when (= this (:handler m)) ""))
-
-  Fn
+  #+clj clojure.lang.Fn
+  #+cljs function
   (resolve-handler [this m] (succeed this m))
   (unresolve-handler [this m] (when (= this (:handler m)) "")))
 
@@ -287,9 +310,8 @@
   "Given a route definition data structure and a path, return the
   handler, if any, that matches the path."
   [route path & {:as options}]
-  (->
-   (match-pair route (merge options {:remainder path :route route}))
-   (dissoc :route)))
+  (-> (match-pair route (merge options {:remainder path :route route}))
+      (dissoc :route)))
 
 (defn- path-and-params
   [route handler params]
@@ -316,9 +338,37 @@
                          (f)
                          token))) path)))
 
+;; cljx version of ring.util.codec FormEncodeable protocol
+;; Difference is it accepts no custom encoding and uses UTF-8
+;; This is required for `path-with-query-for` function
+(defprotocol FormEncodeable
+  (form-encode [x]))
+
+(extend-protocol FormEncodeable
+  #+clj String
+  #+cljs string
+  (form-encode [unencoded] (url-encode unencoded))
+
+  #+clj clojure.lang.APersistentMap
+  #+cljs cljs.core.PersistentArrayMap
+  (form-encode [params]
+    (letfn [(encode [x] (form-encode x))
+            (encode-param [[k v]] (str (encode (name k)) "=" (encode v)))]
+      (->> params
+           (mapcat
+            (fn [[k v]]
+              (if (or (seq? v) (sequential? v) )
+                (map #(encode-param [k %]) v)
+                [(encode-param [k v])])))
+           (clojure.string/join "&"))))
+
+  #+clj Object
+  #+cljs default
+  (form-encode [x] (form-encode (str x))))
+
 (defn path-with-query-for
   "Like path-for, but extra parameters will be appended to the url as query parameters
-   rather than silently ignored"
+  rather than silently ignored"
   [route handler & {:as all-params}]
   (let [{:keys [path params]} (path-and-params route handler all-params)
         path (reduce (fn [url token]
@@ -328,116 +378,6 @@
         query-params (not-empty (into (sorted-map) (apply dissoc all-params (keys params))))]
     (apply str path (when query-params
                       ["?" (form-encode query-params)]))))
-
-(defn make-handler
-  "Create a Ring handler from the route definition data
-  structure. Matches a handler from the uri in the request, and invokes
-  it with the request as a parameter."
-  ([route handler-fn]
-      (assert route "Cannot create a Ring handler with a nil Route(s) parameter")
-      (fn [{:keys [uri path-info] :as request}]
-        (let [path (or path-info uri)
-              {:keys [handler route-params]} (apply match-route route path (apply concat (seq request)))]
-          (when handler
-            ((handler-fn handler)
-             (-> request
-                 (update-in [:params] merge route-params)
-                 (update-in [:route-params] merge route-params)))))))
-   ([route] (make-handler route identity)))
-
-;; Any types can be used which satisfy bidi protocols.
-
-;; Here are some built-in ones.
-
-;; Redirect can be matched (appear on the right-hand-side of a route)
-
-;; and returns a handler that can redirect to the given target.
-(defrecord Redirect [status target]
-  Matched
-  (resolve-handler [this m]
-    (when (= "" (:remainder m))
-      (assoc (dissoc m :remainder)
-        :handler
-        (fn [req]
-          (let [location (apply path-for (:route m) target
-                                (apply concat (seq (:route-params m))))]
-            {:status status
-             :headers {"Location" location}
-             :body (str "Redirect to " location)})))))
-  (unresolve-handler [this m] nil))
-
-;; Use this to map to paths (e.g. /static) that are expected to resolve
-;; to a Java resource, and should fail-fast otherwise (returning a 404).
-(defrecord Resources [options]
-  Matched
-  (resolve-handler [this m]
-    (assoc (dissoc m :remainder)
-      :handler (if-let [res (io/resource (str (:prefix options) (:remainder m)))]
-                 (-> (fn [req] (url-response res))
-                     (wrap-file-info (:mime-types options))
-                     (wrap-content-type options))
-                 {:status 404})))
-  (unresolve-handler [this m] nil))
-
-;; Use this to map to resources, will return nil if resource doesn't
-;; exist, allowing other routes to be tried. Use this to try the path as
-;; a resource, but to continue if not found.  Warning: Java considers
-;; directories as resources, so this will yield a positive match on
-;; directories, including "/", which will prevent subsequent patterns
-;; being tried. The workaround is to be more specific in your
-;; patterns. For example, use /js and /css rather than just /. This
-;; problem does not affect Files (below).
-(defrecord ResourcesMaybe [options]
-  Matched
-  (resolve-handler [this m]
-    (when-let [res (io/resource (str (:prefix options) (:remainder m)))]
-      (assoc (dissoc m :remainder)
-        :handler (-> (fn [req] (url-response res))
-                     (wrap-file-info (:mime-types options))
-                     (wrap-content-type options)))))
-  (unresolve-handler [this m] nil))
-
-;; Use this to map to files, using file-response. Options sbould include
-;; :dir, the root directory containing the files.
-(defrecord Files [options]
-  Matched
-  (resolve-handler [this m]
-    (assoc (dissoc m :remainder)
-      :handler (-> (fn [req] (file-response (:remainder m) {:root (:dir options)}))
-                   (wrap-file-info (:mime-types options))
-                   (wrap-content-type options))))
-  (unresolve-handler [this m] nil))
-
-;; WrapMiddleware can be matched (appear on the right-hand-side of a route)
-;; and returns a handler wrapped in the given middleware.
-(defrecord WrapMiddleware [matched middleware]
-  Matched
-  (resolve-handler [this m]
-    (let [r (resolve-handler matched m)]
-      (if (:handler r) (update-in r [:handler] middleware) r)))
-  (unresolve-handler [this m] (unresolve-handler matched m))) ; pure delegation
-
-;; Alternates can be used as a pattern. It is constructed with a vector
-;; of possible matching candidates. If one of the candidates matches,
-;; the route is matched. The first pattern in the vector is considered
-;; the canonical pattern for the purposes of URI formation with
-;; (path-for).
-(defrecord Alternates [routes]
-  Pattern
-  (match-pattern [this m] (some #(match-pattern % m) routes))
-  (unmatch-pattern [this m] (unmatch-pattern (first routes) m)))
-
-;; If you have multiple routes which match the same handler, but need to
-;; label them so that you can form the correct URI, wrap the handler in
-;; a TaggedMatch.
-(defrecord TaggedMatch [name delegate]
-  Matched
-  (resolve-handler [this m]
-    (resolve-handler delegate m))
-  (unresolve-handler [this m]
-    (if (keyword? (:handler m))
-      (when (= name (:handler m)) "")
-      (unresolve-handler delegate m))))
 
 ;; --------------------------------------------------------------------------------
 ;; 3. Make it fast
@@ -452,7 +392,7 @@
 
 (defn compile-prefix
   "Improve performance by composing the regex pattern ahead of time."
-  [s] (->CompiledPrefix s (re-pattern (format "\\Q%s\\E(.*)" s))))
+  [s] (->CompiledPrefix s (re-pattern (str "\\Q" s "\\E(.*)"))))
 
 (defn compile-route [route]
   (postwalk
