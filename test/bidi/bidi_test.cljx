@@ -59,22 +59,22 @@
            {:handler 'foo :route-params {:id "123"}}))
 
     (testing "regex"
-      (is (= (match-route ["/blog" [[["/articles/" [#"\d+" :id] "/index.html"] 'foo]
+      (is (= (match-route ["/blog" [[["/articles/" [#"[0-9]+" :id] "/index.html"] 'foo]
                                     ["/text" 'bar]]]
                           "/blog/articles/123/index.html")
              {:handler 'foo :route-params {:id "123"}}))
-      (is (= (match-route ["/blog" [[["/articles/" [#"\d+" :id] "/index.html"] 'foo]
+      (is (= (match-route ["/blog" [[["/articles/" [#"[0-9]+" :id] "/index.html"] 'foo]
                                     ["/text" 'bar]]]
                           "/blog/articles/123a/index.html")
              nil))
 
-      (is (= (match-route ["/blog" [[["/articles/" [#"\d+" :id] [#"\p{Lower}+" :a] "/index.html"] 'foo]
+      (is (= (match-route ["/blog" [[["/articles/" [#"[0-9]+" :id] [#"[a-z]+" :a] "/index.html"] 'foo]
                                     ["/text" 'bar]]]
                           "/blog/articles/123abc/index.html")
              {:handler 'foo :route-params {:id "123" :a "abc"}}))
 
       #+clj
-      (is (= (match-route [#"/bl\p{Lower}{2}+" [[["/articles/" [#"\d+" :id] [#"\p{Lower}+" :a] "/index.html"] 'foo]
+      (is (= (match-route [#"/bl[a-z]{2}+" [[["/articles/" [#"[0-9]+" :id] [#"[a-z]+" :a] "/index.html"] 'foo]
                                                 ["/text" 'bar]]]
                           "/blog/articles/123abc/index.html")
              {:handler 'foo :route-params {:id "123" :a "abc"}}))
@@ -134,7 +134,7 @@
 
     (testing "unmatching with regexes"
       (let [routes
-            ["/blog" [[["/articles/" [#"\d+" :id] [#"\p{Lower}+" :a] "/index.html"] 'foo]
+            ["/blog" [[["/articles/" [#"[0-9]+" :id] [#"[a-z]+" :a] "/index.html"] 'foo]
                       ["/text" 'bar]]]]
         (is (= (path-for routes 'foo :id "123" :a "abc")
                "/blog/articles/123abc/index.html"))

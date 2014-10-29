@@ -79,7 +79,7 @@
   #+cljs string
   (segment-regex-group [this]
     #+clj (str "\\Q" this "\\E")
-    #+cljs (.replace this #"/(\W)/g" "\\$1"))
+    #+cljs this)
   (param-key [_] nil)
   (transform-param [_] identity)
   (unmatch-segment [this _] {:path [this]})
@@ -88,7 +88,9 @@
   #+cljs js/RegExp
   (segment-regex-group [this]
     #+clj (.pattern this)
-    #+cljs (str this))
+    ;; this is kinda ugly, .toString on a RegExp
+    ;; returns something that looks like "/bla/" rather than "bla"
+    #+cljs (apply str (butlast (rest (str this)))))
   (param-key [_] nil)
   (transform-param [_] identity)
   (matches? [this s] (re-matches this (str s)))
@@ -152,12 +154,13 @@
     (condp = this
       ;; keyword is close, but must be applied to a decoded string, to work with namespaced keywords
       keyword (comp keyword url-decode)
-      long #+clj #(Long/parseLong %) #+cljs #(js/Number %)
+      long #+clj #(Long/parseLong %) 
+           #+cljs #(js/Number %)
       (throw (ex-info (str "Unrecognized function " this) {}))))
   (matches? [this s]
     (condp = this
       keyword (keyword? s)
-      long #+clj (isa? (class s) java.lang.Number) #+cljs (not (js/isNaN (js/Number s))))))
+      long #+clj (isa? (class s) java.lang.Number) #+cljs (not (js/isNaN  s)))))
 
 ;; A Route is a pair. The pair has two halves: a pattern on the left,
 ;; while the right contains the result if the pattern matches.
@@ -350,7 +353,9 @@
   (form-encode [unencoded] (url-encode unencoded))
 
   #+clj clojure.lang.APersistentMap
-  #+cljs cljs.core.PersistentArrayMap
+
+  ;; This is a sorted-map in cljs
+  #+cljs cljs.core.PersistentTreeMap
   (form-encode [params]
     (letfn [(encode [x] (form-encode x))
             (encode-param [[k v]] (str (encode (name k)) "=" (encode v)))]
@@ -392,7 +397,9 @@
 
 (defn compile-prefix
   "Improve performance by composing the regex pattern ahead of time."
-  [s] (->CompiledPrefix s (re-pattern (str "\\Q" s "\\E(.*)"))))
+  [s]
+  (->CompiledPrefix s #+clj  (re-pattern (str "\\Q" s "\\E(.*)"))
+                      #+cljs (re-pattern (.replace s #"/(\W)/g" "\\$1"))))
 
 (defn compile-route [route]
   (postwalk
