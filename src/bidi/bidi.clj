@@ -372,7 +372,7 @@
   Matched
   (resolve-handler [this m]
     (assoc (dissoc m :remainder)
-      :handler (if-let [res (io/resource (str (:prefix options) (:remainder m)))]
+      :handler (if-let [res (io/resource (str (:prefix options) (decode (:remainder m))))]
                  (-> (fn [req] (url-response res))
                      (wrap-file-info (:mime-types options))
                      (wrap-content-type options))
@@ -390,7 +390,7 @@
 (defrecord ResourcesMaybe [options]
   Matched
   (resolve-handler [this m]
-    (when-let [res (io/resource (str (:prefix options) (:remainder m)))]
+    (when-let [res (io/resource (str (:prefix options) (decode (:remainder m))))]
       (assoc (dissoc m :remainder)
         :handler (-> (fn [req] (url-response res))
                      (wrap-file-info (:mime-types options))
@@ -403,7 +403,8 @@
   Matched
   (resolve-handler [this m]
     (assoc (dissoc m :remainder)
-      :handler (-> (fn [req] (file-response (:remainder m) {:root (:dir options)}))
+      :handler (-> (fn [req] (file-response (decode (:remainder m))
+                                            {:root (:dir options)}))
                    (wrap-file-info (:mime-types options))
                    (wrap-content-type options))))
   (unresolve-handler [this m] nil))
