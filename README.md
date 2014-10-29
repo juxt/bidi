@@ -552,6 +552,7 @@ Ran 9 tests containing 47 assertions.
 
 A big thank you to everyone who have helped bidi so far, including
 
+* Malcolm Sparks
 * Dene Simpson
 * James Henderson
 * Matt Mitchell
