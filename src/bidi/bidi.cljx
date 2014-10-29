@@ -88,9 +88,7 @@
   #+cljs js/RegExp
   (segment-regex-group [this]
     #+clj (.pattern this)
-    ;; this is kinda ugly, .toString on a RegExp
-    ;; returns something that looks like "/bla/" rather than "bla"
-    #+cljs (apply str (butlast (rest (str this)))))
+    #+cljs (aget this "source"))
   (param-key [_] nil)
   (transform-param [_] identity)
   (matches? [this s] (re-matches this (str s)))
@@ -154,8 +152,7 @@
     (condp = this
       ;; keyword is close, but must be applied to a decoded string, to work with namespaced keywords
       keyword (comp keyword url-decode)
-      long #+clj #(Long/parseLong %) 
-           #+cljs #(js/Number %)
+      long #+clj #(Long/parseLong %) #+cljs #(js/Number %)
       (throw (ex-info (str "Unrecognized function " this) {}))))
   (matches? [this s]
     (condp = this
