@@ -420,6 +420,27 @@ to new ones) after refactoring. You can also use it for the common
 practice of adding a *welcome page* suffix, for example, adding
 `index.html` to a URI ending in `/`.
 
+### Resources and ResourcesMaybe
+
+The `Resources` and `ResourcesMaybe` record can be used on the
+right-hand side of a route. It serves resources from the
+classpath. After the pattern is matched, the remaining part of the path
+is added to the given prefix.
+
+```clojure
+["/resources" (->ResourcesMaybe {:prefix "public/"})
+```
+
+There is an important difference between `Resources` and `ResourcesMaybe`. `Resources` will return a 404 response if the resource cannot be found, while `ResourcesMaybe` will return nil, allowing subsequent routes to be tried.
+
+### Files
+
+Similar to `Resources`, `Files` will serve files from a file-system.
+
+```clojure
+["pics/" (->Files {:dir "/tmp/pics"})]
+```
+
 ### WrapMiddleware
 
 You can wrap the target handler in Ring middleware as usual. But
