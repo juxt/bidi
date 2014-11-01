@@ -359,7 +359,7 @@ RouteStructure := RoutePair
 
 RoutePair ::= [ Pattern Matched ]
 
-Pattern ::= Path | [ PatternSegment+ ] | MethodGuard | GeneralGuard
+Pattern ::= Path | [ PatternSegment+ ] | MethodGuard | GeneralGuard | true | false
 
 MethodGuard ::= :get :post :put :delete :head :options
 
