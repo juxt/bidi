@@ -157,7 +157,8 @@
   (matches? [this s]
     (condp = this
       keyword (keyword? s)
-      long #+clj (isa? (class s) java.lang.Number) #+cljs (not (js/isNaN  s)))))
+      long #+clj (some #(instance? % s) [Byte Short Integer Long])
+           #+cljs (not (js/isNaN  s)))))
 
 ;; A Route is a pair. The pair has two halves: a pattern on the left,
 ;; while the right contains the result if the pattern matches.
