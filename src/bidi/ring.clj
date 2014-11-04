@@ -12,6 +12,7 @@
 (ns bidi.ring
   (:require [bidi.bidi :as bidi :refer :all]
             [clojure.java.io :as io]
+            [cemerick.url :as url :refer [url-encode url-decode]]
             [ring.util.response :refer (file-response url-response)]
             [ring.middleware.content-type :refer (wrap-content-type)]
             [ring.middleware.file-info :refer (wrap-file-info)]))
@@ -59,7 +60,7 @@
   bidi/Matched
   (resolve-handler [this m]
     (assoc (dissoc m :remainder)
-      :handler (if-let [res (io/resource (str (:prefix options) (:remainder m)))]
+      :handler (if-let [res (io/resource (str (:prefix options) (url-decode (:remainder m))))]
                  (-> (fn [req] (url-response res))
                      (wrap-file-info (:mime-types options))
                      (wrap-content-type options))
@@ -77,7 +78,7 @@
 (defrecord ResourcesMaybe [options]
   bidi/Matched
   (resolve-handler [this m]
-    (when-let [res (io/resource (str (:prefix options) (:remainder m)))]
+    (when-let [res (io/resource (str (:prefix options) (url-decode (:remainder m))))]
       (assoc (dissoc m :remainder)
         :handler (-> (fn [req] (url-response res))
                      (wrap-file-info (:mime-types options))
@@ -90,7 +91,8 @@
   bidi/Matched
   (resolve-handler [this m]
     (assoc (dissoc m :remainder)
-      :handler (-> (fn [req] (file-response (:remainder m) {:root (:dir options)}))
+      :handler (-> (fn [req] (file-response (url-decode (:remainder m))
+                                           {:root (:dir options)}))
                    (wrap-file-info (:mime-types options))
                    (wrap-content-type options))))
   (unresolve-handler [this m] nil))
