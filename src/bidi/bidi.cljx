@@ -104,7 +104,7 @@
       (if (keyword? k)
         k
         (throw (ex-info (str "If a PatternSegment is represented by a vector, the second
-                              element must be the keyword associated with the pattern: "
+                               element must be the keyword associated with the pattern: "
                              this)
                         {})))))
   (transform-param [this] (transform-param (first this)))
@@ -112,7 +112,7 @@
     (let [k (second this)]
       (if-not (keyword? k)
         (throw (ex-info (str "If a PatternSegment is represented by a vector, the second element
-                              must be the key associated with the pattern: "
+                               must be the key associated with the pattern: "
                              this)
                         {})))
       {:path [k]
