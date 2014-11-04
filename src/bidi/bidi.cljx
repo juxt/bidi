@@ -166,7 +166,7 @@
   ;; Return truthy if the given pattern matches the given path. By
   ;; truthy, we mean a map containing (at least) the rest of the path to
   ;; match in a :remainder entry
-  (match-pattern [_ ^String path])
+  (match-pattern [_ #+clj ^String path #+cljs ^string path])
   (unmatch-pattern [_ m]))
 
 (defprotocol Matched
