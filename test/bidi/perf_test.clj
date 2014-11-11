@@ -14,6 +14,7 @@
    [clojure.test :refer :all]
    [compojure.core :refer (GET routes)]
    [bidi.bidi :refer :all]
+   [bidi.ring :refer :all]
    [ring.mock.request :refer (request)]
    [clojure.walk :refer (postwalk)]
    [clojure.core.match :refer (match)]))
