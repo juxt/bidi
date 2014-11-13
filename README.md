@@ -602,6 +602,7 @@ A big thank you to everyone who have helped bidi so far, including
 * Matt Mitchell
 * Neale Swinnerton
 * Oliy Hine
+* Thomas Crowley (for adding ClojureScript support, thanks Tom!)
 
 ## License
 
