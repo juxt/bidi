@@ -21,8 +21,6 @@
                  [com.cemerick/url "0.1.1"]
                  [ring/ring-core "1.2.1"]]
 
-  :lein-release {:deploy-via :clojars}
-
   :profiles {:dev {:dependencies [[ring-mock "0.1.5"]
                                   [compojure "1.1.6"]]
 
