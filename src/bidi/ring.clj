@@ -54,6 +54,12 @@
              :body (str "Redirect to " location)})))))
   (unresolve-handler [this m] nil))
 
+(defn redirect [target]
+  (->Redirect 302 target))
+
+(defn redirect-after-post [target]
+  (->Redirect 303 target))
+
 ;; Use this to map to paths (e.g. /static) that are expected to resolve
 ;; to a Java resource, and should fail-fast otherwise (returning a 404).
 (defrecord Resources [options]
