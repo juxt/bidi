@@ -73,6 +73,9 @@
                  {:status 404})))
   (unresolve-handler [this m] nil))
 
+(defn resources [options]
+  (->Resources options))
+
 ;; Use this to map to resources, will return nil if resource doesn't
 ;; exist, allowing other routes to be tried. Use this to try the path as
 ;; a resource, but to continue if not found.  Warning: Java considers
@@ -91,6 +94,9 @@
                      (wrap-content-type options)))))
   (unresolve-handler [this m] nil))
 
+(defn resources-maybe [options]
+  (->ResourcesMaybe options))
+
 ;; Use this to map to files, using file-response. Options sbould include
 ;; :dir, the root directory containing the files.
 (defrecord Files [options]
@@ -103,6 +109,9 @@
                    (wrap-content-type options))))
   (unresolve-handler [this m] nil))
 
+(defn files [options]
+  (->Files options))
+
 ;; WrapMiddleware can be matched (appear on the right-hand-side of a route)
 ;; and returns a handler wrapped in the given middleware.
 (defrecord WrapMiddleware [matched middleware]
@@ -111,6 +120,9 @@
     (let [r (resolve-handler matched m)]
       (if (:handler r) (update-in r [:handler] middleware) r)))
   (unresolve-handler [this m] (unresolve-handler matched m))) ; pure delegation
+
+(defn wrap-middleware [matched middleware]
+  (->WrapMiddleware matched middleware))
 
 ;; Alternates can be used as a pattern. It is constructed with a vector
 ;; of possible matching candidates. If one of the candidates matches,
