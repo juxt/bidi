@@ -21,6 +21,15 @@
 ;; http://c2.com/cgi/wiki?MakeItWorkMakeItRightMakeItFast
 ;; --------------------------------------------------------------------------------
 
+(defn uuid
+  "Function for creating a UUID of the appropriate type for the platform.
+Note that this function should _only_ be used in route patterns as, at least
+in the case of ClojureScript, it does not validate that the input string is
+actually a valid UUID (this is handled by the route matching logic)."
+  [s]
+  #+clj (java.util.UUID/fromString s)
+  #+cljs (cljs.core.UUID. s))
+
 ;; When forming paths, parameters are encoded into the URI according to
 ;; the parameter value type.
 
@@ -40,6 +49,10 @@
   #+clj Long
   #+cljs number
   (encode-parameter [s] s)
+
+  #+clj java.util.UUID
+  #+cljs cljs.core.UUID
+  (encode-parameter [s] (str s))
 
   ;; We do URL encode keywords, however. Namespaced
   ;; keywords use a separated of %2F (a URL encoded forward slash).
@@ -147,18 +160,21 @@
     (condp = this
      keyword "[A-Za-z]+[A-Za-z0-9\\*\\+\\!\\-\\_\\?\\.]*(?:%2F[A-Za-z]+[A-Za-z0-9\\*\\+\\!\\-\\_\\?\\.]*)?"
      long "-?\\d{1,19}"
+     uuid "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}"
      :otherwise (throw (ex-info (str "Unidentified function qualifier to pattern segment: " this) {}))))
   (transform-param [this]
     (condp = this
       ;; keyword is close, but must be applied to a decoded string, to work with namespaced keywords
       keyword (comp keyword url-decode)
       long #+clj #(Long/parseLong %) #+cljs #(js/Number %)
+      uuid uuid
       (throw (ex-info (str "Unrecognized function " this) {}))))
   (matches? [this s]
     (condp = this
       keyword (keyword? s)
       long #+clj (some #(instance? % s) [Byte Short Integer Long])
-           #+cljs (not (js/isNaN  s)))))
+           #+cljs (not (js/isNaN  s))
+      uuid (instance? #+clj java.util.UUID #+cljs cljs.core.UUID s))))
 
 ;; A Route is a pair. The pair has two halves: a pattern on the left,
 ;; while the right contains the result if the pattern matches.
