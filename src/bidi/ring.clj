@@ -65,12 +65,14 @@
 (defrecord Resources [options]
   bidi/Matched
   (resolve-handler [this m]
-    (assoc (dissoc m :remainder)
-      :handler (if-let [res (io/resource (str (:prefix options) (url-decode (:remainder m))))]
-                 (-> (fn [req] (url-response res))
-                     (wrap-file-info (:mime-types options))
-                     (wrap-content-type options))
-                 {:status 404})))
+    (let [path (url-decode (:remainder m))]
+      (when (not-empty path)
+        (assoc (dissoc m :remainder)
+          :handler (if-let [res (io/resource (str (:prefix options) path))]
+                     (-> (fn [req] (url-response res))
+                         (wrap-file-info (:mime-types options))
+                         (wrap-content-type options))
+                     {:status 404})))))
   (unresolve-handler [this m] nil))
 
 (defn resources [options]
@@ -87,11 +89,13 @@
 (defrecord ResourcesMaybe [options]
   bidi/Matched
   (resolve-handler [this m]
-    (when-let [res (io/resource (str (:prefix options) (url-decode (:remainder m))))]
-      (assoc (dissoc m :remainder)
-        :handler (-> (fn [req] (url-response res))
-                     (wrap-file-info (:mime-types options))
-                     (wrap-content-type options)))))
+    (let [path (url-decode (:remainder m))]
+      (when (not-empty path)
+        (when-let [res (io/resource (str (:prefix options) path))]
+          (assoc (dissoc m :remainder)
+            :handler (-> (fn [req] (url-response res))
+                         (wrap-file-info (:mime-types options))
+                         (wrap-content-type options)))))))
   (unresolve-handler [this m] nil))
 
 (defn resources-maybe [options]
