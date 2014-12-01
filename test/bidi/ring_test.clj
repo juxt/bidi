@@ -103,7 +103,8 @@
     (is (= (match-route routes "/index.html") {:handler :index}))
     (is (= (match-route routes "/index") {:handler :index}))
     (is (= (path-for routes :index) "/index.html")) ; first is the canonical one
-    (is (= #{} (route-params routes :index)))))
+    ))
+
 
 (deftest labelled-handlers
   (let [routes ["/" [["foo" (->TaggedMatch :foo (fn [req] "foo!"))]
@@ -111,9 +112,7 @@
     (is (= ((make-handler routes) (request :get "/foo")) "foo!"))
     (is (= ((make-handler routes) (request :get "/bar/123")) "bar!"))
     (is (= (path-for routes :foo) "/foo"))
-    (is (= #{} (route-params routes :z)))
-    (is (= (path-for routes :bar :id "123") "/bar/123"))
-    (is (= #{:id} (route-params routes :bar)))))
+    (is (= (path-for routes :bar :id "123") "/bar/123"))))
 
 (deftest route-params-hygiene-test
   (let [handler

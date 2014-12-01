@@ -14,9 +14,7 @@
   (:require #+clj [clojure.test :refer :all]
             #+cljs [cemerick.cljs.test :as t]
             [bidi.bidi :as bidi :refer [match-route
-                                        path-for
-                                        path-with-query-for
-                                        route-params]]))
+                                        path-for]]))
 
 (deftest matching-routes-test
   (testing "misc-routes"
@@ -117,8 +115,7 @@
 
       (is
        (= (path-for routes 'image-handler :path "123.png")
-          "/images/123.png"))
-      (is (= #{:path} (route-params routes 'image-handler))))
+          "/images/123.png")))
 
     (testing "unmatching with constraints"
 
@@ -129,17 +126,14 @@
         (is (= (path-for routes :index)
                "/blog/index"))
         (is (= (path-for routes :new-article-handler :artid 10)
-               "/blog/articles/10"))
-        (is (= #{:artid} (route-params routes :new-article-handler)))))
+               "/blog/articles/10"))))
 
     (testing "unmatching with regexes"
       (let [routes
             ["/blog" [[["/articles/" [#"[0-9]+" :id] [#"[a-z]+" :a] "/index.html"] 'foo]
                       ["/text" 'bar]]]]
         (is (= (path-for routes 'foo :id "123" :a "abc")
-               "/blog/articles/123abc/index.html"))
-        (is (= #{:id :a} (route-params routes 'foo)))))))
-
+               "/blog/articles/123abc/index.html"))))))
 
 (deftest unmatching-routes-with-anonymous-fns-test
   (testing "unmatching when routes contains a ref to anonymous function(s) should not throw exception"
@@ -152,50 +146,34 @@
       (is (= (path-for routes :temp-html)
              "/blog/temp.html")))))
 
-(deftest path-with-query-for-test
-  (let [routes [["/blog/user/" :userid "/article"] :index]]
-
-    (is (= (path-with-query-for routes :index :userid 123)
-           "/blog/user/123/article"))
-    (is (= (path-with-query-for routes :index :userid 123 :page 1)
-           "/blog/user/123/article?page=1"))
-    (is (= (path-with-query-for routes :index :userid 123 :page 1 :foo "bar")
-           "/blog/user/123/article?foo=bar&page=1"))))
-
 (deftest keywords
   (let [routes ["/" [["foo/" :x]
                      [["foo/" [keyword :id]] :y]
                      [["foo/" [keyword :id] "/bar"] :z]]]]
     (is (= (:handler (match-route routes "/foo/")) :x))
-    (is (= #{} (route-params routes :x)))
 
     (is (= (:handler (match-route routes "/foo/abc")) :y))
     (is (= (:route-params (match-route routes "/foo/abc")) {:id :abc}))
     (is (= (:route-params (match-route routes "/foo/abc%2Fdef")) {:id :abc/def}))
     (is (= (path-for routes :y :id :abc) "/foo/abc"))
     (is (= (path-for routes :y :id :abc/def) "/foo/abc%2Fdef"))
-    (is (= #{:id} (route-params routes :y)))
 
     (is (= (:handler (match-route routes "/foo/abc/bar")) :z))
-    (is (= (path-for routes :z :id :abc) "/foo/abc/bar"))
-    (is (= #{:id} (route-params routes :z)))))
+    (is (= (path-for routes :z :id :abc) "/foo/abc/bar"))))
 
 (deftest long-test
   (let [routes ["/" [["foo/" :x]
                      [["foo/" [long :id]] :y]
                      [["foo/" [long :id] "/bar"] :z]]]]
     (is (= (:handler (match-route routes "/foo/")) :x))
-    (is (= #{} (route-params routes :x)))
 
     (is (= (:handler (match-route routes "/foo/345")) :y))
     (is (= (:route-params (match-route routes "/foo/345")) {:id 345}))
     (is (= (path-for routes :y :id -1000) "/foo/-1000"))
     (is (= (path-for routes :y :id 1234567) "/foo/1234567"))
-    (is (= #{:id} (route-params routes :y)))
 
     (is (= (:handler (match-route routes "/foo/0/bar")) :z))
     (is (= (path-for routes :z :id 12) "/foo/12/bar"))
-    (is (= #{:id} (route-params routes :z)))
 
     (testing "bigger than longs"
       (is (nil? (match-route routes "/foo/1012301231111111111111111111"))))))

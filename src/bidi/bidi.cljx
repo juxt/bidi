@@ -82,7 +82,7 @@
     #+cljs this)
   (param-key [_] nil)
   (transform-param [_] identity)
-  (unmatch-segment [this _] {:path [this]})
+  (unmatch-segment [this _] this)
 
   #+clj java.util.regex.Pattern
   #+cljs js/RegExp
@@ -115,16 +115,14 @@
                                must be the key associated with the pattern: "
                              this)
                         {})))
-      {:path [k]
-       :params [[k
-                 #(if-let [v (get params k)]
-                    (if (matches? (first this) v)
-                      (encode-parameter v)
-                      (throw (ex-info (str "Parameter value of " v " (key " k ") "
-                                           "is not compatible with the route pattern " this)
-                                      {})))
-                    (throw (ex-info (str "No parameter found in params for key " k)
-                                    {})))]]}))
+      (if-let [v (get params k)]
+        (if (matches? (first this) v)
+          (encode-parameter v)
+          (throw (ex-info (str "Parameter value of " v " (key " k ") "
+                               "is not compatible with the route pattern " this)
+                          {})))
+        (throw (ex-info (str "No parameter found in params for key " k)
+                        {})))))
 
   #+clj clojure.lang.Keyword
   #+cljs cljs.core.Keyword
@@ -133,21 +131,19 @@
   (param-key [this] this)
   (transform-param [_] identity)
   (unmatch-segment [this params]
-    {:path [this]
-     :params [[this
-               #(if-let [v (this params)]
-                  (encode-parameter v)
-                  (throw (ex-info (str "Cannot form URI without a value given for "
-                                       this " parameter")
-                                  {})))]]})
+    (if-let [v (this params)]
+      (encode-parameter v)
+      (throw (ex-info (str "Cannot form URI without a value given for "
+                           this " parameter")
+                      {}))))
 
   #+clj clojure.lang.Fn
   #+cljs function
   (segment-regex-group [this]
     (condp = this
-     keyword "[A-Za-z]+[A-Za-z0-9\\*\\+\\!\\-\\_\\?\\.]*(?:%2F[A-Za-z]+[A-Za-z0-9\\*\\+\\!\\-\\_\\?\\.]*)?"
-     long "-?\\d{1,19}"
-     :otherwise (throw (ex-info (str "Unidentified function qualifier to pattern segment: " this) {}))))
+      keyword "[A-Za-z]+[A-Za-z0-9\\*\\+\\!\\-\\_\\?\\.]*(?:%2F[A-Za-z]+[A-Za-z0-9\\*\\+\\!\\-\\_\\?\\.]*)?"
+      long "-?\\d{1,19}"
+      :otherwise (throw (ex-info (str "Unidentified function qualifier to pattern segment: " this) {}))))
   (transform-param [this]
     (condp = this
       ;; keyword is close, but must be applied to a decoded string, to work with namespaced keywords
@@ -158,7 +154,7 @@
     (condp = this
       keyword (keyword? s)
       long #+clj (some #(instance? % s) [Byte Short Integer Long])
-           #+cljs (not (js/isNaN  s)))))
+      #+cljs (not (js/isNaN  s)))))
 
 ;; A Route is a pair. The pair has two halves: a pattern on the left,
 ;; while the right contains the result if the pattern matches.
@@ -199,7 +195,7 @@
   #+cljs string
   (match-pattern [this env]
     (match-beginning (str "(" (segment-regex-group this) ")") env))
-  (unmatch-pattern [this _] {:path [this]})
+  (unmatch-pattern [this _] this)
 
   #+clj java.util.regex.Pattern
   #+cljs js/RegExp
@@ -240,13 +236,12 @@
             (update-in [:route-params] merge params)))))
 
   (unmatch-pattern [this m]
-    (apply merge-with concat
-           (map #(unmatch-segment % (:params m)) this)))
+    (apply str (map #(unmatch-segment % (:params m)) this)))
 
   #+clj clojure.lang.Keyword
   #+cljs cljs.core.Keyword
   (match-pattern [this env] (when (= this (:request-method env)) env))
-  (unmatch-pattern [this _] nil)
+  (unmatch-pattern [_ _] "")
 
   #+clj clojure.lang.APersistentMap
   #+cljs cljs.core.PersistentArrayMap
@@ -257,11 +252,11 @@
                      :otherwise (= v (get env k))))
                   (seq this))
       env))
-  (unmatch-pattern [_ _] nil))
+  (unmatch-pattern [_ _] ""))
 
 (defn unmatch-pair [v m]
   (when-let [r (unresolve-handler (second v) m)]
-    (merge-with concat (unmatch-pattern (first v) m) r)))
+    (str (unmatch-pattern (first v) m) r)))
 
 (extend-protocol Matched
   #+clj String
@@ -314,73 +309,14 @@
   (-> (match-pair route (merge options {:remainder path :route route}))
       (dissoc :route)))
 
-(defn- path-and-params
-  [route handler params]
-  (when (nil? handler)
-    (throw (ex-info "Cannot form URI from a nil handler" {})))
-  (let [{:keys [path params]} (unmatch-pair route {:handler handler :params params})]
-    {:path path
-     :params (into {} params)}))
-
-(defn route-params
-  "Given a route definition data structure and a handler returns a set of the params which
-   must be satisfied in order to construct the path to that handler"
-  [route handler]
-  (set (keys (:params (path-and-params route handler {})))))
-
 (defn path-for
   "Given a route definition data structure, a handler and an option map, return a
   path that would route to the handler. The map must contain the values to any
   parameters required to create the path, and extra values are silently ignored."
   [route handler & {:as params}]
-  (let [{:keys [path params]} (path-and-params route handler params)]
-    (reduce (fn [url token]
-              (str url (if-let [f (get params token)]
-                         (f)
-                         token))) path)))
-
-;; cljx version of ring.util.codec FormEncodeable protocol
-;; Difference is it accepts no custom encoding and uses UTF-8
-;; This is required for `path-with-query-for` function
-(defprotocol FormEncodeable
-  (form-encode [x]))
-
-(extend-protocol FormEncodeable
-  #+clj String
-  #+cljs string
-  (form-encode [unencoded] (url-encode unencoded))
-
-  #+clj clojure.lang.APersistentMap
-
-  ;; This is a sorted-map in cljs
-  #+cljs cljs.core.PersistentTreeMap
-  (form-encode [params]
-    (letfn [(encode [x] (form-encode x))
-            (encode-param [[k v]] (str (encode (name k)) "=" (encode v)))]
-      (->> params
-           (mapcat
-            (fn [[k v]]
-              (if (or (seq? v) (sequential? v) )
-                (map #(encode-param [k %]) v)
-                [(encode-param [k v])])))
-           (clojure.string/join "&"))))
-
-  #+clj Object
-  #+cljs default
-  (form-encode [x] (form-encode (str x))))
-
-(defn path-with-query-for
-  "Like path-for, but extra parameters will be appended to the url as query parameters
-  rather than silently ignored"
-  [route handler & {:as all-params}]
-  (let [{:keys [path params]} (path-and-params route handler all-params)
-        path (reduce (fn [url token]
-                       (str url (if-let [f (get params token)]
-                                  (f)
-                                  token))) path)
-        query-params (not-empty (into (sorted-map) (apply dissoc all-params (keys params))))]
-    (apply str path (when query-params
-                      ["?" (form-encode query-params)]))))
+  (when (nil? handler)
+    (throw (ex-info "Cannot form URI from a nil handler" {})))
+  (unmatch-pair route {:handler handler :params params}))
 
 ;; --------------------------------------------------------------------------------
 ;; 3. Make it fast
