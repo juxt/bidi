@@ -281,7 +281,7 @@ form a Ring handler (similar to what Compojure's `routes` and
 `defroutes` does) with the `make-handler` function.
 
 ```clojure
-(require '[bidi.bidi :refer (make-handler)])
+(require '[bidi.ring :refer (make-handler)])
 
 (def handler
   (make-handler ["/" {"index.html" :index
