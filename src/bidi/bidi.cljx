@@ -371,8 +371,8 @@ actually a valid UUID (this is handled by the route matching logic)."
   ;; This is a sorted-map in cljs
   #+cljs cljs.core.PersistentTreeMap
   (form-encode [params]
-    (letfn [(encode [x] (form-encode x))
-            (encode-param [[k v]] (str (encode (name k)) "=" (encode v)))]
+    (letfn [(encode-param [[k v]]
+              (str (form-encode (name k)) "=" (form-encode v)))]
       (->> params
            (mapcat
             (fn [[k v]]
