@@ -9,6 +9,7 @@
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [org.clojure/clojurescript "0.0-2371"]
                  [org.clojure/core.match "0.2.1"]
+                 [org.clojure/data.json "0.2.5"] ; for swagger output
                  [com.cemerick/url "0.1.1"]
                  [ring/ring-core "1.2.1"]]
 
