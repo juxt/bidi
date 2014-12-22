@@ -174,7 +174,6 @@
                      [["foo/" [bidi/uuid :id]] :y]
                      [["foo/" [bidi/uuid :id] "/bar"] :z]]]]
     (is (= (:handler (match-route routes "/foo/")) :x))
-    (is (= #{} (route-params routes :x)))
 
     (is (= (:handler (match-route routes "/foo/649a50e8-0342-47af-894e-27eefea83ca9"))
            :y))
@@ -182,13 +181,11 @@
            {:id #uuid "649a50e8-0342-47af-894e-27eefea83ca9"}))
     (is (= (path-for routes :y :id #uuid "649a50e8-0342-47af-894e-27eefea83ca9")
            "/foo/649a50e8-0342-47af-894e-27eefea83ca9"))
-    (is (= #{:id} (route-params routes :y)))
 
     (is (= (:handler (match-route routes "/foo/649a50e8-0342-47af-894e-27eefea83ca9/bar")) :z))
     (is (= (path-for routes :z :id #uuid "649a50e8-0342-47af-894e-27eefea83ca9")
            "/foo/649a50e8-0342-47af-894e-27eefea83ca9/bar"))
-    (is (= #{:id} (route-params routes :z)))
-    
+
     (testing "invalid uuids"
       (is (nil? (match-route routes "/foo/649a50e8-0342-67af-894e-27eefea83ca9")))
       (is (nil? (match-route routes "/foo/649a50e8-0342-47af-c94e-27eefea83ca9")))
