@@ -1,3 +1,10 @@
+
+DEPRECATED - while there are some useful tidbits here, it is recommended that you solve circular dependencies with co-dependencies, as shown by bootsrap-cover :-
+
+    $ lein new modular foo bootstrap-cover
+
+-------------
+
 # bidi Patterns
 
 Here are some patterns that you may find useful in your development.
