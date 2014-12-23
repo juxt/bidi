@@ -78,7 +78,7 @@ There are numerous Clojure routing libraries. Here's a table to help you compare
 <td>Macros</td>
 <td>Data literals</td>
 <td>Data literals</td>
-<td>??</td>
+<td>Macros</td>
 <td>Data literals</td>
 <td>Data literals</td>
 </tr>
@@ -89,7 +89,7 @@ There are numerous Clojure routing libraries. Here's a table to help you compare
 <td>Yes</td>
 <td>Yes</td>
 <td>Yes</td>
-<td>??</td>
+<td>Yes</td>
 <td>Yes</td>
 <td>Yes</td>
 </tr>
@@ -100,7 +100,7 @@ There are numerous Clojure routing libraries. Here's a table to help you compare
 <td>Yes</td>
 <td>No :-(</td>
 <td>Yes</td>
-<td>??</td>
+<td>Yes</td>
 <td>Yes</td>
 <td>Yes</td>
 </tr>
@@ -111,7 +111,7 @@ There are numerous Clojure routing libraries. Here's a table to help you compare
 <td>No</td>
 <td>No</td>
 <td>No</td>
-<td>??</td>
+<td>Yes</td>
 <td>Yes</td>
 <td>Yes</td>
 </tr>
