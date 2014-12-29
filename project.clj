@@ -14,7 +14,8 @@
                  [ring/ring-core "1.2.1"]]
 
   :profiles {:dev {:dependencies [[ring-mock "0.1.5"]
-                                  [compojure "1.1.6"]]
+                                  [compojure "1.1.6"]
+                                  [prismatic/schema "0.3.2"]]
 
                    :plugins [[com.keminglabs/cljx "0.4.0"]
                              [lein-cljsbuild "1.0.3"]
