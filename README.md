@@ -148,6 +148,78 @@ There are numerous Clojure routing libraries. Here's a table to help you compare
 <td>✓</td>
 <td>❌</td>
 </tr>
+<tr>
+<td><a href="https://github.com/cgrand/moustache">Moustache</a></td>
+<td>✓</td>
+<td>❌</td>
+<td>Macros</td>
+<td>❌</td>
+<td>✓</td>
+<td>❌</td>
+</tr>
+<tr>
+<td><a href="https://github.com/clojurewerkz/route-one">RouteOne</a></td>
+<td>✓</td>
+<td>❌</td>
+<td>Macros</td>
+<td>✓</td>
+<td>✓</td>
+<td>❌</td>
+</tr>
+<tr>
+<td><a href="http://pedestal.io/">Pedestal</a></td>
+<td>✓</td>
+<td>❌</td>
+<td>Data</td>
+<td>✓</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr>
+<td><a href="https://github.com/thatismatt/gudu">gudu</a></td>
+<td>✓</td>
+<td>❌</td>
+<td>Data</td>
+<td>✓</td>
+<td>✓</td>
+<td>❌</td>
+</tr>
+<tr>
+<td><a href="https://github.com/gf3/secretary">secretary</a></td>
+<td>❌</td>
+<td>✓</td>
+<td>?</td>
+<td>?</td>
+<td>?</td>
+<td>?</td>
+</tr>
+<tr>
+<td><a href="https://github.com/DomKM/silk">silk</a></td>
+<td>✓</td>
+<td>✓</td>
+<td>Data</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td><a href="https://github.com/Prismatic/fnhouse">fnhouse</a></td>
+<td>✓</td>
+<td>❌</td>
+<td>Macros</td>
+<td>❌</td>
+<td>❌</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>bidi</td>
+<td>✓</td>
+<td>✓</td>
+<td>Data</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
 </tbody>
 </table>
 
