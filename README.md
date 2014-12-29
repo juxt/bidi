@@ -189,7 +189,7 @@ There are numerous Clojure routing libraries. Here's a table to help you compare
 <td></td>
 <td>✔</td>
 <td>Macros</td>
-<td></td>
+<td>✔</td>
 <td>✔</td>
 <td>✔</td>
 </tr>
