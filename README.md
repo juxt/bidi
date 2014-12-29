@@ -42,7 +42,7 @@ do. Separation of concerns and all that.
 
 ## Comparison with other routing libraries
 
-There are numerous Clojure routing libraries. Here's a table to help you compare.
+There are numerous Clojure(Script) routing libraries. Here's a table to help you compare.
 
 <table>
 <thead>
@@ -143,7 +143,7 @@ There are numerous Clojure routing libraries. Here's a table to help you compare
 
 bidi is written to do
 ['one thing well'](http://en.wikipedia.org/wiki/Unix_philosophy) (URI
-formation and dispatch) and is intended for use with Ring middleware,
+dispatch and formation) and is intended for use with Ring middleware,
 HTTP servers (including Jetty, [http-kit](http://http-kit.org/) and
 [aleph](https://github.com/ztellman/aleph)) and is fully compatible with
 [Liberator](http://clojure-liberator.github.io/liberator/).
