@@ -188,10 +188,10 @@ There are numerous Clojure routing libraries. Here's a table to help you compare
 <td><a href="https://github.com/gf3/secretary">secretary</a></td>
 <td>❌</td>
 <td>✔</td>
-<td>?</td>
-<td>?</td>
-<td>?</td>
-<td>?</td>
+<td>Macros</td>
+<td>❌</td>
+<td>✔</td>
+<td>✔</td>
 </tr>
 <tr>
 <td><a href="https://github.com/DomKM/silk">silk</a></td>
