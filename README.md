@@ -55,6 +55,7 @@ There are numerous Clojure routing libraries. Here's a table to help you compare
 <th><a href="https://github.com/thatismatt/gudu">gudu</a></th>
 <th><a href="https://github.com/gf3/secretary">secretary</a></th>
 <th><a href="https://github.com/DomKM/silk">silk</a></th>
+<th><a href="https://github.com/Prismatic/fnhouse">fnhouse</a></th>
 <th>bidi</th>
 </tr>
 </tr>
@@ -70,6 +71,7 @@ There are numerous Clojure routing libraries. Here's a table to help you compare
 <td>cljs</td>
 <td>clj/cljs</td>
 <td>clj/cljs</td>
+<td>clj/cljs</td>
 </tr>
 <tr>
 <td>Route syntax</td>
@@ -80,6 +82,7 @@ There are numerous Clojure routing libraries. Here's a table to help you compare
 <td>Data literals</td>
 <td>??</td>
 <td>Data literals</td>
+<td>Macros</td>
 <td>Data literals</td>
 </tr>
 <tr>
@@ -91,6 +94,7 @@ There are numerous Clojure routing libraries. Here's a table to help you compare
 <td>Yes</td>
 <td>??</td>
 <td>Yes</td>
+<td>No</td>
 <td>Yes</td>
 </tr>
 <tr>
@@ -102,6 +106,7 @@ There are numerous Clojure routing libraries. Here's a table to help you compare
 <td>Yes</td>
 <td>??</td>
 <td>Yes</td>
+<td>No</td>
 <td>Yes</td>
 </tr>
 <tr>
@@ -113,10 +118,12 @@ There are numerous Clojure routing libraries. Here's a table to help you compare
 <td>No</td>
 <td>??</td>
 <td>Yes</td>
+<td>n/a</td>
 <td>Yes</td>
 </tr>
 <tr>
 <td>Name begins with a B?</td>
+<td>No</td>
 <td>No</td>
 <td>No</td>
 <td>No</td>
