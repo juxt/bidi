@@ -121,20 +121,36 @@ There are numerous Clojure routing libraries. Here's a table to help you compare
 <td>n/a</td>
 <td>Yes</td>
 </tr>
+</tbody>
+</table>
+
+### Summary
+
+<table>
+<thead>
 <tr>
-<td>Name begins with a B?</td>
-<td>No</td>
-<td>No</td>
-<td>No</td>
-<td>No</td>
-<td>No</td>
-<td>No</td>
-<td>No</td>
-<td>No</td>
-<td>Yes!</td>
+<th>Library</th>
+<th>clj</th>
+<th>cljs</th>
+<th>Syntax</th>
+<th>Isomorphic?</th>
+<th>Self-contained?</th>
+<th>Extensible?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/weavejester/compojure">Compojure</a></td>
+<td>✓</td>
+<td>❌</td>
+<td>Macros</td>
+<td>❌</td>
+<td>✓</td>
+<td>❌</td>
 </tr>
 </tbody>
 </table>
+
 
 bidi is written to do
 ['one thing well'](http://en.wikipedia.org/wiki/Unix_philosophy) (URI
