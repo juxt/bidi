@@ -5,10 +5,10 @@
    [bidi.bidi :as bidi :refer (Matched)]
    [clojure.data.json :as json]))
 
-(defrecord Resource [])
+(defrecord SwaggerOperations [])
 
 (extend-protocol bidi/Matched
-  Resource
+  SwaggerOperations
   (resolve-handler [res m]
     (bidi/succeed res m))
   (unresolve-handler [res m]
