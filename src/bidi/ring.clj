@@ -63,7 +63,7 @@
                      (-> (fn [req] (url-response res))
                          (wrap-file-info (:mime-types options))
                          (wrap-content-type options))
-                     {:status 404})))))
+                     (fn [req] {:status 404}))))))
   (unresolve-handler [this m] nil))
 
 (defn resources [options]
