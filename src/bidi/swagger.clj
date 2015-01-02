@@ -5,14 +5,14 @@
    [bidi.bidi :as bidi :refer (Matched)]
    [clojure.data.json :as json]))
 
-(defrecord SwaggerOperations [])
+(defrecord SwaggerOperation [])
 
 (extend-protocol bidi/Matched
-  SwaggerOperations
+  SwaggerOperation
   (resolve-handler [res m]
     (bidi/succeed res m))
   (unresolve-handler [res m]
-    (when (contains? (set (map :operationId (vals res))) (:handler m)) "")))
+    (when (= (:operationId res) (:handler m)) "")))
 
 (defn swagger-paths [routes]
   (letfn [(encode-segment [segment]
