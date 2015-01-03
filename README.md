@@ -261,9 +261,9 @@ Now, when we match on an article path, the keyword values are extracted into a m
 
 ```clojure
 user> (match-route routes "/articles/123/article.html")
-{:handler :article, :params {:id "123"}}
+{:handler :article, :route-params {:id "123"}}
 user> (match-route routes "/articles/999/article.html")
-{:handler :article, :params {:id "999"}}
+{:handler :article, :route-params {:id "999"}}
 ```
 
 To form the path we need to supply the value of `:id` as extra
@@ -366,7 +366,7 @@ You can construct a pattern similarly to how you specify regular expressions but
    [ "foo/" [ keyword :db/ident ] "/bar" ]
 ```
 
-When matching the path `foo/bidi/bar`, the `:params` of the result would be `{:db/ident :bidi}`. To construct the path, you would use `(path-for routes handler :db/ident :bidi)`, which results in `foo/bidi/bar` (the colon of the stringified keyword is omitted).
+When matching the path `foo/bidi/bar`, the `:route-params` of the result would be `{:db/ident :bidi}`. To construct the path, you would use `(path-for routes handler :db/ident :bidi)`, which results in `foo/bidi/bar` (the colon of the stringified keyword is omitted).
 
 Namespaced keywords are also supported. Note that in the URI the `/` that separates the keyword's namespace from its name is URL encoded to %2F, rather than `/`.
 
