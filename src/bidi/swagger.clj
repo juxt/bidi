@@ -2,8 +2,7 @@
 
 (ns bidi.swagger
   (:require
-   [bidi.bidi :as bidi :refer (Matched)]
-   [clojure.data.json :as json]))
+   [bidi.bidi :as bidi :refer (Matched)]))
 
 (defrecord SwaggerOperation [])
 
@@ -36,12 +35,3 @@
             ([route]
              (map vec (partition 2 (paths nil route)))))]
     (into {} (paths routes))))
-
-(defn swagger-spec [& {:as contents}]
-  (merge {:swagger "2.0"
-          :host "localhost"
-          :schemes ["http"]}
-         contents))
-
-(defn json-swagger-spec [contents]
-  (json/write-str (apply swagger-spec (apply concat contents))))
