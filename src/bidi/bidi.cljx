@@ -326,6 +326,32 @@ actually a valid UUID (this is handled by the route matching logic)."
   (unmatch-pair route {:handler handler :params params}))
 
 ;; --------------------------------------------------------------------------------
+;; Utility records
+;; --------------------------------------------------------------------------------
+
+;; Alternates can be used as a pattern. It is constructed with a vector
+;; of possible matching candidates. If one of the candidates matches,
+;; the route is matched. The first pattern in the vector is considered
+;; the canonical pattern for the purposes of URI formation with
+;; (path-for).
+(defrecord Alternates [routes]
+  Pattern
+  (match-pattern [this m] (some #(match-pattern % m) routes))
+  (unmatch-pattern [this m] (unmatch-pattern (first routes) m)))
+
+;; If you have multiple routes which match the same handler, but need to
+;; label them so that you can form the correct URI, wrap the handler in
+;; a TaggedMatch.
+(defrecord TaggedMatch [name delegate]
+  Matched
+  (resolve-handler [this m]
+    (resolve-handler delegate m))
+  (unresolve-handler [this m]
+    (if (keyword? (:handler m))
+      (when (= name (:handler m)) "")
+      (unresolve-handler delegate m))))
+
+;; --------------------------------------------------------------------------------
 ;; 3. Make it fast
 ;; --------------------------------------------------------------------------------
 
