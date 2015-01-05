@@ -191,3 +191,10 @@
       (is (nil? (match-route routes "/foo/649a50e8-0342-47af-c94e-27eefea83ca9")))
       (is (nil? (match-route routes "/foo/649a50e8034247afc94e27eefea83ca9")))
       (is (nil? (match-route routes "/foo/1012301231111111111111111111"))))))
+
+(deftest wrap-alternates-test
+  (let [routes [(->Alternates ["/index.html" "/index"]) :index]]
+    (is (= (match-route routes "/index.html") {:handler :index}))
+    (is (= (match-route routes "/index") {:handler :index}))
+    (is (= (path-for routes :index) "/index.html")) ; first is the canonical one
+    ))
