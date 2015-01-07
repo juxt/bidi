@@ -5,7 +5,10 @@
    [bidi.bidi :as bidi :refer :all]))
 
 (defprotocol Handle
-  (handle-request [_ req route-context]))
+  (handle-request [_ req match-context]
+    "Handle a Ring request, but optionally utilize any context that was
+    collected in the process of matching the handler."
+    ))
 
 (extend-protocol Handle
   clojure.lang.Fn
@@ -20,7 +23,7 @@
       (assert route "Cannot create a Ring handler with a nil Route(s) parameter")
       (fn [{:keys [uri path-info] :as request}]
         (let [path (or path-info uri)
-              {:keys [handler route-params] :as route-context}
+              {:keys [handler route-params] :as match-context}
               (apply match-route route path (apply concat (seq request)))]
           (when handler
             (handle-request
@@ -28,6 +31,6 @@
              (-> request
                  (update-in [:params] merge route-params)
                  (update-in [:route-params] merge route-params))
-             route-context
+             (apply dissoc match-context :handler (keys request))
              )))))
    ([route] (make-handler route identity)))
