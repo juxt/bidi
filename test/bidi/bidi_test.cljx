@@ -5,7 +5,8 @@
   (:require #+clj [clojure.test :refer :all]
             #+cljs [cemerick.cljs.test :as t]
             [bidi.bidi :as bidi :refer [match-route
-                                        path-for]]))
+                                        path-for
+                                        ->Alternates]]))
 
 (deftest matching-routes-test
   (testing "misc-routes"
