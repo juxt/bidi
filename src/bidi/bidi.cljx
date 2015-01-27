@@ -336,7 +336,11 @@ actually a valid UUID (this is handled by the route matching logic)."
 ;; (path-for).
 (defrecord Alternates [alts]
   Pattern
-  (match-pattern [this m] (some #(match-pattern % m) alts))
+  (match-pattern [this m]
+    (some #(match-pattern % m)
+          ;; We try to match on the longest string first, so that the
+          ;; empty string will be matched last, after all other cases
+          (sort-by count > alts)))
   (unmatch-pattern [this m] (unmatch-pattern (first alts) m)))
 
 (defn alts [& alts]
