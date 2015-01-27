@@ -334,10 +334,13 @@ actually a valid UUID (this is handled by the route matching logic)."
 ;; the route is matched. The first pattern in the vector is considered
 ;; the canonical pattern for the purposes of URI formation with
 ;; (path-for).
-(defrecord Alternates [routes]
+(defrecord Alternates [alts]
   Pattern
-  (match-pattern [this m] (some #(match-pattern % m) routes))
-  (unmatch-pattern [this m] (unmatch-pattern (first routes) m)))
+  (match-pattern [this m] (some #(match-pattern % m) alts))
+  (unmatch-pattern [this m] (unmatch-pattern (first alts) m)))
+
+(defn alts [alts]
+  (->Alternates alts))
 
 ;; If you have multiple routes which match the same handler, but need to
 ;; label them so that you can form the correct URI, wrap the handler in
