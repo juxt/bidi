@@ -339,7 +339,7 @@ actually a valid UUID (this is handled by the route matching logic)."
   (match-pattern [this m] (some #(match-pattern % m) alts))
   (unmatch-pattern [this m] (unmatch-pattern (first alts) m)))
 
-(defn alts [alts]
+(defn alts [& alts]
   (->Alternates alts))
 
 ;; If you have multiple routes which match the same handler, but need to
