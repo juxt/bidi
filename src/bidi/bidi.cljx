@@ -354,6 +354,17 @@ actually a valid UUID (this is handled by the route matching logic)."
       (when (= name (:handler m)) "")
       (unresolve-handler delegate m))))
 
+(defrecord NamedHandler [name delegate]
+  Matched
+  (resolve-handler [this m]
+    (resolve-handler delegate m))
+  (unresolve-handler [this m]
+    (if (= name (:handler m)) ""
+        (unresolve-handler delegate m))))
+
+(defn named [k matched]
+  (->NamedHandler name matched))
+
 ;; --------------------------------------------------------------------------------
 ;; 3. Make it fast
 ;; --------------------------------------------------------------------------------
