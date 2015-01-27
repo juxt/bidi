@@ -109,3 +109,33 @@
     (is (= ((make-handler routes) (request :get "/bar/123")) "bar!"))
     (is (= (path-for routes :foo) "/foo"))
     (is (= (path-for routes :bar :id "123") "/bar/123"))))
+
+(deftest unresolve-handlers
+  (testing "Redirect"
+    (let [foo (->Redirect 303 "/home/foo")
+          bar (->Redirect 303 "/home/bar")
+          routes ["/" [["foo" foo]
+                       ["bar" bar]]]]
+      (is (= "/foo" (path-for routes foo)))
+      (is (= "/bar" (path-for routes bar)))))
+  (testing "Resources"
+    (let [foo (->Resources {:id :foo})
+          bar (->Resources {:id :bar})
+          routes ["/" [["foo" foo]
+                       ["bar" bar]]]]
+      (is (= "/foo" (path-for routes foo)))
+      (is (= "/bar" (path-for routes bar)))))
+  (testing "ResourcesMaybe"
+    (let [foo (->ResourcesMaybe {:id :foo})
+          bar (->ResourcesMaybe {:id :bar})
+          routes ["/" [["foo" foo]
+                       ["bar" bar]]]]
+      (is (= "/foo" (path-for routes foo)))
+      (is (= "/bar" (path-for routes bar)))))
+  (testing "Files"
+    (let [foo (->Files {:id :foo})
+          bar (->Files {:id :bar})
+          routes ["/" [["foo" foo]
+                       ["bar" bar]]]]
+      (is (= "/foo" (path-for routes foo)))
+      (is (= "/bar" (path-for routes bar))))))

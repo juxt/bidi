@@ -58,7 +58,8 @@
             {:status status
              :headers {"Location" location}
              :body (str "Redirect to " location)})))))
-  (unresolve-handler [this m] nil))
+  (unresolve-handler [this m]
+    (when (= this (:handler m)) "")))
 
 (defn redirect [target]
   (->Redirect 302 target))
@@ -79,7 +80,8 @@
                          (wrap-file-info (:mime-types options))
                          (wrap-content-type options))
                      (fn [req] {:status 404}))))))
-  (unresolve-handler [this m] nil))
+  (unresolve-handler [this m]
+    (when (= this (:handler m)) "")))
 
 (defn resources [options]
   (->Resources options))
@@ -102,7 +104,8 @@
             :handler (-> (fn [req] (url-response res))
                          (wrap-file-info (:mime-types options))
                          (wrap-content-type options)))))))
-  (unresolve-handler [this m] nil))
+  (unresolve-handler [this m]
+    (when (= this (:handler m)) "")))
 
 (defn resources-maybe [options]
   (->ResourcesMaybe options))
@@ -113,11 +116,12 @@
   bidi/Matched
   (resolve-handler [this m]
     (assoc (dissoc m :remainder)
-      :handler (-> (fn [req] (file-response (url-decode (:remainder m))
-                                           {:root (:dir options)}))
-                   (wrap-file-info (:mime-types options))
-                   (wrap-content-type options))))
-  (unresolve-handler [this m] nil))
+           :handler (-> (fn [req] (file-response (url-decode (:remainder m))
+                                                 {:root (:dir options)}))
+                      (wrap-file-info (:mime-types options))
+                      (wrap-content-type options))))
+  (unresolve-handler [this m]
+    (when (= this (:handler m)) "")))
 
 (defn files [options]
   (->Files options))
