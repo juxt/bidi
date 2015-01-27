@@ -8,7 +8,8 @@
    [bidi.ring :refer :all]
    [ring.mock.request :refer (request)]
    [clojure.walk :refer (postwalk)]
-   [clojure.core.match :refer (match)]))
+   [clojure.core.match :refer (match)]
+    [criterium.core :as criterium]))
 
 ;; Here are some Compojure routes, we want to match on the final one.
 (deftest compojure-control-test []
@@ -22,10 +23,8 @@
              )
         req (request :get "e.html")]
     (is (= (ctx req) {:status 200, :headers {}, :body "e"}))
-    (println "Time for 1000 matches using Compojure routes")
-    (time
-     (dotimes [_ 1000]
-       (ctx req)))))
+    (println "Time to match using Compojure's routes")
+    (criterium/bench (ctx req))))
 
 (deftest perf-test []
   (let [rtes ["/" [["index.html" :index]
@@ -35,15 +34,17 @@
                    ["d.html" :d]
                    ["e.html" (fn [req] {:status 200 :body "e"})]]]
         req (request :get "/e.html")]
+
     (testing "Uncompiled routes"
       (let [h (make-handler rtes)]
         (is (= (h req) {:status 200 :body "e"}))
         (is (= (path-for rtes :d) "/d.html"))
-        (println "Time for 1000 matches using uncompiled bidi routes")
-        (time (dotimes [_ 1000] (h req)))))
+        (println "Time to match using uncompiled bidi routes")
+        (criterium/bench (h req))))
+
     (testing "Compiled routes"
       (let [h (make-handler (compile-route rtes))]
         (is (= (h req) {:status 200 :body "e"}))
         (is (= (path-for rtes :d) "/d.html"))
-        (println "Time for 1000 matches using compiled bidi routes")
-        (time (dotimes [_ 1000] (h req)))))))
+        (println "Time to match using compiled bidi routes")
+        (criterium/bench (h req))))))

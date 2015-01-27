@@ -3,6 +3,7 @@
 (defproject bidi "1.15.0"
   :description "Bidirectional URI routing"
   :url "https://github.com/juxt/bidi"
+
   :license {:name "The MIT License"
             :url "http://opensource.org/licenses/MIT"}
 
@@ -33,7 +34,13 @@
                                     :rules :clj}
                                    {:source-paths ["test"]
                                     :output-path "target/generated/test/cljs"
-                                    :rules :cljs}]}}}
+                                    :rules :cljs}]}}
+             :bench
+             {:jvm-opts ^:replace ["-server" "-XX:+AggressiveOpts" "-XX:+UseFastAccessorMethods" "-Djava.awt.headless=true"]
+              :test-paths ["bench"]
+              :dependencies [[criterium "0.4.3"]
+                             [ring-mock "0.1.5"]
+                             [compojure "1.1.6"]]}}
 
   :aliases {"deploy" ["do" "clean," "cljx" "once," "deploy" "clojars"]
             "test" ["do" "clean," "cljx" "once," "test," "with-profile" "dev" "cljsbuild" "test"]}
