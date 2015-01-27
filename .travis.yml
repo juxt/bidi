@@ -1,0 +1,6 @@
+sudo: false
+language: clojure
+lein: lein2
+cache:
+  directories:
+    - $HOME/.m2
