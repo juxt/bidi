@@ -1,6 +1,6 @@
 ;; Copyright © 2014, JUXT LTD.
 
-(defproject bidi "1.15.2-SNAPSHOT"
+(defproject bidi "1.16.0"
   :description "Bidirectional URI routing"
   :url "https://github.com/juxt/bidi"
   :license {:name "The MIT License"
