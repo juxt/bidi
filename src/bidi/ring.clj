@@ -50,24 +50,23 @@
   bidi/Matched
   (resolve-handler [this m]
     (when (= "" (:remainder m))
-      (assoc
-       (dissoc m :remainder)
-       :handler
-       (fn [req]
-         (if-let [location
-                  (cond
-                    (keyword? target)
-                    (apply path-for (:route m) target
-                           (apply concat (seq (:route-params m))))
-                    (string? target) target
-                    )]
-           {:status status
-            :headers {"Location" location}
-            :body (str "Redirect to " location)}
-           {:status 500
-            :body "Failed to determine redirect location"})))))
+      (cond-> m
+        true (assoc :handler this)
+        (not (string? target))
+        (assoc :location
+               (apply path-for (:route m) target
+                      (apply concat (seq (:route-params m)))))
+        true (dissoc :remainder))))
   (unresolve-handler [this m]
-    (when (= this (:handler m)) "")))
+    (when (= this (:handler m)) ""))
+  Handle
+  (handle-request [f req m]
+    (if-let [location (if-not (string? target) (:location m) target)]
+      {:status status
+       :headers {"Location" location}
+       :body (str "Redirect to " location)}
+      {:status 500
+       :body "Failed to determine redirect location"})))
 
 (defn redirect [target]
   (->Redirect 302 target))
