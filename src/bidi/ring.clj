@@ -9,15 +9,15 @@
    [ring.middleware.content-type :refer (wrap-content-type)]
    [ring.middleware.file-info :refer (wrap-file-info)]))
 
-(defprotocol Handle
-  (handle-request [_ req match-context]
+(defprotocol Ring
+  (request [_ req match-context]
     "Handle a Ring request, but optionally utilize any context that was
     collected in the process of matching the handler."
     ))
 
-(extend-protocol Handle
+(extend-protocol Ring
   clojure.lang.Fn
-  (handle-request [f req _]
+  (request [f req _]
     (f req)))
 
 (defn make-handler
@@ -31,7 +31,7 @@
               {:keys [handler route-params] :as match-context}
               (apply match-route route path (apply concat (seq request)))]
           (when handler
-            (handle-request
+            (request
              (handler-fn handler)
              (-> request
                  (update-in [:params] merge route-params)
@@ -59,8 +59,8 @@
         true (dissoc :remainder))))
   (unresolve-handler [this m]
     (when (= this (:handler m)) ""))
-  Handle
-  (handle-request [f req m]
+  Ring
+  (request [f req m]
     (if-let [location (if-not (string? target) (:location m) target)]
       {:status status
        :headers {"Location" location}

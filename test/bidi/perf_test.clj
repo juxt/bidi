@@ -6,7 +6,7 @@
    [compojure.core :refer (GET routes)]
    [bidi.bidi :refer :all]
    [bidi.ring :refer :all]
-   [ring.mock.request :refer (request)]
+   [ring.mock.request :refer (request) :rename {request mock-request}]
    [clojure.walk :refer (postwalk)]
    [clojure.core.match :refer (match)]))
 
@@ -20,7 +20,7 @@
              (GET "d.html" [] (fn [req] {:status 200 :body "d"}))
              (GET "e.html" [] (fn [req] {:status 200 :body "e"}))
              )
-        req (request :get "e.html")]
+        req (mock-request :get "e.html")]
     (is (= (ctx req) {:status 200, :headers {}, :body "e"}))
     (println "Time for 1000 matches using Compojure routes")
     (time
@@ -34,7 +34,7 @@
                    ["c.html" :c]
                    ["d.html" :d]
                    ["e.html" (fn [req] {:status 200 :body "e"})]]]
-        req (request :get "/e.html")]
+        req (mock-request :get "/e.html")]
     (testing "Uncompiled routes"
       (let [h (make-handler rtes)]
         (is (= (h req) {:status 200 :body "e"}))
