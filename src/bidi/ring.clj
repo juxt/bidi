@@ -26,17 +26,17 @@
   it with the request as a parameter."
   ([route handler-fn]
       (assert route "Cannot create a Ring handler with a nil Route(s) parameter")
-      (fn [{:keys [uri path-info] :as request}]
+      (fn [{:keys [uri path-info] :as req}]
         (let [path (or path-info uri)
               {:keys [handler route-params] :as match-context}
-              (apply match-route route path (apply concat (seq request)))]
+              (apply match-route route path (apply concat (seq req)))]
           (when handler
             (request
              (handler-fn handler)
-             (-> request
+             (-> req
                  (update-in [:params] merge route-params)
                  (update-in [:route-params] merge route-params))
-             (apply dissoc match-context :handler (keys request))
+             (apply dissoc match-context :handler (keys req))
              )))))
    ([route] (make-handler route identity)))
 
