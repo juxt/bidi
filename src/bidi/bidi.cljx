@@ -367,7 +367,7 @@ actually a valid UUID (this is handled by the route matching logic)."
         (unresolve-handler delegate m))))
 
 (defn named [k matched]
-  (->NamedHandler name matched))
+  (->NamedHandler k matched))
 
 ;; --------------------------------------------------------------------------------
 ;; 3. Make it fast
