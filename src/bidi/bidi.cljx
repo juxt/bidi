@@ -394,3 +394,16 @@ actually a valid UUID (this is handled by the route matching logic)."
      ;; TODO put other performance optimizations here
      :else %)
    route))
+
+
+;; --------------------------------------------------------------------------------
+;; Protocols
+;; --------------------------------------------------------------------------------
+
+;; RouteProvider - this protocol can be satisfied by records that provide
+;; or generate bidi routes. The reason for providing this protocol in
+;; bidi is to encourage compatibility between record implementations.
+(defprotocol RouteProvider
+  (routes [_] "Provide a bidi route structure. Returns a vector pair,
+  the first element is the pattern, the second element is the matched
+  route or routes."))
