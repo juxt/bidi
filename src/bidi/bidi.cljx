@@ -358,16 +358,20 @@ actually a valid UUID (this is handled by the route matching logic)."
       (when (= name (:handler m)) "")
       (unresolve-handler delegate m))))
 
-(defrecord NamedHandler [name delegate]
+(defrecord IdentifiableHandler [id handler]
   Matched
   (resolve-handler [this m]
-    (resolve-handler delegate m))
+    (resolve-handler handler m))
   (unresolve-handler [this m]
-    (if (= name (:handler m)) ""
-        (unresolve-handler delegate m))))
+    (when id
+      (if (= id (:handler m)) ""
+          (unresolve-handler handler m)))))
 
-(defn named [k matched]
-  (->NamedHandler k matched))
+(defn handler
+  ([k handler]
+   (->IdentifiableHandler k handler))
+  ([handler]
+   (->IdentifiableHandler nil handler)))
 
 ;; --------------------------------------------------------------------------------
 ;; 3. Make it fast
