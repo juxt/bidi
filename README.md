@@ -619,15 +619,21 @@ Ran 9 tests containing 47 assertions.
 0 failures, 0 errors.
 ```
 
-A big thank you to everyone who have helped bidi so far, including
+A big thank you to everyone involved in bidi so far, including
 
-* Malcolm Sparks
+* Philipp Meier (for the original idea)
+* Malcolm Sparks (main creator and maintainer of the Clojure version)
+* Thomas Crowley (creator of the ClojureScript version)
+* David Thomas Hume
 * Dene Simpson
 * James Henderson
+* Jeff Rose
+* John Cowie
 * Matt Mitchell
+* Michael Sappler
 * Neale Swinnerton
 * Oliy Hine
-* Thomas Crowley (for adding ClojureScript support, thanks Tom!)
+* Tom Crayford
 
 ## Copyright & License
 
