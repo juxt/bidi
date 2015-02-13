@@ -133,6 +133,28 @@
 (defn files [options]
   (->Files options))
 
+;; Use this to route to an existing archive.
+;; :archive should be a resource
+;; :resource-prefix (defaults to /) says where in the archive the content is
+(defrecord Archive [options]
+  bidi/Matched
+  (resolve-handler [this m]
+    (let [path (url-decode (:remainder m))]
+      (when (not-empty path)
+        (-> m
+            (assoc
+             :handler
+             (fn [req]
+               (url-response (java.net.URL.
+                              (str "jar:" (:archive options) "!"
+                                   (or (:resource-prefix options) "/") path)))))
+            (dissoc :remainder)))))
+  (unresolve-handler [this m]
+    (when (= this (:handler m)) "")))
+
+(defn archive [options]
+  (->Archive options))
+
 ;; WrapMiddleware can be matched (appear on the right-hand-side of a route)
 ;; and returns a handler wrapped in the given middleware.
 (defrecord WrapMiddleware [matched middleware]
