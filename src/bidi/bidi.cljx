@@ -361,7 +361,7 @@ actually a valid UUID (this is handled by the route matching logic)."
 (defrecord IdentifiableHandler [id handler]
   Matched
   (resolve-handler [this m]
-    (resolve-handler handler m))
+    (resolve-handler handler (assoc m :id id)))
   (unresolve-handler [this m]
     (when id
       (if (= id (:handler m)) ""
