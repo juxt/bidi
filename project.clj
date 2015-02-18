@@ -1,6 +1,6 @@
 ;; Copyright © 2014, JUXT LTD.
 
-(defproject bidi "1.18.1"
+(defproject bidi "1.18.2"
   :description "Bidirectional URI routing"
   :url "https://github.com/juxt/bidi"
   :license {:name "The MIT License"
@@ -12,28 +12,29 @@
                  [com.cemerick/url "0.1.1"]
                  [ring/ring-core "1.2.1"]]
 
+  :plugins [[lein-cljsbuild "1.0.3"]
+            [com.cemerick/clojurescript.test "0.3.1"]]
+
+  :prep-tasks [["cljx" "once"] "javac" "compile"]
+
+  :cljx {:builds [{:source-paths ["src"]
+                   :output-path "target/generated/src/clj"
+                   :rules :clj}
+                  {:source-paths ["src"]
+                   :output-path "target/generated/src/cljs"
+                   :rules :cljs}
+                  {:source-paths ["test"]
+                   :output-path "target/generated/test/clj"
+                   :rules :clj}
+                  {:source-paths ["test"]
+                   :output-path "target/generated/test/cljs"
+                   :rules :cljs}]}
+
   :profiles {:dev {:dependencies [[ring-mock "0.1.5"]
                                   [compojure "1.1.6"]
                                   [prismatic/schema "0.3.2"]]
-
-                   :plugins [[com.keminglabs/cljx "0.4.0"]
-                             [lein-cljsbuild "1.0.3"]
-                             [com.cemerick/clojurescript.test "0.3.1"]]
-
-                   :hooks [cljx.hooks]
-
-                   :cljx {:builds [{:source-paths ["src"]
-                                    :output-path "target/generated/src/clj"
-                                    :rules :clj}
-                                   {:source-paths ["src"]
-                                    :output-path "target/generated/src/cljs"
-                                    :rules :cljs}
-                                   {:source-paths ["test"]
-                                    :output-path "target/generated/test/clj"
-                                    :rules :clj}
-                                   {:source-paths ["test"]
-                                    :output-path "target/generated/test/cljs"
-                                    :rules :cljs}]}}}
+                   :plugins [[com.keminglabs/cljx "0.5.0"]]
+                   }}
 
   :aliases {"deploy" ["do" "clean," "cljx" "once," "deploy" "clojars"]
             "test" ["do" "clean," "cljx" "once," "test," "with-profile" "dev" "cljsbuild" "test"]}
