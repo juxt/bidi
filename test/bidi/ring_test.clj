@@ -103,9 +103,9 @@
     (is (= (path-for ["/index.html" (->WrapMiddleware handler wrapper)] handler) "/index.html"))
     (is (= (path-for ["/index.html" handler] handler) "/index.html"))))
 
-(deftest labelled-handlers
-  (let [routes ["/" [["foo" (->TaggedMatch :foo (fn [req] "foo!"))]
-                     [["bar/" :id] (->TaggedMatch :bar (fn [req] "bar!"))]]]]
+(deftest tagger-handlers
+  (let [routes ["/" [["foo" (tag  (fn [req] "foo!") :foo)]
+                     [["bar/" :id] (tag (fn [req] "bar!") :bar)]]]]
     (is (= ((make-handler routes) (mock-request :get "/foo")) "foo!"))
     (is (= ((make-handler routes) (mock-request :get "/bar/123")) "bar!"))
     (is (= (path-for routes :foo) "/foo"))

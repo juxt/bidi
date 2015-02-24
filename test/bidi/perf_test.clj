@@ -4,8 +4,8 @@
   (:require
    [clojure.test :refer :all]
    [compojure.core :refer (GET routes)]
-   [bidi.bidi :refer :all]
-   [bidi.ring :refer :all]
+   [bidi.bidi :refer (path-for compile-route)]
+   [bidi.ring :refer (make-handler)]
    [ring.mock.request :refer (request) :rename {request mock-request}]
    [clojure.walk :refer (postwalk)]
    [clojure.core.match :refer (match)]))
