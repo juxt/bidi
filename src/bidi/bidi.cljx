@@ -417,9 +417,10 @@ actually a valid UUID (this is handled by the route matching logic)."
   ;; Not sure what the equivalent in cljs is - until I know not sure
   ;; this compile-route feature will work in cljs :(
   #+clj Object
-  #+clj (compile-pattern [o] o)
-  #+clj (compile-matched [o] o)
-  #+clj (compile-segment [o] o))
+  #+cljs object
+  (compile-pattern [o] o)
+  (compile-matched [o] o)
+  (compile-segment [o] o))
 
 
 ;; --------------------------------------------------------------------------------

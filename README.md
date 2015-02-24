@@ -634,6 +634,7 @@ A big thank you to everyone involved in bidi so far, including
 * Neale Swinnerton
 * Oliy Hine
 * Tom Crayford
+* Julian Birch
 
 ## Copyright & License
 
