@@ -1,11 +1,8 @@
 ;; Copyright © 2014, JUXT LTD.
 
 (ns bidi.bidi
-  #+cljs (:require-macros [cljs.core.match.macros :refer [match]])
   (:require [clojure.walk :as walk :refer [postwalk]]
-            [cemerick.url :as url :refer [url-encode url-decode]]
-            #+cljs [cljs.core.match]
-            #+clj [clojure.core.match :refer [match]]))
+            [cemerick.url :as url :refer [url-encode url-decode]]))
 
 ;; --------------------------------------------------------------------------------
 ;; 1 & 2 Make it work and make it right
