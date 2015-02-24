@@ -380,27 +380,49 @@ actually a valid UUID (this is handled by the route matching logic)."
 ;; 3. Make it fast
 ;; --------------------------------------------------------------------------------
 
-(defrecord CompiledPrefix [prefix regex]
-  Pattern
-  (match-pattern [this env]
-    (when-let [path (last (re-matches regex (:remainder env)))]
-      (assoc env :remainder path)))
-  (unmatch-pattern [this env] {:path [prefix]}))
+(defprotocol Compilable
+  (compile-pattern [_] "Compile to make fast")
+  (compile-matched [_] "Compile to make fast")
+  (compile-segment [_] "Compile to make fast"))
 
-(defn compile-prefix
-  "Improve performance by composing the regex pattern ahead of time."
-  [s]
-  (->CompiledPrefix s #+clj  (re-pattern (str "\\Q" s "\\E(.*)"))
-                      #+cljs (re-pattern (.replace s #"/(\W)/g" "\\$1"))))
+(defn compile-route [[pattern matched]]
+  [(compile-pattern pattern) (compile-matched matched)])
 
-(defn compile-route [route]
-  (postwalk
-   #(match
-     %
-     [(s :guard string?) h] [(compile-prefix s) h]
-     ;; TODO put other performance optimizations here
-     :else %)
-   route))
+(extend-protocol Compilable
+  #+clj String
+  #+cljs string
+  (compile-pattern [s] #+clj  (re-pattern (str "\\Q" s "\\E"))
+                       #+cljs (re-pattern (.replace s #"/(\W)/g" "\\$1")))
+  (compile-matched [s] s)
+  (compile-segment [s] #+clj  (re-pattern (str "\\Q" s "\\E"))
+                       #+cljs (re-pattern (.replace s #"/(\W)/g" "\\$1")))
+
+  #+clj clojure.lang.APersistentVector
+  #+cljs cljs.core.PersistentVector
+  (compile-pattern [v] (mapv compile-segment v))
+  (compile-matched [v] (mapv compile-route v))
+
+  #+clj clojure.lang.PersistentList
+  #+cljs cljs.core.List
+  (compile-pattern [v] v)
+  (compile-matched [v] (mapv compile-route v))
+
+  #+clj clojure.lang.APersistentMap
+  #+cljs cljs.core.PersistentArrayMap
+  (compile-pattern [v] v)
+  (compile-matched [v] (mapv compile-route v))
+
+  #+clj clojure.lang.LazySeq
+  #+cljs cljs.core.LazySeq
+  (compile-pattern [v] v)
+  (compile-matched [v] (mapv compile-route v))
+
+  ;; Not sure what the equivalent in cljs is - until I know not sure
+  ;; this compile-route feature will work in cljs :(
+  #+clj Object
+  #+clj (compile-pattern [o] o)
+  #+clj (compile-matched [o] o)
+  #+clj (compile-segment [o] o))
 
 
 ;; --------------------------------------------------------------------------------
