@@ -523,7 +523,8 @@ Or match if the server name is `juxt.pro` or `localhost`.
  {"/index.html" :index}]
 ```
 
-### IdentifiableHandler
+### IdentifiableHandler (deprecated, does the same as TaggedMatch below)
+
 
 It is very common that you want to avoid referencing handlers directly, especially in your views. If you want to reference a handler to use in a `path-for` expression, give it an identifier, such as a keyword (ideally namespaced to avoid collisions).
 
@@ -540,7 +541,7 @@ Now you can use `::my-handler` like this
 (path-for routes ::my-handler)
 ```
 
-### TaggedMatch (deprecated, does the same as IdentifiableHandler above)
+### TaggedMatch
 
 Sometimes you have multiple routes handled by a common handler. How then
 to indicate which path to create using `path-for`? One solution is to
@@ -554,7 +555,7 @@ For example.
       [["bar/" :id] (->TaggedMatch :bar common-handler)]]]
 ```
 
-Paths can now be creaed like this :-
+Paths can now be created like this :-
 
 ```clojure
 (path-for routes :foo)
