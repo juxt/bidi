@@ -398,6 +398,7 @@ actually a valid UUID (this is handled by the route matching logic)."
   #+cljs cljs.core.PersistentVector
   (compile-pattern [v] (mapv compile-segment v))
   (compile-matched [v] (mapv compile-route v))
+  (compile-segment [v] v)
 
   #+clj clojure.lang.PersistentList
   #+cljs cljs.core.List
