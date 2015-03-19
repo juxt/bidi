@@ -7,7 +7,8 @@
    [clojure.java.io :as io]
    [ring.util.response :refer (file-response url-response)]
    [ring.middleware.content-type :refer (wrap-content-type)]
-   [ring.middleware.file-info :refer (wrap-file-info)]))
+   [ring.middleware.file-info :refer (wrap-file-info)]
+   [ring.middleware.content-type :refer (content-type-response)]))
 
 (defprotocol Ring
   (request [_ req match-context]
@@ -123,10 +124,11 @@
   bidi/Matched
   (resolve-handler [this m]
     (assoc (dissoc m :remainder)
-           :handler (-> (fn [req] (file-response (url-decode (:remainder m))
-                                                 {:root (:dir options)}))
-                      (wrap-file-info (:mime-types options))
-                      (wrap-content-type options))))
+           :handler (->
+                     (fn [req] (file-response (url-decode (:remainder m))
+                                              {:root (:dir options)}))
+                     (wrap-file-info (:mime-types options))
+                     (wrap-content-type options))))
   (unresolve-handler [this m]
     (when (= this (:handler m)) "")))
 
@@ -144,10 +146,12 @@
         (-> m
             (assoc
              :handler
-             (fn [req]
-               (url-response (java.net.URL.
-                              (str "jar:" (:archive options) "!"
-                                   (or (:resource-prefix options) "/") path)))))
+             (let [url (java.net.URL.
+                               (str "jar:" (:archive options) "!"
+                                    (or (:resource-prefix options) "/") path))]
+               (fn [req]
+                 (-> (url-response url)
+                     (content-type-response req)))))
             (dissoc :remainder)))))
   (unresolve-handler [this m]
     (when (= this (:handler m)) "")))
