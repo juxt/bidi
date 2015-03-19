@@ -8,7 +8,7 @@
    [ring.util.response :refer (file-response url-response)]
    [ring.middleware.content-type :refer (wrap-content-type)]
    [ring.middleware.file-info :refer (wrap-file-info)]
-   [ring.middleware.content-type :refer (content-type-response)]))
+   [ring.middleware.not-modified :refer (wrap-not-modified)]))
 
 (defprotocol Ring
   (request [_ req match-context]
@@ -86,7 +86,8 @@
           :handler (if-let [res (io/resource (str (:prefix options) path))]
                      (-> (fn [req] (url-response res))
                          (wrap-file-info (:mime-types options))
-                         (wrap-content-type options))
+                         (wrap-content-type options)
+                         (wrap-not-modified))
                      (fn [req] {:status 404}))))))
   (unresolve-handler [this m]
     (when (= this (:handler m)) "")))
@@ -111,7 +112,8 @@
           (assoc (dissoc m :remainder)
             :handler (-> (fn [req] (url-response res))
                          (wrap-file-info (:mime-types options))
-                         (wrap-content-type options)))))))
+                         (wrap-content-type options)
+                         (wrap-not-modified)))))))
   (unresolve-handler [this m]
     (when (= this (:handler m)) "")))
 
@@ -128,7 +130,8 @@
                      (fn [req] (file-response (url-decode (:remainder m))
                                               {:root (:dir options)}))
                      (wrap-file-info (:mime-types options))
-                     (wrap-content-type options))))
+                     (wrap-content-type options)
+                     (wrap-not-modified))))
   (unresolve-handler [this m]
     (when (= this (:handler m)) "")))
 
@@ -146,12 +149,13 @@
         (-> m
             (assoc
              :handler
-             (let [url (java.net.URL.
+             (->
+              (fn [req]
+                (url-response (java.net.URL.
                                (str "jar:" (:archive options) "!"
-                                    (or (:resource-prefix options) "/") path))]
-               (fn [req]
-                 (-> (url-response url)
-                     (content-type-response req)))))
+                                    (or (:resource-prefix options) "/") path))))
+              (wrap-content-type)
+              (wrap-not-modified)))
             (dissoc :remainder)))))
   (unresolve-handler [this m]
     (when (= this (:handler m)) "")))
