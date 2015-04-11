@@ -636,6 +636,8 @@ A big thank you to everyone involved in bidi so far, including
 * Oliy Hine
 * Tom Crayford
 * Julian Birch
+* Chris Price
+* Bobby Calderwood
 
 ## Copyright & License
 
