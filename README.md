@@ -633,11 +633,14 @@ A big thank you to everyone involved in bidi so far, including
 * Matt Mitchell
 * Michael Sappler
 * Neale Swinnerton
-* Oliy Hine
+* Oliver Hine
 * Tom Crayford
 * Julian Birch
 * Chris Price
 * Bobby Calderwood
+* Sebastian Bensusan
+* Rob Mather
+* Thomas Mulvaney
 
 ## Copyright & License
 
