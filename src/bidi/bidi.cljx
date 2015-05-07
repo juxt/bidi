@@ -386,8 +386,8 @@ actually a valid UUID (this is handled by the route matching logic)."
   [(compile-pattern pattern) (compile-matched matched)])
 
 (extend-protocol Compilable
-  #+clj String
-  #+cljs string
+  #+clj java.util.regex.Pattern
+  #+cljs js/RegExp
   (compile-pattern [s] #+clj  (re-pattern (str "\\Q" s "\\E"))
                        #+cljs (re-pattern (.replace s #"/(\W)/g" "\\$1")))
   (compile-matched [s] s)

@@ -217,4 +217,11 @@
           match {:handler      :foo
                  :route-params {:extra "hello/bar/baz"}}]
       (is (= (match-route routes path) match))
-      (is (= (match-route compiled path) match)))))
+      (is (= (match-route compiled path) match))))
+  (testing "issue #63"
+    (let [routes ["/" {"index.html" :index
+                       "article.html" :article}]
+          compiled-routes (compile-route routes)]
+      (is (= (path-for routes :index) "/index.html"))
+      (is (= (path-for compiled-routes :index) "/index.html")))
+    ))
