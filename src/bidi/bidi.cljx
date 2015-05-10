@@ -249,17 +249,27 @@ actually a valid UUID (this is handled by the route matching logic)."
   (unmatch-pattern [_ _] "")
 
   #+clj clojure.lang.APersistentMap
-  ;; TODO We also need cljs.core.PersistentHashMap!
-  ;; TODO Perhaps use IMap instead
   #+cljs cljs.core.PersistentArrayMap
   (match-pattern [this env]
     (when (every? (fn [[k v]]
                     (cond
-                     (or (fn? v) (set? v)) (v (get env k))
-                     :otherwise (= v (get env k))))
+                      (or (fn? v) (set? v)) (v (get env k))
+                      :otherwise (= v (get env k))))
+                  (seq this))
+      env))
+  (unmatch-pattern [_ _] "")
+
+  #+cljs cljs.core.PersistentHashMap
+  #+cljs
+  (match-pattern [this env]
+    (when (every? (fn [[k v]]
+                    (cond
+                      (or (fn? v) (set? v)) (v (get env k))
+                      :otherwise (= v (get env k))))
                   (seq this))
       env))
   (unmatch-pattern [_ _] ""))
+
 
 (defn unmatch-pair [v m]
   (when-let [r (unresolve-handler (second v) m)]
@@ -284,6 +294,9 @@ actually a valid UUID (this is handled by the route matching logic)."
   #+cljs cljs.core.PersistentArrayMap
   (resolve-handler [this m] (some #(match-pair % m) this))
   (unresolve-handler [this m] (some #(unmatch-pair % m) this))
+  #+cljs cljs.core.PersistentHashMap
+  #+cljs (resolve-handler [this m] (some #(match-pair % m) this))
+  #+cljs (unresolve-handler [this m] (some #(unmatch-pair % m) this))
 
   #+clj clojure.lang.LazySeq
   #+cljs cljs.core.LazySeq
@@ -412,6 +425,9 @@ actually a valid UUID (this is handled by the route matching logic)."
   #+cljs cljs.core.PersistentArrayMap
   (compile-pattern [v] v)
   (compile-matched [v] (mapv compile-route v))
+  #+cljs cljs.core.PersistentHashMap
+  #+cljs (compile-pattern [v] v)
+  #+cljs (compile-matched [v] (mapv compile-route v))
 
   #+clj clojure.lang.LazySeq
   #+cljs cljs.core.LazySeq
