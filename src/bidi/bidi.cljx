@@ -205,6 +205,17 @@ actually a valid UUID (this is handled by the route matching logic)."
   #+cljs js/RegExp
   (match-pattern [this env]
     (match-beginning (str "(" (segment-regex-group this) ")") env))
+  ;; This could be a pre-compiled pattern, if so, we extract the original string
+  #+clj
+  (unmatch-pattern [this m]
+    (let [p (.pattern this)
+          r #"\\Q(.*)\\E"]
+      (when (re-matches r p)
+        (unmatch-pattern (clojure.string/replace p r (fn [[_ g]] g)) m))))
+  #+cljs
+  (unmatch-pattern [this m]
+    (let [p (.pattern this)]
+      (unmatch-pattern (clojure.string/replace p #"\\\\" "") m)))
 
   #+clj Boolean
   #+cljs boolean
@@ -216,18 +227,18 @@ actually a valid UUID (this is handled by the route matching logic)."
   #+cljs cljs.core.PersistentVector
   (match-pattern [this env]
     (when-let [groups (as-> this %
-                       ;; Make regexes of each segment in the vector
-                       (map segment-regex-group %)
-                       ;; Form a regexes group from each
-                       (map (fn [x] (str "(" x ")")) %)
-                       (reduce str %)
-                       ;; Add the 'remainder' group
-                       (str % "(.*)")
-                       (re-pattern %)
-                       (re-matches % (:remainder env))
-                       (next %))]
+                        ;; Make regexes of each segment in the vector
+                        (map segment-regex-group %)
+                        ;; Form a regexes group from each
+                        (map (fn [x] (str "(" x ")")) %)
+                        (reduce str %)
+                        ;; Add the 'remainder' group
+                        (str % "(.*)")
+                        (re-pattern %)
+                        (re-matches % (:remainder env))
+                        (next %))]
       (let [params (->> groups
-                        butlast       ; except the 'remainder' group
+                        butlast         ; except the 'remainder' group
                         ;; Transform parameter values if necessary
                         (map list) (map apply (map transform-param this))
                         ;; Pair up with the parameter keys
@@ -404,8 +415,11 @@ actually a valid UUID (this is handled by the route matching logic)."
   [(compile-pattern pattern) (compile-matched matched)])
 
 (extend-protocol Compilable
-  #+clj java.util.regex.Pattern
-  #+cljs js/RegExp
+  ;; Usually strings are matched using regular expressions, which are
+  ;; compiled dynamically, per request. Here we pre-compile strings to
+  ;; patterns, ahead of time.
+  #+clj String
+  #+cljs string
   (compile-pattern [s] #+clj  (re-pattern (str "\\Q" s "\\E"))
                        #+cljs (re-pattern (.replace s #"/(\W)/g" "\\$1")))
   (compile-matched [s] s)
@@ -436,8 +450,6 @@ actually a valid UUID (this is handled by the route matching logic)."
   (compile-pattern [v] v)
   (compile-matched [v] (mapv compile-route v))
 
-  ;; Not sure what the equivalent in cljs is - until I know not sure
-  ;; this compile-route feature will work in cljs :(
   #+clj Object
   #+cljs default
   (compile-pattern [o] o)
