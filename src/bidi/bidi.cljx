@@ -223,7 +223,6 @@ actually a valid UUID (this is handled by the route matching logic)."
     (when this (assoc env :remainder "")))
 
   #+clj clojure.lang.APersistentVector
-  ;; TODO: Perhaps use IVector
   #+cljs cljs.core.PersistentVector
   (match-pattern [this env]
     (when-let [groups (as-> this %
