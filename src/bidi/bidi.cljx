@@ -339,55 +339,54 @@ actually a valid UUID (this is handled by the route matching logic)."
   (unmatch-pair route {:handler handler :params params}))
 
 ;; --------------------------------------------------------------------------------
-;; Utility records
+;; Route gathering
 ;; --------------------------------------------------------------------------------
 
-;; Alternates can be used as a pattern. It is constructed with a vector
-;; of possible matching candidates. If one of the candidates matches,
-;; the route is matched. The first pattern in the vector is considered
-;; the canonical pattern for the purposes of URI formation with
-;; (path-for).
-(defrecord Alternates [alts]
-  Pattern
-  (match-pattern [this m]
-    (some #(match-pattern % m)
-          ;; We try to match on the longest string first, so that the
-          ;; empty string will be matched last, after all other cases
-          (sort-by count > alts)))
-  (unmatch-pattern [this m] (unmatch-pattern (first alts) m)))
+(defrecord Route [handler path])
 
-(defn alts [& alts]
-  (->Alternates alts))
+(defprotocol Gather
+  (gather [_ context] "Return a sequence of leaves"))
 
-;; If you have multiple routes which match the same handler, but need to
-;; label them so that you can form the correct URI, wrap the handler in
-;; a TaggedMatch.
-(defrecord TaggedMatch [tag matched]
-  Matched
-  (resolve-handler [this m]
-    (resolve-handler matched (assoc m :tag tag)))
-  (unresolve-handler [this m]
-    (if (keyword? (:handler m))
-      (when (= tag (:handler m)) "")
-      (unresolve-handler matched m))))
+(defn gather-from-pair
+  ([[pattern matched] ctx]
+   (gather matched (update-in ctx [:path] (fnil conj []) pattern)))
+  ([pair]
+   (gather-from-pair pair {})))
 
-(defn tag [matched k]
-  (->TaggedMatch k matched))
+(extend-protocol Gather
+  #+clj clojure.lang.APersistentVector
+  #+cljs cljs.core.PersistentVector
+  (gather [this context] (mapcat #(gather-from-pair % context) this))
 
-(defrecord IdentifiableHandler [id handler]
-  Matched
-  (resolve-handler [this m]
-    (resolve-handler handler (assoc m :id id)))
-  (unresolve-handler [this m]
-    (when id
-      (if (= id (:handler m)) ""
-          (unresolve-handler handler m)))))
+  #+clj clojure.lang.PersistentList
+  #+cljs cljs.core.List
+  (gather [this context] (mapcat #(gather-from-pair % context) this))
 
-(defn ^:deprecated handler
-  ([k handler]
-   (->IdentifiableHandler k handler))
-  ([handler]
-   (->IdentifiableHandler nil handler)))
+  #+clj clojure.lang.APersistentMap
+  #+cljs cljs.core.PersistentArrayMap
+  (gather [this context] (mapcat #(gather-from-pair % context) this))
+  #+cljs cljs.core.PersistentHashMap
+  #+cljs (gather [this context] (mapcat #(gather-from-pair % context) this))
+
+  #+clj clojure.lang.LazySeq
+  #+cljs cljs.core.LazySeq
+  (gather [this context] (mapcat #(gather-from-pair % context) this))
+
+  #+clj Object
+  #+cljs default
+  (gather [this context] [(map->Route (assoc context :handler this))])
+
+  ;; #+clj clojure.lang.Sequential
+  ;; #+cljs cljs.core.ISequential
+  ;; (gather [this context] (mapcat #(gather-from-pair % context) this))
+  ;; #+clj clojure.lang.Associative
+  ;; #+cljs cljs.core.IAssociative
+  ;; (gather [this context] (mapcat #(gather-from-pair % context) this))
+  ;; #+clj Object
+  ;; #+cljs default
+  ;; (gather [this context] [(map->Route (assoc context :handler this))])
+
+  )
 
 ;; --------------------------------------------------------------------------------
 ;; 3. Make it fast
@@ -454,3 +453,78 @@ actually a valid UUID (this is handled by the route matching logic)."
   (routes [_] "Provide a bidi route structure. Returns a vector pair,
   the first element is the pattern, the second element is the matched
   route or routes."))
+
+;; --------------------------------------------------------------------------------
+;; Utility records
+;; --------------------------------------------------------------------------------
+
+;; Alternates can be used as a pattern. It is constructed with a vector
+;; of possible matching candidates. If one of the candidates matches,
+;; the route is matched. The first pattern in the vector is considered
+;; the canonical pattern for the purposes of URI formation with
+;; (path-for).
+(defrecord Alternates [alts]
+  Pattern
+  (match-pattern [this m]
+    (some #(match-pattern % m)
+          ;; We try to match on the longest string first, so that the
+          ;; empty string will be matched last, after all other cases
+          (sort-by count > alts)))
+  (unmatch-pattern [this m] (unmatch-pattern (first alts) m)))
+
+(defn alts [& alts]
+  (->Alternates alts))
+
+;; If you have multiple routes which match the same handler, but need to
+;; label them so that you can form the correct URI, wrap the handler in
+;; a TaggedMatch.
+(defrecord TaggedMatch [tag matched]
+  Matched
+  (resolve-handler [this m]
+    (resolve-handler matched (assoc m :tag tag)))
+  (unresolve-handler [this m]
+    (if (keyword? (:handler m))
+      (when (= tag (:handler m)) "")
+      (unresolve-handler matched m))))
+
+(defn tag [matched k]
+  (->TaggedMatch k matched))
+
+(defrecord IdentifiableHandler [id handler]
+  Matched
+  (resolve-handler [this m]
+    (resolve-handler handler (assoc m :id id)))
+  (unresolve-handler [this m]
+    (when id
+      (if (= id (:handler m)) ""
+          (unresolve-handler handler m)))))
+
+(defn ^:deprecated handler
+  ([k handler]
+   (->IdentifiableHandler k handler))
+  ([handler]
+   (->IdentifiableHandler nil handler)))
+
+;; A context can be used to inject data into the map that is returned when
+;; a route is matched.
+
+(defrecord Context [context-fn routes]
+  Matched
+  (resolve-handler [_ m]
+    (resolve-handler routes (context-fn m)))
+  (unresolve-handler [_ m]
+    (unresolve-handler routes m))
+  Compilable
+  (compile-matched [this]
+    (throw (ex-info "TODO: Compilation is not compatible with context,
+    until compilation supports propagation of the context down to
+    delegates" {})))
+  Gather
+  (gather [this context]
+    (gather routes (context-fn context))))
+
+(defn context
+  "Apply a context function to the match context of a matched
+  route. This is useful for injecting data into the match context."
+  [f routes]
+  (->Context f routes))
