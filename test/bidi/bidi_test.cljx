@@ -124,7 +124,11 @@
             ["/blog" [[["/articles/" [#"[0-9]+" :id] [#"[a-z]+" :a] "/index.html"] 'foo]
                       ["/text" 'bar]]]]
         (is (= (path-for routes 'foo :id "123" :a "abc")
-               "/blog/articles/123abc/index.html"))))))
+               "/blog/articles/123abc/index.html"))))
+
+    (testing "unmatching with nil handlers" ; issue #28
+      (let [routes ["/" {"foo" nil "bar" :bar}]]
+        (is (= (path-for routes :bar) "/bar"))))))
 
 (deftest unmatching-routes-with-anonymous-fns-test
   (testing "unmatching when routes contains a ref to anonymous function(s) should not throw exception"

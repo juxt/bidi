@@ -270,7 +270,6 @@ actually a valid UUID (this is handled by the route matching logic)."
       env))
   (unmatch-pattern [_ _] ""))
 
-
 (defn unmatch-pair [v m]
   (when-let [r (unresolve-handler (second v) m)]
     (str (unmatch-pattern (first v) m) r)))
@@ -320,7 +319,11 @@ actually a valid UUID (this is handled by the route matching logic)."
   #+clj clojure.lang.Fn
   #+cljs function
   (resolve-handler [this m] (succeed this m))
-  (unresolve-handler [this m] (when (= this (:handler m)) "")))
+  (unresolve-handler [this m] (when (= this (:handler m)) ""))
+
+  nil
+  (resolve-handler [this m] nil)
+  (unresolve-handler [this m] nil))
 
 (defn match-route
   "Given a route definition data structure and a path, return the
