@@ -5,7 +5,7 @@
   (:require #+clj [clojure.test :refer :all]
             #+cljs [cemerick.cljs.test :as t]
             [bidi.bidi :as bidi
-             :refer [match-route compile-route path-for ->Alternates gather-from-pair context]]))
+             :refer [match-route path-for ->Alternates gather-from-pair context]]))
 
 (deftest matching-routes-test
   (testing "misc-routes"
@@ -202,32 +202,6 @@
     (is (= (match-route routes "/index") {:handler :index}))
     (is (= (path-for routes :index) "/index.html")) ; first is the canonical one
     ))
-
-(deftest compile-routes-test
-  (testing "basic route"
-    (let [routes [["/foo/" :bar] :foo]
-          compiled (compile-route routes)
-          path "/foo/hello"
-          match {:handler      :foo
-                 :route-params {:bar "hello"}}]
-      (is (= (match-route routes path) match))
-      (is (= (match-route compiled path) match))))
-  (testing "route with regex"
-    (let [routes [["/foo/" [#".*" :extra]] :foo]
-          compiled (compile-route routes)
-          path "/foo/hello/bar/baz"
-          match {:handler      :foo
-                 :route-params {:extra "hello/bar/baz"}}]
-      (is (= (match-route routes path) match))
-      (is (= (match-route compiled path) match))))
-  #_(testing "issue #63" ; can't get this working under cljs, need help!
-    (let [routes ["/" {"index.html" :index
-                       "article.html" :article}]
-          compiled-routes (compile-route routes)]
-      (is (= (path-for routes :index) "/index.html"))
-      (is (= (path-for compiled-routes :index) "/index.html")))
-    ))
-
 
 (deftest gather
   (let [myroutes

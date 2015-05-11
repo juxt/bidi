@@ -563,40 +563,7 @@ Paths can now be created like this :-
 
 ```
 
-## Performance
 
-Route matching in Compojure is very fast, due to the fact that Compojure
-can compile regular-expressions in the reader. By default, bidi
-performance is 3-4 times slower. However, a route structure can undergo
-a one-time compilation step which prepares the regular expressions and
-replaces terms of the route structure with records that have the same
-behaviour but higher performance.
-
-```clojure
-(def routes ["/" {"index.html" :index
-                  "article.html" :article}])
-
-(def compiled-routes (compile-route routes))
-```
-
-Since compiled route structures are more unwieldy, the decision of
-whether and when to compile a route structure is left to the library
-user (you). For example, it is a good idea to serialize route structures
-in their uncompiled forms and compile just-in-time prior to the route
-structure being used for route matching.
-
-There is a test (`bidi.perf-test`) which demonstrates route
-compilation. When using this feature, performance of bidi reaches
-near-parity with that of Compojure.
-
-```
-Time for 1000 matches using Compojure routes
-"Elapsed time: 17.336491 msecs"
-Time for 1000 matches using uncompiled bidi routes
-"Elapsed time: 66.579074 msecs"
-Time for 1000 matches using compiled bidi routes
-"Elapsed time: 21.111658 msecs"
-```
 
 ## Contributing
 
