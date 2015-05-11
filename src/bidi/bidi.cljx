@@ -197,21 +197,23 @@ actually a valid UUID (this is handled by the route matching logic)."
 (extend-protocol Pattern
   #+clj String
   #+cljs string
-  (match-pattern [this env]
-    (match-beginning (str "(" (segment-regex-group this) ")") env))
+  #+clj (match-pattern [this env]
+          (if (= (.length this) 0)
+            env
+            (when (.startsWith (:remainder env) this)
+              (assoc env :remainder (.substring (:remainder env) (.length this))))))
+  ;; TODO: Optimize cljs version as above
+  #+cljs (match-pattern [this env]
+           (match-beginning (str "(" (segment-regex-group this) ")") env))
   (unmatch-pattern [this _] this)
 
   #+clj java.util.regex.Pattern
   #+cljs js/RegExp
   (match-pattern [this env]
     (match-beginning (str "(" (segment-regex-group this) ")") env))
-  ;; This could be a pre-compiled pattern, if so, we extract the original string
-  #+clj
-  (unmatch-pattern [this m]
-    (let [p (.pattern this)
-          r #"\\Q(.*)\\E"]
-      (when (re-matches r p)
-        (unmatch-pattern (clojure.string/replace p r (fn [[_ g]] g)) m))))
+  ;; We can't unmatch-pattern as you can't go from a regex to a
+  ;; string (it's a many-to-one mapping)
+
   #+cljs
   (unmatch-pattern [this m]
     (let [p (.pattern this)]
@@ -419,8 +421,7 @@ actually a valid UUID (this is handled by the route matching logic)."
   ;; patterns, ahead of time.
   #+clj String
   #+cljs string
-  (compile-pattern [s] #+clj  (re-pattern (str "\\Q" s "\\E"))
-                       #+cljs (re-pattern (.replace s #"/(\W)/g" "\\$1")))
+  (compile-pattern [s] s)
   (compile-matched [s] s)
   (compile-segment [s] #+clj  (re-pattern (str "\\Q" s "\\E"))
                        #+cljs (re-pattern (.replace s #"/(\W)/g" "\\$1")))

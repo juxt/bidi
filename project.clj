@@ -32,7 +32,8 @@
 
   :profiles {:dev {:dependencies [[ring-mock "0.1.5"]
                                   [compojure "1.1.6"]
-                                  [prismatic/schema "0.3.2"]]
+                                  [prismatic/schema "0.3.2"]
+                                  [criterium "0.4.3"]]
 
                    :plugins [[com.keminglabs/cljx "0.5.0"]]
 
