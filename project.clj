@@ -35,15 +35,7 @@
                                   [prismatic/schema "0.3.2"]
                                   [criterium "0.4.3"]]
 
-                   :plugins [[com.keminglabs/cljx "0.5.0"]]
-
-                   }
-             :bench
-             {:jvm-opts ^:replace ["-server" "-XX:+AggressiveOpts" "-XX:+UseFastAccessorMethods" "-Djava.awt.headless=true"]
-              :test-paths ["bench"]
-              :dependencies [[criterium "0.4.3"]
-                             [ring-mock "0.1.5"]
-                             [compojure "1.1.6"]]}}
+                   :plugins [[com.keminglabs/cljx "0.5.0"]]}}
 
   :aliases {"deploy" ["do" "clean," "cljx" "once," "deploy" "clojars"]
             "test" ["do" "clean," "cljx" "once," "test," "with-profile" "dev" "cljsbuild" "test"]}

@@ -4,11 +4,6 @@
   (:require [clojure.walk :as walk :refer [postwalk]]
             [cemerick.url :as url :refer [url-encode url-decode]]))
 
-;; --------------------------------------------------------------------------------
-;; 1 & 2 Make it work and make it right
-;; http://c2.com/cgi/wiki?MakeItWorkMakeItRightMakeItFast
-;; --------------------------------------------------------------------------------
-
 (defn uuid
   "Function for creating a UUID of the appropriate type for the platform.
 Note that this function should _only_ be used in route patterns as, at least
@@ -404,60 +399,6 @@ actually a valid UUID (this is handled by the route matching logic)."
   )
 
 ;; --------------------------------------------------------------------------------
-;; 3. Make it fast
-;; --------------------------------------------------------------------------------
-
-(defprotocol Compilable
-  (compile-pattern [_] "Compile to make fast")
-  (compile-matched [_] "Compile to make fast")
-  (compile-segment [_] "Compile to make fast"))
-
-(defn compile-route [[pattern matched]]
-  [(compile-pattern pattern) (compile-matched matched)])
-
-(extend-protocol Compilable
-  ;; Usually strings are matched using regular expressions, which are
-  ;; compiled dynamically, per request. Here we pre-compile strings to
-  ;; patterns, ahead of time.
-  #+clj String
-  #+cljs string
-  (compile-pattern [s] s)
-  (compile-matched [s] s)
-  (compile-segment [s] #+clj  (re-pattern (str "\\Q" s "\\E"))
-                       #+cljs (re-pattern (.replace s #"/(\W)/g" "\\$1")))
-
-  #+clj clojure.lang.APersistentVector
-  #+cljs cljs.core.PersistentVector
-  (compile-pattern [v] (mapv compile-segment v))
-  (compile-matched [v] (mapv compile-route v))
-  (compile-segment [v] v)
-
-  #+clj clojure.lang.PersistentList
-  #+cljs cljs.core.List
-  (compile-pattern [v] v)
-  (compile-matched [v] (mapv compile-route v))
-
-  #+clj clojure.lang.APersistentMap
-  #+cljs cljs.core.PersistentArrayMap
-  (compile-pattern [v] v)
-  (compile-matched [v] (mapv compile-route v))
-  #+cljs cljs.core.PersistentHashMap
-  #+cljs (compile-pattern [v] v)
-  #+cljs (compile-matched [v] (mapv compile-route v))
-
-  #+clj clojure.lang.LazySeq
-  #+cljs cljs.core.LazySeq
-  (compile-pattern [v] v)
-  (compile-matched [v] (mapv compile-route v))
-
-  #+clj Object
-  #+cljs default
-  (compile-pattern [o] o)
-  (compile-matched [o] o)
-  (compile-segment [o] o))
-
-
-;; --------------------------------------------------------------------------------
 ;; Protocols
 ;; --------------------------------------------------------------------------------
 
@@ -529,11 +470,6 @@ actually a valid UUID (this is handled by the route matching logic)."
     (resolve-handler routes (context-fn m)))
   (unresolve-handler [_ m]
     (unresolve-handler routes m))
-  Compilable
-  (compile-matched [this]
-    (throw (ex-info "TODO: Compilation is not compatible with context,
-    until compilation supports propagation of the context down to
-    delegates" {})))
   Gather
   (gather [this context]
     (gather routes (context-fn context))))
@@ -543,3 +479,16 @@ actually a valid UUID (this is handled by the route matching logic)."
   route. This is useful for injecting data into the match context."
   [f routes]
   (->Context f routes))
+
+
+;; --------------------------------------------------------------------------------
+;; Deprecated functions
+;; --------------------------------------------------------------------------------
+
+;; Route compilation was only marginally effective and hard to
+;; debug. When bidi matching takes in the order of 30 micro-seconds,
+;; this is good enough in relation to the time taken to process the
+;; overall request.
+
+(defn ^:deprecated compile-route [route]
+  route)
