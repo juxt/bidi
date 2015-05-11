@@ -548,11 +548,13 @@ to indicate which path to create using `path-for`? One solution is to
 wrap the handler and a keyword using `TaggedMatch`. Now you can use the
 keyword rather than the handler itself to create the path.
 
+You can use the `tag` function to construct these records.
+
 For example.
 
 ```clojure
-["/" [["foo" (->TaggedMatch :foo common-handler)]
-      [["bar/" :id] (->TaggedMatch :bar common-handler)]]]
+["/" [["foo" (-> foo-handler (tag :foo)]
+      [["bar/" :id] (-> bar-handler (tag :bar)]]]
 ```
 
 Paths can now be created like this :-
