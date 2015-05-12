@@ -349,53 +349,42 @@ actually a valid UUID (this is handled by the route matching logic)."
   (unmatch-pair route {:handler handler :params params}))
 
 ;; --------------------------------------------------------------------------------
-;; Route gathering
+;; Route seqs
 ;; --------------------------------------------------------------------------------
 
 (defrecord Route [handler path])
 
-(defprotocol Gather
+(defprotocol RouteSeq
   (gather [_ context] "Return a sequence of leaves"))
 
-(defn gather-from-pair
+(defn route-seq
   ([[pattern matched] ctx]
    (gather matched (update-in ctx [:path] (fnil conj []) pattern)))
-  ([pair]
-   (gather-from-pair pair {})))
+  ([route]
+   (route-seq route {})))
 
-(extend-protocol Gather
+(extend-protocol RouteSeq
   #+clj clojure.lang.APersistentVector
   #+cljs cljs.core.PersistentVector
-  (gather [this context] (mapcat #(gather-from-pair % context) this))
+  (gather [this context] (mapcat #(route-seq % context) this))
 
   #+clj clojure.lang.PersistentList
   #+cljs cljs.core.List
-  (gather [this context] (mapcat #(gather-from-pair % context) this))
+  (gather [this context] (mapcat #(route-seq % context) this))
 
   #+clj clojure.lang.APersistentMap
   #+cljs cljs.core.PersistentArrayMap
-  (gather [this context] (mapcat #(gather-from-pair % context) this))
+  (gather [this context] (mapcat #(route-seq % context) this))
   #+cljs cljs.core.PersistentHashMap
-  #+cljs (gather [this context] (mapcat #(gather-from-pair % context) this))
+  #+cljs (gather [this context] (mapcat #(route-seq % context) this))
 
   #+clj clojure.lang.LazySeq
   #+cljs cljs.core.LazySeq
-  (gather [this context] (mapcat #(gather-from-pair % context) this))
+  (gather [this context] (mapcat #(route-seq % context) this))
 
   #+clj Object
   #+cljs default
   (gather [this context] [(map->Route (assoc context :handler this))])
-
-  ;; #+clj clojure.lang.Sequential
-  ;; #+cljs cljs.core.ISequential
-  ;; (gather [this context] (mapcat #(gather-from-pair % context) this))
-  ;; #+clj clojure.lang.Associative
-  ;; #+cljs cljs.core.IAssociative
-  ;; (gather [this context] (mapcat #(gather-from-pair % context) this))
-  ;; #+clj Object
-  ;; #+cljs default
-  ;; (gather [this context] [(map->Route (assoc context :handler this))])
-
   )
 
 ;; --------------------------------------------------------------------------------
@@ -470,7 +459,7 @@ actually a valid UUID (this is handled by the route matching logic)."
     (resolve-handler routes (context-fn m)))
   (unresolve-handler [_ m]
     (unresolve-handler routes m))
-  Gather
+  RouteSeq
   (gather [this context]
     (gather routes (context-fn context))))
 

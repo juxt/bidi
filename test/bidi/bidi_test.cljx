@@ -5,7 +5,7 @@
   (:require #+clj [clojure.test :refer :all]
             #+cljs [cemerick.cljs.test :as t]
             [bidi.bidi :as bidi
-             :refer [match-route path-for ->Alternates gather-from-pair context]]))
+             :refer [match-route path-for ->Alternates route-seq context]]))
 
 (deftest matching-routes-test
   (testing "misc-routes"
@@ -203,7 +203,7 @@
     (is (= (path-for routes :index) "/index.html")) ; first is the canonical one
     ))
 
-(deftest gather
+(deftest route-seq-test
   (let [myroutes
         ["/" [
               ["index" :index]
@@ -212,7 +212,7 @@
                          [["view" :docview]
                           [["chapter/" :chapter "/"] {"view" :chapter-view}]]]]]]]
 
-        result (gather-from-pair ["" [myroutes]])]
+        result (route-seq ["" [myroutes]])]
     (is (= (count result) 3))))
 
 (defn partial-map [m]
@@ -221,7 +221,7 @@
 
 (def secure (partial context (partial-map {:secure true :level :root})))
 
-(deftest gather-with-partial
+(deftest route-seq-with-partial-test
   (let [myroutes
         ["/"
          {"public/"
@@ -238,6 +238,6 @@
                         (context (partial-map {:level :doc})
                                  [["view" :docview]
                                   [["chapter/" :chapter "/"] {"view" :chapter-view}]])]])]])}]
-        result (gather-from-pair myroutes)]
+        result (route-seq myroutes)]
     #_(pprint result)
     (is (= (count result) 5))))
