@@ -86,6 +86,10 @@
           :handler (if-let [res (io/resource (str (:prefix options) path))]
                      (-> (fn [req] (url-response res))
                          (wrap-file-info (:mime-types options))
+                         ;; TODO It appears that wrap-file-info
+                         ;; encompasses wrap-content-type and
+                         ;; wrap-not-modified such that they are
+                         ;; unnecessary
                          (wrap-content-type options)
                          (wrap-not-modified))
                      (fn [req] {:status 404}))))))
