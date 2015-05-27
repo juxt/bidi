@@ -60,6 +60,8 @@
         true (dissoc :remainder))))
   (unresolve-handler [this m]
     (when (= this (:handler m)) ""))
+  (swagger-unresolve-handler [this m]
+    (when (= this (:handler m)) ""))
   Ring
   (request [f req m]
     (if-let [location (if-not (string? target) (:location m) target)]
@@ -90,6 +92,8 @@
                          (wrap-not-modified))
                      (fn [req] {:status 404}))))))
   (unresolve-handler [this m]
+    (when (= this (:handler m)) ""))
+  (swagger-unresolve-handler [this m]
     (when (= this (:handler m)) "")))
 
 (defn resources [options]
@@ -115,6 +119,8 @@
                          (wrap-content-type options)
                          (wrap-not-modified)))))))
   (unresolve-handler [this m]
+    (when (= this (:handler m)) ""))
+  (swagger-unresolve-handler [this m]
     (when (= this (:handler m)) "")))
 
 (defn resources-maybe [options]
@@ -133,6 +139,8 @@
                      (wrap-content-type options)
                      (wrap-not-modified))))
   (unresolve-handler [this m]
+    (when (= this (:handler m)) ""))
+  (swagger-unresolve-handler [this m]
     (when (= this (:handler m)) "")))
 
 (defn files [options]
@@ -158,6 +166,8 @@
               (wrap-not-modified)))
             (dissoc :remainder)))))
   (unresolve-handler [this m]
+    (when (= this (:handler m)) ""))
+  (swagger-unresolve-handler [this m]
     (when (= this (:handler m)) "")))
 
 (defn archive [options]
@@ -170,7 +180,8 @@
   (resolve-handler [this m]
     (let [r (resolve-handler matched m)]
       (if (:handler r) (update-in r [:handler] middleware) r)))
-  (unresolve-handler [this m] (unresolve-handler matched m))) ; pure delegation
+  (unresolve-handler [this m] (unresolve-handler matched m))
+  (swagger-unresolve-handler [this m] (swagger-unresolve-handler matched m))) ; pure delegation
 
 (defn wrap-middleware [matched middleware]
   (->WrapMiddleware matched middleware))
