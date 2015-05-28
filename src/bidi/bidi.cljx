@@ -71,6 +71,7 @@ actually a valid UUID (this is handled by the route matching logic)."
   ;; unmatch-segment generates the part of the URI (a string) represented by
   ;; the segment, when forming URIs.
   (unmatch-segment [_ params])
+  (swagger-unmatch-segment [_ params])
   ;; matches? is used to check if the type or value of the parameter
   ;; satisfies the segment qualifier when forming a URI.
   (matches? [_ s]))
@@ -84,6 +85,7 @@ actually a valid UUID (this is handled by the route matching logic)."
   (param-key [_] nil)
   (transform-param [_] identity)
   (unmatch-segment [this _] this)
+  (swagger-unmatch-segment [this _] this)
 
   #+clj java.util.regex.Pattern
   #+cljs js/RegExp
@@ -124,6 +126,7 @@ actually a valid UUID (this is handled by the route matching logic)."
                           {})))
         (throw (ex-info (str "No parameter found in params for key " k)
                         {})))))
+  (swagger-unmatch-segment [this params] (-> this second str))
 
   #+clj clojure.lang.Keyword
   #+cljs cljs.core.Keyword
@@ -137,6 +140,8 @@ actually a valid UUID (this is handled by the route matching logic)."
       (throw (ex-info (str "Cannot form URI without a value given for "
                            this " parameter")
                       {}))))
+  (swagger-unmatch-segment [this params]
+    (str this))
 
   #+clj clojure.lang.Fn
   #+cljs function
@@ -168,11 +173,14 @@ actually a valid UUID (this is handled by the route matching logic)."
   ;; truthy, we mean a map containing (at least) the rest of the path to
   ;; match in a :remainder entry
   (match-pattern [_ #+clj ^String path #+cljs ^string path])
-  (unmatch-pattern [_ m]))
+  (unmatch-pattern [_ m])
+  (swagger-unmatch-pattern [_ m]))
+
 
 (defprotocol Matched
   (resolve-handler [_ m])
-  (unresolve-handler [_ m]))
+  (unresolve-handler [_ m])
+  (swagger-unresolve-handler [_ m]))
 
 (defn match-pair
   "A pair contains a pattern to match (either fully or partially) and an
@@ -200,6 +208,7 @@ actually a valid UUID (this is handled by the route matching logic)."
   (match-pattern [this env]
     (match-beginning (str "(" (segment-regex-group this) ")") env))
   (unmatch-pattern [this _] this)
+  (swagger-unmatch-pattern [this _] this)
 
   #+clj java.util.regex.Pattern
   #+cljs js/RegExp
@@ -212,10 +221,14 @@ actually a valid UUID (this is handled by the route matching logic)."
           r #"\\Q(.*)\\E"]
       (when (re-matches r p)
         (unmatch-pattern (clojure.string/replace p r (fn [[_ g]] g)) m))))
+  (swagger-unmatch-pattern [this m]
+    (unmatch-pattern this m))
   #+cljs
   (unmatch-pattern [this m]
     (let [p (.pattern this)]
       (unmatch-pattern (clojure.string/replace p #"\\\\" "") m)))
+  (swagger-unmatch-pattern [this m]
+    (unmatch-pattern this m))
 
   #+clj Boolean
   #+cljs boolean
@@ -252,11 +265,15 @@ actually a valid UUID (this is handled by the route matching logic)."
 
   (unmatch-pattern [this m]
     (apply str (map #(unmatch-segment % (:params m)) this)))
+  (swagger-unmatch-pattern [this m]
+    (apply str (map #(swagger-unmatch-segment % (:params m)) this)))
 
   #+clj clojure.lang.Keyword
   #+cljs cljs.core.Keyword
   (match-pattern [this env] (when (= this (:request-method env)) env))
   (unmatch-pattern [_ _] "")
+  (swagger-unmatch-pattern [this _]
+    (unmatch-pattern this _))
 
   #+clj clojure.lang.APersistentMap
   #+cljs cljs.core.PersistentArrayMap
@@ -268,6 +285,8 @@ actually a valid UUID (this is handled by the route matching logic)."
                   (seq this))
       env))
   (unmatch-pattern [_ _] "")
+  (swagger-unmatch-pattern [this _]
+    (unmatch-pattern this _))
 
   #+cljs cljs.core.PersistentHashMap
   #+cljs
@@ -278,62 +297,81 @@ actually a valid UUID (this is handled by the route matching logic)."
                       :otherwise (= v (get env k))))
                   (seq this))
       env))
-  (unmatch-pattern [_ _] ""))
+  (unmatch-pattern [_ _] "")
+  (swagger-unmatch-pattern [this _]
+    (unmatch-pattern this _)))
 
 (defn unmatch-pair [v m]
   (when-let [r (unresolve-handler (second v) m)]
     (str (unmatch-pattern (first v) m) r)))
 
+(defn swagger-unmatch-pair [v m]
+  (when-let [r (swagger-unresolve-handler (second v) m)]
+    (str (swagger-unmatch-pattern (first v) m) r)))
+
 (extend-protocol Matched
   #+clj String
   #+cljs string
   (unresolve-handler [_ _] nil)
+  (swagger-unresolve-handler [_ _]
+    (unresolve-handler _ _))
 
   #+clj clojure.lang.APersistentVector
   #+cljs cljs.core.PersistentVector
   (resolve-handler [this m] (some #(match-pair % m) this))
   (unresolve-handler [this m] (some #(unmatch-pair % m) this))
+  (swagger-unresolve-handler [this m] (some #(swagger-unmatch-pair % m) this))
 
   #+clj clojure.lang.PersistentList
   #+cljs cljs.core.List
   (resolve-handler [this m] (some #(match-pair % m) this))
   (unresolve-handler [this m] (some #(unmatch-pair % m) this))
+  (swagger-unresolve-handler [this m] (some #(swagger-unmatch-pair % m) this))
 
   #+clj clojure.lang.APersistentMap
   #+cljs cljs.core.PersistentArrayMap
   (resolve-handler [this m] (some #(match-pair % m) this))
   (unresolve-handler [this m] (some #(unmatch-pair % m) this))
+  (swagger-unresolve-handler [this m] (some #(swagger-unmatch-pair % m) this))
   #+cljs cljs.core.PersistentHashMap
   #+cljs (resolve-handler [this m] (some #(match-pair % m) this))
   #+cljs (unresolve-handler [this m] (some #(unmatch-pair % m) this))
+  #+cljs (swagger-unresolve-handler [this m]
+           (some #(swagger-unmatch-pair % m) this))
 
   #+clj clojure.lang.LazySeq
   #+cljs cljs.core.LazySeq
   (resolve-handler [this m] (some #(match-pair % m) this))
   (unresolve-handler [this m] (some #(unmatch-pair % m) this))
+  (swagger-unresolve-handler [this m] (some #(swagger-unmatch-pair % m) this))
 
   #+clj clojure.lang.Symbol
   #+cljs cljs.core.Symbol
   (resolve-handler [this m] (succeed this m))
   (unresolve-handler [this m] (when (= this (:handler m)) ""))
+  (swagger-unresolve-handler [this m] (when (= this (:handler m)) ""))
 
   #+clj clojure.lang.Var
   #+clj (resolve-handler [this m] (succeed this m))
   #+clj (unresolve-handler [this m] (when (= this (:handler m)) ""))
+  #+clj (swagger-unresolve-handler [this m] (when (= this (:handler m)) ""))
 
   #+clj clojure.lang.Keyword
   #+cljs cljs.core.Keyword
   (resolve-handler [this m] (succeed this m))
   (unresolve-handler [this m] (when (= this (:handler m)) ""))
+  (swagger-unresolve-handler [this m] (when (= this (:handler m)) ""))
 
   #+clj clojure.lang.Fn
   #+cljs function
   (resolve-handler [this m] (succeed this m))
   (unresolve-handler [this m] (when (= this (:handler m)) ""))
+  (swagger-unresolve-handler [this m] (when (= this (:handler m)) ""))
 
   nil
   (resolve-handler [this m] nil)
-  (unresolve-handler [this m] nil))
+  (unresolve-handler [this m] nil)
+  (swagger-unresolve-handler [this m] nil))
 
 (defn match-route
   "Given a route definition data structure and a path, return the
@@ -350,6 +388,14 @@ actually a valid UUID (this is handled by the route matching logic)."
   (when (nil? handler)
     (throw (ex-info "Cannot form URI from a nil handler" {})))
   (unmatch-pair route {:handler handler :params params}))
+
+(defn swagger-path-for
+  "Given a route definition data structure, a handler, return a path that can be used
+  in the `paths` part of a swagger definition for the path of the given handler."
+  [route handler]
+  (when (nil? handler)
+    (throw (ex-info "Cannot form URI from a nil handler" {})))
+  (swagger-unmatch-pair route {:handler handler}))
 
 ;; --------------------------------------------------------------------------------
 ;; Route gathering
@@ -499,7 +545,11 @@ actually a valid UUID (this is handled by the route matching logic)."
   (unresolve-handler [this m]
     (if (keyword? (:handler m))
       (when (= tag (:handler m)) "")
-      (unresolve-handler matched m))))
+      (unresolve-handler matched m)))
+  (swagger-unresolve-handler [this m]
+    (if (keyword? (:handler m))
+      (when (= tag (:handler m)) "")
+      (swagger-unresolve-handler matched m))))
 
 (defn tag [matched k]
   (->TaggedMatch k matched))
@@ -511,7 +561,11 @@ actually a valid UUID (this is handled by the route matching logic)."
   (unresolve-handler [this m]
     (when id
       (if (= id (:handler m)) ""
-          (unresolve-handler handler m)))))
+          (unresolve-handler handler m))))
+  (swagger-unresolve-handler [this m]
+    (when id
+      (if (= id (:handler m)) ""
+          (swagger-unresolve-handler handler m)))))
 
 (defn ^:deprecated handler
   ([k handler]
@@ -528,6 +582,8 @@ actually a valid UUID (this is handled by the route matching logic)."
     (resolve-handler routes (context-fn m)))
   (unresolve-handler [_ m]
     (unresolve-handler routes m))
+  (swagger-unresolve-handler [_ m]
+    (swagger-unresolve-handler routes m))
   Compilable
   (compile-matched [this]
     (throw (ex-info "TODO: Compilation is not compatible with context,

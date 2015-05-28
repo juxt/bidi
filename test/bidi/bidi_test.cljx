@@ -5,7 +5,7 @@
   (:require #+clj [clojure.test :refer :all]
             #+cljs [cemerick.cljs.test :as t]
             [bidi.bidi :as bidi
-             :refer [match-route compile-route path-for ->Alternates gather-from-pair context]]))
+             :refer [match-route compile-route path-for swagger-path-for ->Alternates gather-from-pair context]]))
 
 (deftest matching-routes-test
   (testing "misc-routes"
@@ -129,6 +129,52 @@
     (testing "unmatching with nil handlers" ; issue #28
       (let [routes ["/" {"foo" nil "bar" :bar}]]
         (is (= (path-for routes :bar) "/bar"))))))
+
+(deftest swagger-path-for-test
+  (let [routes ["/"
+                [["blog"
+                  [["/index.html" 'blog-index]
+                   [["/article/" :id ".html"] 'blog-article-handler]
+                   [["/archive/" :id "/" :page ".html"] 'archive-handler]]]
+                 [["images/" :path] 'image-handler]]]]
+
+    (testing "unmatching"
+
+      (is
+       (= (swagger-path-for routes 'blog-index)
+          "/blog/index.html"))
+      (is
+       (= (swagger-path-for routes 'blog-article-handler)
+          "/blog/article/:id.html"))
+      (is
+       ;; If not all the parameters are specified we expect an error to be thrown
+       (is (swagger-path-for routes 'archive-handler)
+           "/blog/archive/:id/:page.html"))
+      (is
+       (= (swagger-path-for routes 'image-handler)
+          "/images/:path")))
+
+    (testing "unmatching with constraints"
+
+      (let [routes ["/" [["blog"
+                          [[:get [[["/index"] :index]]]
+                           [{:request-method :post :server-name "juxt.pro"}
+                            [[["/articles/" :artid] :new-article-handler]]]]]]]]
+        (is (= (swagger-path-for routes :index)
+               "/blog/index"))
+        (is (= (swagger-path-for routes :new-article-handler)
+               "/blog/articles/:artid"))))
+
+    (testing "unmatching with regexes"
+      (let [routes
+            ["/blog" [[["/articles/" [#"[0-9]+" :id] [#"[a-z]+" :a] "/index.html"] 'foo]
+                      ["/text" 'bar]]]]
+        (is (= (swagger-path-for routes 'foo)
+               "/blog/articles/:id:a/index.html"))))
+
+    (testing "unmatching with nil handlers" ; issue #28
+      (let [routes ["/" {"foo" nil "bar" :bar}]]
+        (is (= (swagger-path-for routes :bar) "/bar"))))))
 
 (deftest unmatching-routes-with-anonymous-fns-test
   (testing "unmatching when routes contains a ref to anonymous function(s) should not throw exception"
