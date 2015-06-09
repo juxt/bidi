@@ -505,7 +505,7 @@ which each match the handler. The first in the list is considered the
 canonical pattern for the purposes of URI formation.
 
 ```clojure
-[(->Alternates ["/index.html" "/index"]) :index]
+[(alts ["/index.html" "/index"]) :index]
 ```
 
 Any pattern can be used in the list. This allows quite sophisticated
@@ -513,13 +513,13 @@ matching. For example, if you want to match on requests that are either
 HEAD or GET but not anything else.
 
 ```clojure
-[(->Alternates [:head :get]) :index]
+[(alts [:head :get]) :index]
 ```
 
 Or match if the server name is `juxt.pro` or `localhost`.
 
 ```clojure
-[(->Alternates [{:server-name "juxt.pro"}{:server-name "localhost"}])
+[(alts [{:server-name "juxt.pro"}{:server-name "localhost"}])
  {"/index.html" :index}]
 ```
 
@@ -541,18 +541,18 @@ Now you can use `::my-handler` like this
 (path-for routes ::my-handler)
 ```
 
-### TaggedMatch
+### Tagged Match
 
 Sometimes you have multiple routes handled by a common handler. How then
 to indicate which path to create using `path-for`? One solution is to
-wrap the handler and a keyword using `TaggedMatch`. Now you can use the
+wrap the handler and a keyword using `tag`. Now you can use the
 keyword rather than the handler itself to create the path.
 
 For example.
 
 ```clojure
-["/" [["foo" (->TaggedMatch :foo common-handler)]
-      [["bar/" :id] (->TaggedMatch :bar common-handler)]]]
+["/" [["foo" (tag common-handler :foo)]
+      [["bar/" :id] (tag common-handler :bar)]]]
 ```
 
 Paths can now be created like this :-
