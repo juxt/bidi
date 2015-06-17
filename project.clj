@@ -10,7 +10,7 @@
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [org.clojure/clojurescript "0.0-2371"]
                  [com.cemerick/url "0.1.1"]
-                 [ring/ring-core "1.2.1"]]
+                 [ring/ring-core "1.3.2"]]
 
   :plugins [[lein-cljsbuild "1.0.3"]
             [com.cemerick/clojurescript.test "0.3.1"]]
