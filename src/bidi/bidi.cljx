@@ -2,7 +2,8 @@
 
 (ns bidi.bidi
   (:require [clojure.walk :as walk :refer [postwalk]]
-            [cemerick.url :as url :refer [url-encode url-decode]]))
+            [cemerick.url :as url :refer [url-encode url-decode]])
+  (:refer-clojure :exclude [uuid]))
 
 (defn uuid
   "Function for creating a UUID of the appropriate type for the platform.
