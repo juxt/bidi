@@ -2,7 +2,8 @@
 
 (ns bidi.bidi
   (:require [clojure.walk :as walk :refer [postwalk]]
-            [cemerick.url :as url :refer [url-encode url-decode]]))
+            [cemerick.url :as url :refer [url-encode url-decode]]
+            [schema.core :as s]))
 
 (defn uuid
   "Function for creating a UUID of the appropriate type for the platform.
@@ -468,7 +469,6 @@ actually a valid UUID (this is handled by the route matching logic)."
   route. This is useful for injecting data into the match context."
   [f routes]
   (->Context f routes))
-
 
 ;; --------------------------------------------------------------------------------
 ;; Deprecated functions

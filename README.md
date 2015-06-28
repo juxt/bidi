@@ -414,6 +414,20 @@ Matched ::= Function | Symbol | Keyword | [ RoutePair+ ] { RoutePair+ }
 In case of confusion, refer to bidi examples found in this README and in
 the test suite.
 
+A [schema](https://github.com/Prismatic/schema) is available as `bidi.schema/RoutePair`. You can use this to check or validate a bidi route structure in your code.
+
+```clojure
+(require '[schema.core :as s] bidi.schema)
+
+(def route ["/index.html" :index])
+
+;; Check that the route is properly structured - returns nil if it isn't
+(s/check bidi.schema/RoutePair route)
+
+;; Throw an exception if the route is badly structured
+(s/validate bidi.schema/RoutePair route)
+```
+
 ## Composeability
 
 As they are simply nested data structures (strings, vectors, maps),

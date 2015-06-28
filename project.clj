@@ -7,10 +7,9 @@
   :license {:name "The MIT License"
             :url "http://opensource.org/licenses/MIT"}
 
-  :dependencies [[org.clojure/clojure "1.6.0"]
-                 [org.clojure/clojurescript "0.0-2371"]
+  :dependencies [[prismatic/schema "0.4.3"]
                  [com.cemerick/url "0.1.1"]
-                 [ring/ring-core "1.3.2"]]
+                 [ring/ring-core "1.3.2" :exclusions [org.clojure/tools.reader]]]
 
   :plugins [[lein-cljsbuild "1.0.3"]
             [com.cemerick/clojurescript.test "0.3.1"]]
@@ -30,9 +29,10 @@
                    :output-path "target/generated/test/cljs"
                    :rules :cljs}]}
 
-  :profiles {:dev {:dependencies [[ring-mock "0.1.5"]
+  :profiles {:dev {:dependencies [[org.clojure/clojure "1.6.0"]
+                                  [org.clojure/clojurescript "0.0-2850"]
+                                  [ring-mock "0.1.5"]
                                   [compojure "1.1.6"]
-                                  [prismatic/schema "0.3.2"]
                                   [criterium "0.4.3"]]
 
                    :plugins [[com.keminglabs/cljx "0.5.0"]]}}
