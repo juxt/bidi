@@ -1,9 +1,8 @@
 ;; Copyright © 2014-2015, JUXT LTD.
 
 (ns bidi.schema
-  (:require
-   #+clj [schema.core :as s]
-   #+cljs [schema.core :as s :include-macros true]))
+  #?(:clj (:require [schema.core :as s]))
+  #?(:cljs (:require [schema.core :as s :include-macros true])))
 
 (def Path s/Str)
 

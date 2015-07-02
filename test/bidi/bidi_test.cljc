@@ -1,9 +1,9 @@
 ;; Copyright © 2014, JUXT LTD.
 
 (ns bidi.bidi-test
-  #+cljs (:require-macros [cemerick.cljs.test :refer [is testing deftest]])
-  (:require #+clj [clojure.test :refer :all]
-            #+cljs [cemerick.cljs.test :as t]
+  #?(:cljs (:require-macros [cemerick.cljs.test :refer [is testing deftest]]))
+  (:require #?(:clj [clojure.test :refer :all]
+               :cljs [cemerick.cljs.test :as t])
             [bidi.bidi :as bidi
              :refer [match-route path-for ->Alternates route-seq context]]))
 
@@ -62,15 +62,15 @@
                           "/blog/articles/123abc/index.html")
              {:handler 'foo :route-params {:id "123" :a "abc"}}))
 
-      #+clj
-      (is (= (match-route [#"/bl[a-z]{2}+" [[["/articles/" [#"[0-9]+" :id] [#"[a-z]+" :a] "/index.html"] 'foo]
-                                                ["/text" 'bar]]]
-                          "/blog/articles/123abc/index.html")
-             {:handler 'foo :route-params {:id "123" :a "abc"}}))
+      #?@(:clj
+          [(is (= (match-route [#"/bl[a-z]{2}+" [[["/articles/" [#"[0-9]+" :id] [#"[a-z]+" :a] "/index.html"] 'foo]
+                                                 ["/text" 'bar]]]
+                               "/blog/articles/123abc/index.html")
+                  {:handler 'foo :route-params {:id "123" :a "abc"}}))
 
-      (is (= (match-route [["/blog/articles/123/" :path] 'foo]
-                          "/blog/articles/123/index.html")
-             {:handler 'foo :route-params {:path "index.html"}})))
+           (is (= (match-route [["/blog/articles/123/" :path] 'foo]
+                               "/blog/articles/123/index.html")
+                  {:handler 'foo :route-params {:path "index.html"}}))]))
 
     (testing "boolean patterns"
       (is (= (match-route [true :index] "/any") {:handler :index}))

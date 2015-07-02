@@ -11,8 +11,8 @@ Note that this function should _only_ be used in route patterns as, at least
 in the case of ClojureScript, it does not validate that the input string is
 actually a valid UUID (this is handled by the route matching logic)."
   [s]
-  #+clj (java.util.UUID/fromString s)
-  #+cljs (cljs.core.UUID. s))
+  #?(:clj (java.util.UUID/fromString s)
+     :cljs (cljs.core.UUID. s)))
 
 ;; When forming paths, parameters are encoded into the URI according to
 ;; the parameter value type.
@@ -23,26 +23,21 @@ actually a valid UUID (this is handled by the route matching logic)."
 (extend-protocol ParameterEncoding
   ;; We don't URL encode strings, we leave the choice of whether to do so
   ;; to the caller.
-  #+clj String
-  #+cljs string
+  #?(:clj String :cljs string)
   (encode-parameter [s] s)
 
-  #+clj CharSequence
-  #+clj (encode-parameter [s] s)
+  #?(:clj CharSequence (encode-parameter [s] s))
 
-  #+clj Long
-  #+cljs number
+  #?(:clj Long :cljs number)
   (encode-parameter [s] s)
 
-  #+clj java.util.UUID
-  #+cljs cljs.core.UUID
+  #?(:clj java.util.UUID :cljs cljs.core.UUID)
   (encode-parameter [s] (str s))
 
   ;; We do URL encode keywords, however. Namespaced
   ;; keywords use a separated of %2F (a URL encoded forward slash).
 
-  #+clj clojure.lang.Keyword
-  #+cljs cljs.core.Keyword
+  #?(:clj clojure.lang.Keyword :cljs cljs.core.Keyword)
   (encode-parameter [k]
     (url-encode
      (str (namespace k)
@@ -72,26 +67,21 @@ actually a valid UUID (this is handled by the route matching logic)."
   (matches? [_ s]))
 
 (extend-protocol PatternSegment
-  #+clj String
-  #+cljs string
-  (segment-regex-group [this]
-    #+clj (str "\\Q" this "\\E")
-    #+cljs this)
+
+  #?(:clj String :cljs string)
+  (segment-regex-group [this] #?(:clj (str "\\Q" this "\\E") :cljs this))
   (param-key [_] nil)
   (transform-param [_] identity)
   (unmatch-segment [this _] this)
 
-  #+clj java.util.regex.Pattern
-  #+cljs js/RegExp
-  (segment-regex-group [this]
-    #+clj (.pattern this)
-    #+cljs (aget this "source"))
+  #?(:clj java.util.regex.Pattern :cljs js/RegExp)
+  (segment-regex-group [this] #?(:clj (.pattern this) :cljs (aget this "source")))
+
   (param-key [_] nil)
   (transform-param [_] identity)
   (matches? [this s] (re-matches this (str s)))
 
-  #+clj clojure.lang.APersistentVector
-  #+cljs cljs.core.PersistentVector
+  #?(:clj clojure.lang.APersistentVector :cljs cljs.core.PersistentVector)
   ;; A vector allows a keyword to be associated with a segment. The
   ;; qualifier for the segment comes first, then the keyword.
   ;; The qualifier is usually a regex
@@ -121,8 +111,7 @@ actually a valid UUID (this is handled by the route matching logic)."
         (throw (ex-info (str "No parameter found in params for key " k)
                         {})))))
 
-  #+clj clojure.lang.Keyword
-  #+cljs cljs.core.Keyword
+  #?(:clj clojure.lang.Keyword :cljs cljs.core.Keyword)
   ;; This is a very common form, so we're conservative as a defence against injection attacks.
   (segment-regex-group [_] "[A-Za-z0-9\\-\\_\\.]+")
   (param-key [this] this)
@@ -134,8 +123,7 @@ actually a valid UUID (this is handled by the route matching logic)."
                            this " parameter")
                       {}))))
 
-  #+clj clojure.lang.Fn
-  #+cljs function
+  #?(:clj clojure.lang.Fn :cljs function)
   (segment-regex-group [this]
     (condp = this
      keyword "[A-Za-z]+[A-Za-z0-9\\*\\+\\!\\-\\_\\?\\.]*(?:%2F[A-Za-z]+[A-Za-z0-9\\*\\+\\!\\-\\_\\?\\.]*)?"
@@ -146,15 +134,16 @@ actually a valid UUID (this is handled by the route matching logic)."
     (condp = this
       ;; keyword is close, but must be applied to a decoded string, to work with namespaced keywords
       keyword (comp keyword url-decode)
-      long #+clj #(Long/parseLong %) #+cljs #(js/Number %)
+      long #?(:clj #(Long/parseLong %) :cljs #(js/Number %))
       uuid uuid
       (throw (ex-info (str "Unrecognized function " this) {}))))
+
   (matches? [this s]
     (condp = this
       keyword (keyword? s)
-      long #+clj (some #(instance? % s) [Byte Short Integer Long])
-           #+cljs (not (js/isNaN s))
-      uuid (instance? #+clj java.util.UUID #+cljs cljs.core.UUID s))))
+      long #?(:clj (some #(instance? % s) [Byte Short Integer Long]) :cljs (not (js/isNaN s)))
+      uuid (instance? #?(:clj java.util.UUID :cljs cljs.core.UUID) s)))
+  )
 
 ;; A Route is a pair. The pair has two halves: a pattern on the left,
 ;; while the right contains the result if the pattern matches.
@@ -163,7 +152,7 @@ actually a valid UUID (this is handled by the route matching logic)."
   ;; Return truthy if the given pattern matches the given path. By
   ;; truthy, we mean a map containing (at least) the rest of the path to
   ;; match in a :remainder entry
-  (match-pattern [_ #+clj ^String path #+cljs ^string path])
+  (match-pattern [_ #?@(:clj [^String path] :cljs [^string path])])
   (unmatch-pattern [_ m]))
 
 (defprotocol Matched
@@ -191,37 +180,34 @@ actually a valid UUID (this is handled by the route matching logic)."
     (merge (dissoc m :remainder) {:handler handler})))
 
 (extend-protocol Pattern
-  #+clj String
-  #+cljs string
-  #+clj (match-pattern [this env]
-          (if (= (.length this) 0)
-            env
-            (when (.startsWith (:remainder env) this)
-              (assoc env :remainder (.substring (:remainder env) (.length this))))))
-  ;; TODO: Optimize cljs version as above
-  #+cljs (match-pattern [this env]
-           (match-beginning (str "(" (segment-regex-group this) ")") env))
+  #?(:clj String :cljs string)
+  #?(:clj (match-pattern [this env]
+                         (if (= (.length this) 0)
+                           env
+                           (when (.startsWith (:remainder env) this)
+                             (assoc env :remainder (.substring (:remainder env) (.length this))))))
+     ;; TODO: Optimize cljs version as above
+     :cljs (match-pattern [this env]
+                          (match-beginning (str "(" (segment-regex-group this) ")") env)))
+
   (unmatch-pattern [this _] this)
 
-  #+clj java.util.regex.Pattern
-  #+cljs js/RegExp
+  #?(:clj java.util.regex.Pattern :cljs js/RegExp)
   (match-pattern [this env]
     (match-beginning (str "(" (segment-regex-group this) ")") env))
   ;; We can't unmatch-pattern as you can't go from a regex to a
   ;; string (it's a many-to-one mapping)
 
-  #+cljs
-  (unmatch-pattern [this m]
-    (let [p (.pattern this)]
-      (unmatch-pattern (clojure.string/replace p #"\\\\" "") m)))
+  ;; Only cljs has an unmatch-pattern for regex
+  #?(:cljs (unmatch-pattern [this m]
+                            (let [p (.pattern this)]
+                              (unmatch-pattern (clojure.string/replace p #"\\\\" "") m))))
 
-  #+clj Boolean
-  #+cljs boolean
+  #?(:clj Boolean :cljs boolean)
   (match-pattern [this env]
     (when this (assoc env :remainder "")))
 
-  #+clj clojure.lang.APersistentVector
-  #+cljs cljs.core.PersistentVector
+  #?(:clj clojure.lang.APersistentVector :cljs cljs.core.PersistentVector)
   (match-pattern [this env]
     (when-let [groups (as-> this %
                         ;; Make regexes of each segment in the vector
@@ -251,13 +237,11 @@ actually a valid UUID (this is handled by the route matching logic)."
   (unmatch-pattern [this m]
     (apply str (map #(unmatch-segment % (:params m)) this)))
 
-  #+clj clojure.lang.Keyword
-  #+cljs cljs.core.Keyword
+  #?(:clj clojure.lang.Keyword :cljs cljs.core.Keyword)
   (match-pattern [this env] (when (= this (:request-method env)) env))
   (unmatch-pattern [_ _] "")
 
-  #+clj clojure.lang.APersistentMap
-  #+cljs cljs.core.PersistentArrayMap
+  #?(:clj clojure.lang.APersistentMap :cljs cljs.core.PersistentArrayMap)
   (match-pattern [this env]
     (when (every? (fn [[k v]]
                     (cond
@@ -267,15 +251,16 @@ actually a valid UUID (this is handled by the route matching logic)."
       env))
   (unmatch-pattern [_ _] "")
 
-  #+cljs cljs.core.PersistentHashMap
-  #+cljs
-  (match-pattern [this env]
-    (when (every? (fn [[k v]]
-                    (cond
-                      (or (fn? v) (set? v)) (v (get env k))
-                      :otherwise (= v (get env k))))
-                  (seq this))
-      env))
+  #?(:cljs cljs.core.PersistentHashMap)
+  #?(:cljs (match-pattern
+            [this env]
+            (when (every? (fn [[k v]]
+                            (cond
+                              (or (fn? v) (set? v)) (v (get env k))
+                              :otherwise (= v (get env k))))
+                          (seq this))
+              env)))
+
   (unmatch-pattern [_ _] ""))
 
 (defn unmatch-pair [v m]
@@ -283,49 +268,42 @@ actually a valid UUID (this is handled by the route matching logic)."
     (str (unmatch-pattern (first v) m) r)))
 
 (extend-protocol Matched
-  #+clj String
-  #+cljs string
+  #?(:clj String :cljs string)
   (unresolve-handler [_ _] nil)
 
-  #+clj clojure.lang.APersistentVector
-  #+cljs cljs.core.PersistentVector
+  #?(:clj clojure.lang.APersistentVector :cljs cljs.core.PersistentVector)
   (resolve-handler [this m] (some #(match-pair % m) this))
   (unresolve-handler [this m] (some #(unmatch-pair % m) this))
 
-  #+clj clojure.lang.PersistentList
-  #+cljs cljs.core.List
+  #?(:clj clojure.lang.PersistentList :cljs cljs.core.List)
   (resolve-handler [this m] (some #(match-pair % m) this))
   (unresolve-handler [this m] (some #(unmatch-pair % m) this))
 
-  #+clj clojure.lang.APersistentMap
-  #+cljs cljs.core.PersistentArrayMap
-  (resolve-handler [this m] (some #(match-pair % m) this))
-  (unresolve-handler [this m] (some #(unmatch-pair % m) this))
-  #+cljs cljs.core.PersistentHashMap
-  #+cljs (resolve-handler [this m] (some #(match-pair % m) this))
-  #+cljs (unresolve-handler [this m] (some #(unmatch-pair % m) this))
-
-  #+clj clojure.lang.LazySeq
-  #+cljs cljs.core.LazySeq
+  #?(:clj clojure.lang.APersistentMap :cljs cljs.core.PersistentArrayMap)
   (resolve-handler [this m] (some #(match-pair % m) this))
   (unresolve-handler [this m] (some #(unmatch-pair % m) this))
 
-  #+clj clojure.lang.Symbol
-  #+cljs cljs.core.Symbol
+  #?@(:cljs [cljs.core.PersistentHashMap
+             (resolve-handler [this m] (some #(match-pair % m) this))
+             (unresolve-handler [this m] (some #(unmatch-pair % m) this))])
+
+  #?(:clj clojure.lang.LazySeq :cljs cljs.core.LazySeq)
+  (resolve-handler [this m] (some #(match-pair % m) this))
+  (unresolve-handler [this m] (some #(unmatch-pair % m) this))
+
+  #?(:clj clojure.lang.Symbol :cljs cljs.core.Symbol)
   (resolve-handler [this m] (succeed this m))
   (unresolve-handler [this m] (when (= this (:handler m)) ""))
 
-  #+clj clojure.lang.Var
-  #+clj (resolve-handler [this m] (succeed this m))
-  #+clj (unresolve-handler [this m] (when (= this (:handler m)) ""))
+  #?@(:clj [clojure.lang.Var
+            (resolve-handler [this m] (succeed this m))
+            (unresolve-handler [this m] (when (= this (:handler m)) ""))])
 
-  #+clj clojure.lang.Keyword
-  #+cljs cljs.core.Keyword
+  #?(:clj clojure.lang.Keyword :cljs cljs.core.Keyword)
   (resolve-handler [this m] (succeed this m))
   (unresolve-handler [this m] (when (= this (:handler m)) ""))
 
-  #+clj clojure.lang.Fn
-  #+cljs function
+  #?(:clj clojure.lang.Fn :cljs function)
   (resolve-handler [this m] (succeed this m))
   (unresolve-handler [this m] (when (= this (:handler m)) ""))
 
@@ -364,27 +342,23 @@ actually a valid UUID (this is handled by the route matching logic)."
   ([route]
    (route-seq route {})))
 
+
 (extend-protocol RouteSeq
-  #+clj clojure.lang.APersistentVector
-  #+cljs cljs.core.PersistentVector
+  #?(:clj clojure.lang.APersistentVector :cljs cljs.core.PersistentVector)
   (gather [this context] (mapcat #(route-seq % context) this))
 
-  #+clj clojure.lang.PersistentList
-  #+cljs cljs.core.List
+  #?(:clj clojure.lang.PersistentList :cljs cljs.core.List)
   (gather [this context] (mapcat #(route-seq % context) this))
 
-  #+clj clojure.lang.APersistentMap
-  #+cljs cljs.core.PersistentArrayMap
-  (gather [this context] (mapcat #(route-seq % context) this))
-  #+cljs cljs.core.PersistentHashMap
-  #+cljs (gather [this context] (mapcat #(route-seq % context) this))
-
-  #+clj clojure.lang.LazySeq
-  #+cljs cljs.core.LazySeq
+  #?(:clj clojure.lang.APersistentMap :cljs cljs.core.PersistentArrayMap)
   (gather [this context] (mapcat #(route-seq % context) this))
 
-  #+clj Object
-  #+cljs default
+  #?@(:cljs [cljs.core.PersistentHashMap (gather [this context] (mapcat #(route-seq % context) this))])
+
+  #?(:clj clojure.lang.LazySeq :cljs cljs.core.LazySeq)
+  (gather [this context] (mapcat #(route-seq % context) this))
+
+  #?(:clj Object :cljs default)
   (gather [this context] [(map->Route (assoc context :handler this))])
   )
 
@@ -480,4 +454,5 @@ actually a valid UUID (this is handled by the route matching logic)."
 ;; overall request.
 
 (defn ^:deprecated compile-route [route]
-  route)
+  route
+)
