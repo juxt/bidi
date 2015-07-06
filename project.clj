@@ -20,7 +20,7 @@
                                   [compojure "1.1.6"]
                                   [criterium "0.4.3"]]}}
 
-  :aliases {"test" ["do" "test," "with-profile" "dev" "cljsbuild" "test"]}
+  ;;:aliases {"test" ["do" "test," "with-profile" "dev" "cljsbuild" "test"]}
 
   :jar-exclusions [#"\.cljx|\.swp|\.swo|\.DS_Store"]
 
