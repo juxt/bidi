@@ -1,7 +1,8 @@
 (ns bidi.router
   (:require [bidi.bidi :as bidi]
             [goog.History :as h]
-            [goog.events :as e])
+            [goog.events :as e]
+            [clojure.string :as s])
   (:import [goog History]))
 
 (defprotocol Router
