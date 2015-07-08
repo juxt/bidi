@@ -19,7 +19,11 @@
 (extend-protocol Ring
   clojure.lang.Fn
   (request [f req _]
-    (f req)))
+    (f req))
+
+  clojure.lang.Var
+  (request [v req _]
+    ((deref v) req)))
 
 (defn make-handler
   "Create a Ring handler from the route definition data

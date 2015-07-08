@@ -65,7 +65,16 @@
     (let [handler-lookup {:my-handler (fn [req] {:status 200 :body "Index"})}
           handler (make-handler ["/" :my-handler] (fn [handler-id] (handler-id handler-lookup)))]
       (is handler)
-      (is (= (handler (mock-request :get "/")) {:status 200 :body "Index"})))))
+      (is (= (handler (mock-request :get "/")) {:status 200 :body "Index"}))))
+
+  (testing "using handler vars"
+    (defn test-handler [req] {:status 200 :body "Index"})
+    (let [handler
+          (make-handler ["/"
+                         [["" (-> #'test-handler (tag :index))]]])]
+      (is handler)
+      (is (= (handler (mock-request :get "/"))
+             {:status 200 :body "Index"})))))
 
 (deftest route-params-hygiene-test
   (let [handler
