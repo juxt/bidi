@@ -94,7 +94,8 @@
           "/blog/article/1239.html"))
       (is
        ;; If not all the parameters are specified we expect an error to be thrown
-       (thrown? #+clj clojure.lang.ExceptionInfo #+cljs cljs.core.ExceptionInfo
+        (thrown? #?(:clj clojure.lang.ExceptionInfo
+                    :cljs cljs.core.ExceptionInfo)
                 (path-for routes 'archive-handler :id 1239)
                 "/blog/archive/1239/section.html"))
       (is
