@@ -196,8 +196,8 @@ actually a valid UUID (this is handled by the route matching logic)."
   #+clj (match-pattern [this env]
           (if (= (.length this) 0)
             env
-            (when (.startsWith (:remainder env) this)
-              (assoc env :remainder (.substring (:remainder env) (.length this))))))
+            (when (.startsWith ^String (:remainder env) this)
+              (assoc env :remainder (.substring ^String (:remainder env) (.length this))))))
   ;; TODO: Optimize cljs version as above
   #+cljs (match-pattern [this env]
            (match-beginning (str "(" (segment-regex-group this) ")") env))
