@@ -333,12 +333,16 @@ actually a valid UUID (this is handled by the route matching logic)."
   (resolve-handler [this m] nil)
   (unresolve-handler [this m] nil))
 
+(defn match-route*
+  [route path options]
+  (-> (match-pair route (assoc options :remainder path :route route))
+      (dissoc :route)))
+
 (defn match-route
   "Given a route definition data structure and a path, return the
   handler, if any, that matches the path."
   [route path & {:as options}]
-  (-> (match-pair route (merge options {:remainder path :route route}))
-      (dissoc :route)))
+  (match-route* route path options))
 
 (defn path-for
   "Given a route definition data structure, a handler and an option map, return a
