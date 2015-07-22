@@ -370,6 +370,36 @@ When matching the path `foo/bidi/bar`, the `:route-params` of the result would b
 
 Namespaced keywords are also supported. Note that in the URI the `/` that separates the keyword's namespace from its name is URL encoded to %2F, rather than `/`.
 
+### Catch-All Routes
+
+Note that you can use the pattern `true` to match anything. This is
+useful for writing catch-all routes.
+
+For example, if we'd like to match a certain set of routes and return
+`404 Not Found` for everything else, we can do the following:
+
+```clojure
+(def routes ["/" [["index.html" :index]
+                  [true         :not-found]]])
+```
+
+We used vectors rather than maps to define the routes because the
+order of the definitions is significant (i.e. `true` will completely
+subsume the other routes if we let it).
+
+Now let's try to match on that:
+
+```clojure
+user> (match-route routes "/index.html")
+{:handler :index}
+user> (match-route routes "/other.html")
+{:handler :not-found}
+```
+
+Note that `:not-found` doesn't have any special significance here--we
+still need to provide a hander function that implements the desired
+`404` behavior.
+
 ## Route definitions
 
 A route is formed as a pair: [ *&lt;pattern&gt;* *&lt;matched&gt;* ]
