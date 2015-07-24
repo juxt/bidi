@@ -34,7 +34,7 @@
       (fn [{:keys [uri path-info] :as req}]
         (let [path (or path-info uri)
               {:keys [handler route-params] :as match-context}
-              (apply match-route route path (apply concat (seq req)))]
+              (match-route* route path req)]
           (when handler
             (request
              (handler-fn handler)
