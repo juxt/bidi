@@ -5,7 +5,7 @@
   (:require #+clj [clojure.test :refer :all]
             #+cljs [cemerick.cljs.test :as t]
             [bidi.bidi :as bidi
-             :refer [match-route path-for ->Alternates route-seq context]]))
+             :refer [match-route path-for ->Alternates route-seq context unroll-route map->RouteTarget]]))
 
 (deftest matching-routes-test
   (testing "misc-routes"
@@ -241,3 +241,11 @@
         result (route-seq myroutes)]
     #_(pprint result)
     (is (= (count result) 5))))
+
+(deftest unroll-route-test
+  (is
+   (= (unroll-route
+       ["/" (secure [["hello" :hello]
+                     ["goodbye" :goodbye]])])
+      ["/" [["hello" (map->RouteTarget {::map {:secure true, :level :root}, :handler :hello})]
+            ["goodbye" (map->RouteTarget {::map {:secure true, :level :root}, :handler :goodbye})]]])))

@@ -474,6 +474,41 @@ actually a valid UUID (this is handled by the route matching logic)."
   [f routes]
   (->Context f routes))
 
+(defprotocol ContextUnroll
+  (unroll-pair [_ m])
+  (unroll-matched [_ m]))
+
+(defrecord RouteTarget [])
+
+(extend-protocol ContextUnroll
+  Context
+  (unroll-matched [{:keys [context-fn routes]} m]
+    (unroll-matched routes (context-fn m)))
+  #+clj clojure.lang.APersistentVector
+  #+cljs cljs.core.PersistentVector
+  (unroll-pair [[k v] m] [k (unroll-matched v m)])
+  (unroll-matched [routes m] (mapv #(unroll-pair % m) routes))
+  #+clj clojure.lang.PersistentList
+  #+cljs cljs.core.List
+  (unroll-matched [routes m] (map #(unroll-pair % m) routes))
+
+  #+clj clojure.lang.APersistentMap
+  #+cljs cljs.core.PersistentArrayMap
+  (unroll-matched [routes m] (into {} (mapv #(vector %1 (unroll-matched %2 m)) (seq routes))))
+  #+cljs cljs.core.PersistentHashMap
+  #+cljs (unroll-matched [routes m] (into {} (mapv #(vector %1 (unroll-matched %2 m)) (seq routes))))
+
+  #+clj Object
+  #+cljs default
+  (unroll-matched [o m]
+    (map->RouteTarget (assoc m :handler o))))
+
+(defn unroll-route
+  ([route]
+   (unroll-route route {}))
+  ([route m]
+   (unroll-pair route m)))
+
 ;; --------------------------------------------------------------------------------
 ;; Deprecated functions
 ;; --------------------------------------------------------------------------------
