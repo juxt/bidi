@@ -1,6 +1,6 @@
 ;; Copyright © 2014, JUXT LTD.
 
-(defproject bidi "1.20.1"
+(defproject bidi "1.20.2"
   :description "Bidirectional URI routing"
   :url "https://github.com/juxt/bidi"
 
