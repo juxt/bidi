@@ -612,31 +612,34 @@ Ran 9 tests containing 47 assertions.
 
 A big thank you to everyone involved in bidi so far, including
 
-* Philipp Meier (for the original idea)
-* Malcolm Sparks (main creator and maintainer of the Clojure version)
-* Thomas Crowley (creator of the ClojureScript version)
+* Alexander Kiel
+* Bobby Calderwood
+* Cameron Desautels
+* Chris Price
 * David Thomas Hume
 * Dene Simpson
 * James Henderson
 * Jeff Rose
 * John Cowie
+* Julian Birch
+* Malcolm Sparks
+* Martin Trojer
 * Matt Mitchell
 * Michael Sappler
 * Neale Swinnerton
 * Oliver Hine
-* Tom Crayford
-* Julian Birch
-* Chris Price
-* Bobby Calderwood
-* Sebastian Bensusan
+* Philipp Meier
 * Rob Mather
+* Sebastian Bensusan
+* Thomas Crowley
 * Thomas Mulvaney
+* Tom Crayford
 
 ## Copyright & License
 
 The MIT License (MIT)
 
-Copyright © 2014 JUXT LTD.
+Copyright © 2014-2015 JUXT LTD.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
