@@ -478,7 +478,14 @@ actually a valid UUID (this is handled by the route matching logic)."
   (unroll-pair [_ m])
   (unroll-matched [_ m]))
 
-(defrecord RouteTarget [])
+(defrecord RouteTarget [handler])
+
+(extend-type RouteTarget
+  Matched
+  (resolve-handler [this m]
+    (succeed this m))
+  (unresolve-handler [_ m]
+    (unresolve-handler handler m)))
 
 (extend-protocol ContextUnroll
   Context
@@ -494,14 +501,16 @@ actually a valid UUID (this is handled by the route matching logic)."
 
   #+clj clojure.lang.APersistentMap
   #+cljs cljs.core.PersistentArrayMap
-  (unroll-matched [routes m] (into {} (mapv #(vector %1 (unroll-matched %2 m)) (seq routes))))
+  (unroll-matched [routes m] (into {} (mapv (fn [[k v]] [k (unroll-matched v m)]) (seq routes))))
   #+cljs cljs.core.PersistentHashMap
   #+cljs (unroll-matched [routes m] (into {} (mapv #(vector %1 (unroll-matched %2 m)) (seq routes))))
 
   #+clj Object
   #+cljs default
   (unroll-matched [o m]
-    (map->RouteTarget (assoc m :handler o))))
+    (map->RouteTarget (-> m
+                       (assoc :delegate o)
+                       (dissoc :handler)))))
 
 (defn unroll-route
   ([route]

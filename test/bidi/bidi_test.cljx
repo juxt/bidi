@@ -247,5 +247,5 @@
    (= (unroll-route
        ["/" (secure [["hello" :hello]
                      ["goodbye" :goodbye]])])
-      ["/" [["hello" (map->RouteTarget {::map {:secure true, :level :root}, :handler :hello})]
-            ["goodbye" (map->RouteTarget {::map {:secure true, :level :root}, :handler :goodbye})]]])))
+      ["/" [["hello" (map->RouteTarget {::map {:secure true, :level :root}, :delegate :hello})]
+            ["goodbye" (map->RouteTarget {::map {:secure true, :level :root}, :delegate :goodbye})]]])))
