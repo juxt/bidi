@@ -456,67 +456,6 @@ actually a valid UUID (this is handled by the route matching logic)."
   ([handler]
    (->IdentifiableHandler nil handler)))
 
-;; A context can be used to inject data into the map that is returned when
-;; a route is matched.
-
-(defrecord Context [context-fn routes]
-  Matched
-  (resolve-handler [_ m]
-    (resolve-handler routes (context-fn m)))
-  (unresolve-handler [_ m]
-    (unresolve-handler routes m))
-  RouteSeq
-  (gather [this context]
-    (gather routes (context-fn context))))
-
-(defn context
-  "Apply a context function to the match context of a matched
-  route. This is useful for injecting data into the match context."
-  [f routes]
-  (->Context f routes))
-
-(defprotocol ContextUnroll
-  (unroll-pair [_ m])
-  (unroll-matched [_ m]))
-
-(defrecord RouteTarget [])
-
-(extend-type RouteTarget
-  Matched
-  (resolve-handler [this m]
-    (succeed this m))
-  (unresolve-handler [this m]
-    (unresolve-handler (:delegate this) m)))
-
-(extend-protocol ContextUnroll
-  Context
-  (unroll-matched [{:keys [context-fn routes]} m]
-    (unroll-matched routes (context-fn m)))
-  #+clj clojure.lang.APersistentVector
-  #+cljs cljs.core.PersistentVector
-  (unroll-pair [[k v] m] [k (unroll-matched v m)])
-  (unroll-matched [routes m] (mapv #(unroll-pair % m) routes))
-  #+clj clojure.lang.PersistentList
-  #+cljs cljs.core.List
-  (unroll-matched [routes m] (map #(unroll-pair % m) routes))
-
-  #+clj clojure.lang.APersistentMap
-  #+cljs cljs.core.PersistentArrayMap
-  (unroll-matched [routes m] (into {} (mapv (fn [[k v]] [k (unroll-matched v m)]) (seq routes))))
-  #+cljs cljs.core.PersistentHashMap
-  #+cljs (unroll-matched [routes m] (into {} (mapv #(vector %1 (unroll-matched %2 m)) (seq routes))))
-
-  #+clj Object
-  #+cljs default
-  (unroll-matched [o m]
-    (map->RouteTarget (assoc m :delegate o))))
-
-(defn unroll-route
-  ([route]
-   (unroll-route route {}))
-  ([route m]
-   (unroll-pair route m)))
-
 ;; --------------------------------------------------------------------------------
 ;; Deprecated functions
 ;; --------------------------------------------------------------------------------

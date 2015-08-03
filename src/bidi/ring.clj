@@ -8,8 +8,7 @@
    [ring.util.response :refer (file-response url-response)]
    [ring.middleware.content-type :refer (wrap-content-type)]
    [ring.middleware.file-info :refer (wrap-file-info)]
-   [ring.middleware.not-modified :refer (wrap-not-modified)])
-  (:import [bidi.bidi RouteTarget]))
+   [ring.middleware.not-modified :refer (wrap-not-modified)]))
 
 (defprotocol Ring
   (request [_ req match-context]
@@ -24,11 +23,7 @@
 
   clojure.lang.Var
   (request [v req _]
-    ((deref v) req))
-
-  RouteTarget
-  (request [rt req _]
-    ((:delegate rt) req)))
+    ((deref v) req)))
 
 (defn make-handler
   "Create a Ring handler from the route definition data
