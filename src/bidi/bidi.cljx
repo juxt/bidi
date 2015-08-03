@@ -479,14 +479,14 @@ actually a valid UUID (this is handled by the route matching logic)."
   (unroll-pair [_ m])
   (unroll-matched [_ m]))
 
-(defrecord RouteTarget [handler])
+(defrecord RouteTarget [])
 
 (extend-type RouteTarget
   Matched
   (resolve-handler [this m]
     (succeed this m))
-  (unresolve-handler [_ m]
-    (unresolve-handler handler m)))
+  (unresolve-handler [this m]
+    (unresolve-handler (:delegate this) m)))
 
 (extend-protocol ContextUnroll
   Context
@@ -509,9 +509,7 @@ actually a valid UUID (this is handled by the route matching logic)."
   #+clj Object
   #+cljs default
   (unroll-matched [o m]
-    (map->RouteTarget (-> m
-                       (assoc :delegate o)
-                       (dissoc :handler)))))
+    (map->RouteTarget (assoc m :delegate o))))
 
 (defn unroll-route
   ([route]
