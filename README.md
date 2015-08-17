@@ -200,7 +200,7 @@ would match the `:index` handler. In this case, it tells us
 `/index.html`. So if you were forming a link to this handler from
 another page, you could use this function in your view logic to create
 the link instead of hardcoding in the view template (This gives your
-code more resiliance to changes in the organisation of routes during
+code more resilience to changes in the organisation of routes during
 development).
 
 ### Multiple routes
