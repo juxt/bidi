@@ -458,10 +458,10 @@ A [schema](https://github.com/Prismatic/schema) is available as `bidi.schema/Rou
 (s/validate bidi.schema/RoutePair route)
 ```
 
-## Composeability
+## Composability
 
 As they are simply nested data structures (strings, vectors, maps),
-route structures are highly composeable. They are consistent and easy to
+route structures are highly composable. They are consistent and easy to
 generate. A future version of bidi may contain macros to reduce the
 number of brackets needed to create route structures by hand.
 
