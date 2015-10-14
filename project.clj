@@ -7,7 +7,7 @@
   :license {:name "The MIT License"
             :url "http://opensource.org/licenses/MIT"}
 
-  :dependencies [[prismatic/schema "0.4.3"]
+  :dependencies [[prismatic/schema "1.0.1"]
                  [com.cemerick/url "0.1.1"]
                  [ring/ring-core "1.3.2" :exclusions [org.clojure/tools.reader]]]
 
