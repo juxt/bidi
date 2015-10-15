@@ -14,7 +14,33 @@
   :plugins [[lein-cljsbuild "1.0.3"]
             [com.cemerick/clojurescript.test "0.3.1"]]
 
-  :prep-tasks ["javac" "compile"]
+  :prep-tasks [["cljx" "once"] "javac" "compile"]
+
+  :cljx {:builds [{:source-paths ["src"]
+                   :output-path "target/generated/src/clj"
+                   :rules :clj}
+                  {:source-paths ["src"]
+                   :output-path "target/generated/src/cljs"
+                   :rules :cljs}
+                  {:source-paths ["test"]
+                   :output-path "target/generated/test/clj"
+                   :rules :clj}
+                  {:source-paths ["test"]
+                   :output-path "target/generated/test/cljs"
+                   :rules :cljs}]}
+
+  :profiles {:dev {:dependencies [[org.clojure/clojure "1.7.0"]
+                                  [org.clojure/clojurescript "1.7.145"]
+                                  [ring-mock "0.1.5"]
+                                  [compojure "1.1.6"]
+                                  [criterium "0.4.3"]]
+
+                   :plugins [[com.keminglabs/cljx "0.5.0"]]}}
+
+  :aliases {"deploy" ["do" "clean," "cljx" "once," "deploy" "clojars"]
+            "test" ["do" "clean," "cljx" "once," "test," "with-profile" "dev" "cljsbuild" "test"]}
+
+  :jar-exclusions [#"\.cljx|\.swp|\.swo|\.DS_Store"]
 
   :profiles {:dev {:dependencies [[org.clojure/clojure "1.7.0"]
                                   [org.clojure/clojurescript "1.7.145"]
