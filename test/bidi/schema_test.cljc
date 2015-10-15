@@ -1,11 +1,11 @@
 ;; Copyright © 2014-2015, JUXT LTD.
 
 (ns bidi.schema-test
-  #+cljs (:require-macros [cemerick.cljs.test :refer [is testing deftest]])
-  (:require #+clj [clojure.test :refer :all]
-            #+cljs [cemerick.cljs.test :as t]
-            [schema.core :as s]
-            [bidi.schema :as bs]))
+  #?(:cljs (:require-macros [cemerick.cljs.test :refer [is testing deftest]]))
+  (:require
+    #?(:clj [clojure.test :refer :all] :cljs [cemerick.cljs.test :as t])
+    [schema.core :as s]
+    [bidi.schema :as bs]))
 
 ;; TODO
 
@@ -20,8 +20,7 @@
 
     (is (nil? (s/check bs/RoutePair ["/index/" {"a" :alpha
                                                 "b" :beta
-                                                "c" {"z" :zeta}
-                                                }]))))
+                                                "c" {"z" :zeta}}]))))
 
   (testing "path segments"
     (is (nil? (s/check bs/RoutePair [["/" :i] :target]))))
