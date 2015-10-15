@@ -29,8 +29,8 @@
                    :output-path "target/generated/test/cljs"
                    :rules :cljs}]}
 
-  :profiles {:dev {:dependencies [[org.clojure/clojure "1.6.0"]
-                                  [org.clojure/clojurescript "0.0-2850"]
+  :profiles {:dev {:dependencies [[org.clojure/clojure "1.7.0"]
+                                  [org.clojure/clojurescript "1.7.145"]
                                   [ring-mock "0.1.5"]
                                   [compojure "1.1.6"]
                                   [criterium "0.4.3"]]
