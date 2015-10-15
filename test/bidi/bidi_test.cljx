@@ -5,7 +5,7 @@
   (:require #+clj [clojure.test :refer :all]
             #+cljs [cemerick.cljs.test :as t]
             [bidi.bidi :as bidi
-             :refer [match-route path-for ->Alternates route-seq context unroll-route map->RouteTarget]]))
+             :refer [match-route path-for ->Alternates route-seq]]))
 
 (deftest matching-routes-test
   (testing "misc-routes"
@@ -214,38 +214,3 @@
 
         result (route-seq ["" [myroutes]])]
     (is (= (count result) 3))))
-
-(defn partial-map [m]
-  (fn [context]
-    (merge-with merge context {::map m})))
-
-(def secure (partial context (partial-map {:secure true :level :root})))
-
-(deftest route-seq-with-partial-test
-  (let [myroutes
-        ["/"
-         {"public/"
-          {"index" :public-index}
-          "secure/"
-          (secure
-           [
-            ["index" :secure-index]
-            ["docs/" (context
-                      (partial-map {:level :docs})
-                      [
-                       ["index" :docs-index]
-                       [[:doc-id "/"]
-                        (context (partial-map {:level :doc})
-                                 [["view" :docview]
-                                  [["chapter/" :chapter "/"] {"view" :chapter-view}]])]])]])}]
-        result (route-seq myroutes)]
-    #_(pprint result)
-    (is (= (count result) 5))))
-
-(deftest unroll-route-test
-  (is
-   (= (unroll-route
-       ["/" (secure [["hello" :hello]
-                     ["goodbye" :goodbye]])])
-      ["/" [["hello" (map->RouteTarget {::map {:secure true, :level :root}, :delegate :hello})]
-            ["goodbye" (map->RouteTarget {::map {:secure true, :level :root}, :delegate :goodbye})]]])))
