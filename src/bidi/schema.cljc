@@ -2,8 +2,8 @@
 
 (ns bidi.schema
   (:require
-   #+clj [schema.core :as s]
-   #+cljs [schema.core :as s :include-macros true]))
+    #?(:clj [schema.core :as s]
+       :cljs [schema.core :as s :include-macros true])))
 
 (def Path s/Str)
 
