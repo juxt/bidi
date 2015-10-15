@@ -9,7 +9,7 @@
 
   :dependencies [[prismatic/schema "1.0.1"]
                  [com.cemerick/url "0.1.1"]
-                 [ring/ring-core "1.3.2" :exclusions [org.clojure/tools.reader]]]
+                 [ring/ring-core "1.4.0"]]
 
   :plugins [[lein-cljsbuild "1.0.3"]
             [com.cemerick/clojurescript.test "0.3.1"]]
