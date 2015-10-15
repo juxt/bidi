@@ -31,7 +31,7 @@
 
   :profiles {:dev {:dependencies [[org.clojure/clojure "1.7.0"]
                                   [org.clojure/clojurescript "1.7.145"]
-                                  [ring-mock "0.1.5"]
+                                  [ring/ring-mock "0.3.0"]
                                   [compojure "1.4.0"]
                                   [criterium "0.4.3"]]
 
