@@ -626,6 +626,7 @@ A big thank you to everyone involved in bidi so far, including
 * Martin Trojer
 * Matt Mitchell
 * Michael Sappler
+* Nate Smith
 * Neale Swinnerton
 * Oliver Hine
 * Philipp Meier
