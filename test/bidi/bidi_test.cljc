@@ -1,9 +1,9 @@
 ;; Copyright © 2014, JUXT LTD.
 
 (ns bidi.bidi-test
-  #+cljs (:require-macros [cemerick.cljs.test :refer [is testing deftest]])
-  (:require #+clj [clojure.test :refer :all]
-            #+cljs [cemerick.cljs.test :as t]
+  #?(:cljs (:require-macros [cemerick.cljs.test :refer [is testing deftest]]))
+  (:require #?(:clj [clojure.test :refer :all]
+               :cljs [cemerick.cljs.test :as t])
             [bidi.bidi :as bidi
              :refer [match-route path-for ->Alternates route-seq]]))
 
@@ -62,11 +62,11 @@
                           "/blog/articles/123abc/index.html")
              {:handler 'foo :route-params {:id "123" :a "abc"}}))
 
-      #+clj
-      (is (= (match-route [#"/bl[a-z]{2}+" [[["/articles/" [#"[0-9]+" :id] [#"[a-z]+" :a] "/index.html"] 'foo]
-                                                ["/text" 'bar]]]
-                          "/blog/articles/123abc/index.html")
-             {:handler 'foo :route-params {:id "123" :a "abc"}}))
+      #?(:clj
+        (is (= (match-route [#"/bl[a-z]{2}+" [[["/articles/" [#"[0-9]+" :id] [#"[a-z]+" :a] "/index.html"] 'foo]
+                                                  ["/text" 'bar]]]
+                            "/blog/articles/123abc/index.html")
+              {:handler 'foo :route-params {:id "123" :a "abc"}})))
 
       (is (= (match-route [["/blog/articles/123/" :path] 'foo]
                           "/blog/articles/123/index.html")
@@ -94,7 +94,7 @@
           "/blog/article/1239.html"))
       (is
        ;; If not all the parameters are specified we expect an error to be thrown
-       (thrown? #+clj clojure.lang.ExceptionInfo #+cljs cljs.core.ExceptionInfo
+       (thrown? #?(:clj clojure.lang.ExceptionInfo :cljs cljs.core.ExceptionInfo)
                 (path-for routes 'archive-handler :id 1239)
                 "/blog/archive/1239/section.html"))
       (is
