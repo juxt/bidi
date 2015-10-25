@@ -27,11 +27,8 @@
 
   :jar-exclusions [#"\.swp|\.swo|\.DS_Store"]
 
-  :profiles {:dev {:dependencies [[org.clojure/clojure "1.7.0"]
-                                  [org.clojure/clojurescript "1.7.145"]
-                                  [ring/ring-mock "0.3.0"]
-                                  [compojure "1.4.0"]
-                                  [criterium "0.4.3"]]}}
+  :lein-release {:deploy-via :shell
+                 :shell ["lein" "deploy"]}
 
   :cljsbuild {:test-commands {"unit" ["phantomjs" :runner
                                       "window.literal_js_was_evaluated=true"
