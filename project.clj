@@ -12,7 +12,7 @@
                  [ring/ring-core "1.4.0"]]
 
   :plugins [[lein-cljsbuild "1.0.3"]
-            [com.cemerick/clojurescript.test "0.3.1"]]
+            [lein-doo "0.1.4"]]
 
   :prep-tasks ["javac" "compile"]
 
@@ -23,17 +23,15 @@
                                   [criterium "0.4.3"]]}}
 
   :aliases {"deploy" ["do" "clean," "deploy" "clojars"]
-            "test" ["do" "clean," "test," "with-profile" "dev" "cljsbuild" "test"]}
+            "test" ["do" "clean," "test," "doo" "phantom" "test" "once"]}
 
   :jar-exclusions [#"\.swp|\.swo|\.DS_Store"]
 
   :lein-release {:deploy-via :shell
                  :shell ["lein" "deploy"]}
 
-  :cljsbuild {:test-commands {"unit" ["phantomjs" :runner
-                                      "window.literal_js_was_evaluated=true"
-                                      "target/unit-test.js"]}
-              :builds
+  :cljsbuild {:builds
               {:test {:source-paths ["src" "test"]
                       :compiler {:output-to "target/unit-test.js"
+                                 :main 'bidi.runner
                                  :optimizations :whitespace}}}})

@@ -1,9 +1,9 @@
 ;; Copyright © 2014-2015, JUXT LTD.
 
 (ns bidi.schema-test
-  #?(:cljs (:require-macros [cemerick.cljs.test :refer [is testing deftest]]))
   (:require
-    #?(:clj [clojure.test :refer :all] :cljs [cemerick.cljs.test :as t])
+    #?(:clj  [clojure.test :refer :all]
+       :cljs [cljs.test :refer-macros [deftest is testing]])
     [schema.core :as s]
     [bidi.schema :as bs]))
 

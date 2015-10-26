@@ -1,11 +1,10 @@
 ;; Copyright © 2014, JUXT LTD.
 
 (ns bidi.bidi-test
-  #?(:cljs (:require-macros [cemerick.cljs.test :refer [is testing deftest]]))
-  (:require #?(:clj [clojure.test :refer :all]
-               :cljs [cemerick.cljs.test :as t])
-            [bidi.bidi :as bidi
-             :refer [match-route path-for ->Alternates route-seq]]))
+  (:require
+    #?(:clj  [clojure.test :refer :all]
+       :cljs [cljs.test :refer-macros [deftest is testing]])
+    [bidi.bidi :as bidi :refer [match-route path-for ->Alternates route-seq]]))
 
 (deftest matching-routes-test
   (testing "misc-routes"
