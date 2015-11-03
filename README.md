@@ -211,34 +211,34 @@ no common prefix. The patterns for the remaining path can be specified
 in a map (or vector of pairs, if order is important).
 
 ```clojure
-user> (def routes ["/" {"index.html" :index
+user> (def my-routes ["/" {"index.html" :index
                         "article.html" :article}])
-#'user/routes
+#'user/my-routes
 ```
 
 Since each entry in the map is itself a route, you can nest these
 recursively.
 
 ```clojure
-user> (def routes ["/" {"index.html" :index
+user> (def my-routes ["/" {"index.html" :index
                         "articles/" {"index.html" :article-index
                                      "article.html" :article}}])
-#'user/routes
+#'user/my-routes
 ```
 
 We can match these routes as before :-
 
 ```clojure
-user> (match-route routes "/index.html")
+user> (match-route my-routes "/index.html")
 {:handler :index}
-user> (match-route routes "/articles/article.html")
+user> (match-route my-routes "/articles/article.html")
 {:handler :article}
 ```
 
 and in reverse too :-
 
 ```clojure
-user> (path-for routes :article-index)
+user> (path-for my-routes :article-index)
 "/articles/index.html"
 ```
 
@@ -251,18 +251,18 @@ strings, we construct the pattern in segments using a Clojure vector
 left hand side of the route pair.
 
 ```clojure
-user> (def routes ["/" {"index.html" :index
+user> (def my-routes ["/" {"index.html" :index
                         "articles/" {"index.html" :article-index
                                      [:id "/article.html"] :article}}])
-#'user/routes
+#'user/my-routes
 ```
 
 Now, when we match on an article path, the keyword values are extracted into a map.
 
 ```clojure
-user> (match-route routes "/articles/123/article.html")
+user> (match-route my-routes "/articles/123/article.html")
 {:handler :article, :route-params {:id "123"}}
-user> (match-route routes "/articles/999/article.html")
+user> (match-route my-routes "/articles/999/article.html")
 {:handler :article, :route-params {:id "999"}}
 ```
 
@@ -270,9 +270,9 @@ To form the path we need to supply the value of `:id` as extra
 arguments to the `path-for` function.
 
 ```clojure
-user> (path-for routes :article :id 123)
+user> (path-for my-routes :article :id 123)
 "/articles/123/article.html"
-user> (path-for routes :article :id 999)
+user> (path-for my-routes :article :id 999)
 "/articles/999/article.html"
 ```
 
@@ -366,7 +366,7 @@ You can construct a pattern similarly to how you specify regular expressions but
    [ "foo/" [ keyword :db/ident ] "/bar" ]
 ```
 
-When matching the path `foo/bidi/bar`, the `:route-params` of the result would be `{:db/ident :bidi}`. To construct the path, you would use `(path-for routes handler :db/ident :bidi)`, which results in `foo/bidi/bar` (the colon of the stringified keyword is omitted).
+When matching the path `foo/bidi/bar`, the `:route-params` of the result would be `{:db/ident :bidi}`. To construct the path, you would use `(path-for my-routes handler :db/ident :bidi)`, which results in `foo/bidi/bar` (the colon of the stringified keyword is omitted).
 
 Namespaced keywords are also supported. Note that in the URI the `/` that separates the keyword's namespace from its name is URL encoded to %2F, rather than `/`.
 
@@ -379,7 +379,7 @@ For example, if we'd like to match a certain set of routes and return
 `404 Not Found` for everything else, we can do the following:
 
 ```clojure
-(def routes ["/" [["index.html" :index]
+(def my-routes ["/" [["index.html" :index]
                   [true         :not-found]]])
 ```
 
@@ -390,9 +390,9 @@ subsume the other routes if we let it).
 Now let's try to match on that:
 
 ```clojure
-user> (match-route routes "/index.html")
+user> (match-route my-routes "/index.html")
 {:handler :index}
-user> (match-route routes "/other.html")
+user> (match-route my-routes "/other.html")
 {:handler :not-found}
 ```
 
@@ -583,8 +583,8 @@ For example.
 Paths can now be created like this :-
 
 ```clojure
-(path-for routes :foo)
-(path-for routes :bar :id "123")
+(path-for my-routes :foo)
+(path-for my-routes :bar :id "123")
 
 ```
 
