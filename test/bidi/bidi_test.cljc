@@ -165,6 +165,7 @@
     (is (= (:route-params (match-route routes "/foo/345")) {:id 345}))
     (is (= (path-for routes :y :id -1000) "/foo/-1000"))
     (is (= (path-for routes :y :id 1234567) "/foo/1234567"))
+    (is (= (path-for routes :y :id (int 1234567)) "/foo/1234567"))
 
     (is (= (:handler (match-route routes "/foo/0/bar")) :z))
     (is (= (path-for routes :z :id 12) "/foo/12/bar"))

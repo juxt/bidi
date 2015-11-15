@@ -35,6 +35,9 @@ actually a valid UUID (this is handled by the route matching logic)."
      :cljs number)
   (encode-parameter [s] s)
 
+  #?(:clj Integer)
+  #?(:clj (encode-parameter [s] s))
+
   #?(:clj java.util.UUID
      :cljs cljs.core.UUID)
   (encode-parameter [s] (str s))
