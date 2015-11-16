@@ -44,12 +44,9 @@ actually a valid UUID (this is handled by the route matching logic)."
   #?(:clj CharSequence)
   #?(:clj (encode-parameter [s] s))
 
-  #?(:clj Long
+  #?(:clj Number
      :cljs number)
   (encode-parameter [s] s)
-
-  #?(:clj Integer)
-  #?(:clj (encode-parameter [s] s))
 
   #?(:clj java.util.UUID
      :cljs cljs.core.UUID)

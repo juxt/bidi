@@ -155,7 +155,7 @@
     (is (= (:handler (match-route routes "/foo/abc/bar")) :z))
     (is (= (path-for routes :z :id :abc) "/foo/abc/bar"))))
 
-(deftest long-test
+(deftest number-test
   (let [routes ["/" [["foo/" :x]
                      [["foo/" [long :id]] :y]
                      [["foo/" [long :id] "/bar"] :z]]]]
@@ -167,17 +167,14 @@
     (is (= (path-for routes :y :id 1234567) "/foo/1234567"))
 
     (is (= (:handler (match-route routes "/foo/0/bar")) :z))
-    (is (= (path-for routes :z :id 12) "/foo/12/bar"))
+
+    (is (= (path-for routes :z :id (long 12)) "/foo/12/bar"))
+    (is (= (path-for routes :z :id (int 12)) "/foo/12/bar"))
+    (is (= (path-for routes :z :id (short 12)) "/foo/12/bar"))
+    (is (= (path-for routes :z :id (byte 12)) "/foo/12/bar"))
 
     (testing "bigger than longs"
       (is (nil? (match-route routes "/foo/1012301231111111111111111111"))))))
-
-(deftest integer-test
-  (let [routes ["/" [["foo/" :x]
-                     [["foo/" [long :id]] :y]
-                     [["foo/" [long :id] "/bar"] :z]]]]
-    (is (= (path-for routes :y :id (int 1234567)) "/foo/1234567"))
-    (is (= (path-for routes :z :id (int 12)) "/foo/12/bar"))))
 
 (deftest uuid-test
   (let [routes ["/" [["foo/" :x]
