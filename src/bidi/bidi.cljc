@@ -2,9 +2,22 @@
 
 (ns bidi.bidi
   (:require [clojure.walk :as walk :refer [postwalk]]
-            [cemerick.url :as url :refer [url-encode url-decode]]
             [schema.core :as s])
   (:refer-clojure :exclude [uuid]))
+
+(defn url-encode
+  [string]
+  (some-> string
+          str
+          #?(:clj (java.net.URLEncoder/encode "UTF-8")
+             :cljs (js/encodeURIComponent))
+          (.replace "+" "%20")))
+
+(defn url-decode
+  ([string] #?(:clj (url-decode string "UTF-8")
+               :cljs (some-> string str (js/decodeURIComponent))))
+  #?(:clj ([string encoding]
+           (some-> string str (java.net.URLDecoder/decode encoding)))))
 
 (defn uuid
   "Function for creating a UUID of the appropriate type for the platform.

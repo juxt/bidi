@@ -3,7 +3,6 @@
 (ns bidi.ring
   (:require
    [bidi.bidi :as bidi :refer :all]
-   [cemerick.url :as url :refer [url-encode url-decode]]
    [clojure.java.io :as io]
    [ring.util.response :refer (file-response url-response)]
    [ring.middleware.content-type :refer (wrap-content-type)]
