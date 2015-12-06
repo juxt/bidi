@@ -174,13 +174,19 @@ actually a valid UUID (this is handled by the route matching logic)."
   (resolve-handler [_ m])
   (unresolve-handler [_ m]))
 
+(defn just-path
+  [path]
+  #?(:clj (.getRawPath (java.net.URI. path)) ;; Raw path means encoded chars are kept.
+     :cljs (.getPath (goog.Uri. path))))
+
 (defn match-pair
   "A pair contains a pattern to match (either fully or partially) and an
   expression yielding a handler. The second parameter is a map
   containing state, including the remaining path."
-  [[pattern matched] env]
-  (when-let [match-result (match-pattern pattern env)]
-    (resolve-handler matched (merge env match-result))))
+  [[pattern matched] query-env]
+  (let [env (update query-env :remainder just-path)]
+    (when-let [match-result (match-pattern pattern env)]
+      (resolve-handler matched (merge env match-result)))))
 
 (defn match-beginning
   "Match the beginning of the :remainder value in m. If matched, update
@@ -394,8 +400,8 @@ actually a valid UUID (this is handled by the route matching logic)."
 
   #?(:clj Object
      :cljs default)
-  (gather [this context] [(map->Route (assoc context :handler this))])
-  )
+  (gather [this context] [(map->Route (assoc context :handler this))]))
+  
 
 ;; --------------------------------------------------------------------------------
 ;; Protocols
