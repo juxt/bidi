@@ -616,6 +616,7 @@ A big thank you to everyone involved in bidi so far, including
 * Chris Price
 * David Thomas Hume
 * Dene Simpson
+* Dominic Monroe
 * Elben Shira
 * James Henderson
 * Jeff Rose
