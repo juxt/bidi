@@ -29,10 +29,10 @@
 (declare ^:export RoutePair)
 
 (def Matched
-  (s/cond-pre (s/=> s/Any s/Any)
-              s/Symbol
+  (s/cond-pre s/Symbol
               s/Keyword
               [(s/recursive #'RoutePair)]
-              {Pattern (s/recursive #'Matched)}))
+              {Pattern (s/recursive #'Matched)}
+              (s/=> s/Any s/Any)))
 
 (def ^:export RoutePair (s/pair Pattern "" Matched ""))
