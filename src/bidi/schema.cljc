@@ -14,7 +14,7 @@
               (s/pair (s/cond-pre s/Str s/Regex) "qual" s/Keyword "id")))
 
 (def MethodGuard
-  (s/enum :get :post :put :delete :head :options))
+  (s/enum :get :post :put :patch :delete :head :options))
 
 (def GeneralGuard
   {s/Keyword (s/cond-pre s/Str s/Keyword (s/=> s/Any s/Any))})
