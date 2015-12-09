@@ -14,7 +14,7 @@
               (s/pair (s/cond-pre s/Str s/Regex) "qual" s/Keyword "id")))
 
 (def MethodGuard
-  (s/enum :get :post :put :delete :head :options))
+  (s/enum :get :post :put :patch :delete :head :options))
 
 (def GeneralGuard
   {s/Keyword (s/cond-pre s/Str s/Keyword (s/=> s/Any s/Any))})
@@ -29,10 +29,10 @@
 (declare ^:export RoutePair)
 
 (def Matched
-  (s/cond-pre (s/=> s/Any s/Any)
-              s/Symbol
+  (s/cond-pre s/Symbol
               s/Keyword
               [(s/recursive #'RoutePair)]
-              {Pattern (s/recursive #'Matched)}))
+              {Pattern (s/recursive #'Matched)}
+              (s/=> s/Any s/Any)))
 
 (def ^:export RoutePair (s/pair Pattern "" Matched ""))

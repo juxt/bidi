@@ -30,7 +30,10 @@
 
   (testing "method guards"
     (is (nil? (s/check bs/RoutePair ["/" {:get :get-handler
-                                          :post :post-handler}]))))
+                                          :post :post-handler
+                                          :patch :patch-handler}])))
+
+    (is (not (nil? (s/check bs/RoutePair ["/" {:not-a-recognised-method :handler}])))))
 
   (testing "general guards"
     (is (nil?
