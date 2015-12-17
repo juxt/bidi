@@ -217,3 +217,8 @@
 
         result (route-seq ["" [myroutes]])]
     (is (= (count result) 3))))
+
+(deftest boolean-test
+  (let [myroutes [true :foo]]
+    (is (= {:handler :foo} (match-route myroutes "/")))
+    (is (= "" (path-for myroutes :foo)))))

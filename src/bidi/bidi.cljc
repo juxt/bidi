@@ -233,6 +233,7 @@ actually a valid UUID (this is handled by the route matching logic)."
      :cljs boolean)
   (match-pattern [this env]
     (when this (assoc env :remainder "")))
+  (unmatch-pattern [this _] (when this ""))
 
   #?(:clj clojure.lang.APersistentVector
      :cljs cljs.core.PersistentVector)
