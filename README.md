@@ -154,6 +154,8 @@ Add the following dependency to your `project.clj` file
 
 [![Clojars Project](http://clojars.org/bidi/latest-version.svg)](http://clojars.org/bidi)
 
+[![Build Status](https://travis-ci.org/juxt/bidi.png)](https://travis-ci.org/juxt/bidi)
+
 ## Take 5 minutes to learn bidi (using the REPL)
 
 Let's create a route that matches `/index.html`. A route is simply a
