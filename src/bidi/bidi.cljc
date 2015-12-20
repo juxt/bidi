@@ -472,6 +472,32 @@ actually a valid UUID (this is handled by the route matching logic)."
    (->IdentifiableHandler nil handler)))
 
 ;; --------------------------------------------------------------------------------
+;; Context
+;; --------------------------------------------------------------------------------
+
+;; bidi's match-context can be leveraged by Matched wrappers
+
+(defrecord RoutesContext [routes context]
+  Matched
+  (resolve-handler [_ m]
+    (when-let [m (resolve-handler routes m)]
+      (merge context m)))
+  
+  (unresolve-handler [_ m]
+    (unresolve-handler routes m))
+  
+  RouteSeq
+  (gather [_ context]
+    (gather routes context)))
+
+(defn routes-context
+  "Wrap a Matched such that a successful match will merge the given
+  context with the match-context. The merge is such that where there
+  is a conflict, the inner sub-tree overrides the outer container."
+  [routes context]
+  (->RoutesContext routes context))
+
+;; --------------------------------------------------------------------------------
 ;; Deprecated functions
 ;; --------------------------------------------------------------------------------
 
