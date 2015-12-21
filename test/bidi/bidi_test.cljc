@@ -4,7 +4,7 @@
   (:require
     #?(:clj  [clojure.test :refer :all]
        :cljs [cljs.test :refer-macros [deftest is testing]])
-    [bidi.bidi :as bidi :refer [match-route path-for ->Alternates route-seq]]))
+    [bidi.bidi :as bidi :refer [match-route path-for ->Alternates route-seq alts]]))
 
 (deftest matching-routes-test
   (testing "misc-routes"
@@ -62,10 +62,10 @@
              {:handler 'foo :route-params {:id "123" :a "abc"}}))
 
       #?(:clj
-        (is (= (match-route [#"/bl[a-z]{2}+" [[["/articles/" [#"[0-9]+" :id] [#"[a-z]+" :a] "/index.html"] 'foo]
-                                                  ["/text" 'bar]]]
-                            "/blog/articles/123abc/index.html")
-              {:handler 'foo :route-params {:id "123" :a "abc"}})))
+         (is (= (match-route [#"/bl[a-z]{2}+" [[["/articles/" [#"[0-9]+" :id] [#"[a-z]+" :a] "/index.html"] 'foo]
+                                               ["/text" 'bar]]]
+                             "/blog/articles/123abc/index.html")
+               {:handler 'foo :route-params {:id "123" :a "abc"}})))
 
       (is (= (match-route [["/blog/articles/123/" :path] 'foo]
                           "/blog/articles/123/index.html")
@@ -203,8 +203,10 @@
   (let [routes [(->Alternates ["/index.html" "/index"]) :index]]
     (is (= (match-route routes "/index.html") {:handler :index}))
     (is (= (match-route routes "/index") {:handler :index}))
-    (is (= (path-for routes :index) "/index.html")) ; first is the canonical one
-    ))
+    (is (= (path-for routes :index) "/index.html"))) ; first is the canonical one
+  (let [routes [(alts "/index.html" "/index") :index]]
+    (is (= (match-route routes "/index.html") {:handler :index}))
+    (is (= (match-route routes "/index") {:handler :index}))))
 
 (deftest route-seq-test
   (let [myroutes
