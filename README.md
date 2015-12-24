@@ -293,11 +293,34 @@ form a Ring handler (similar to what Compojure's `routes` and
 `defroutes` does) with the `make-handler` function.
 
 ```clojure
-(require '[bidi.ring :refer (make-handler)])
+(ns my.handler
+  (:require [bidi.ring :refer (make-handler)]
+            [ring.util.response :as res]))
+
+(defn index-handler
+  [request]
+  (res/response "Homepage"))
+
+(defn article-handler
+  [{:keys [route-params]}]
+  (res/reponse (str "You are viewing article: " (:id route-params))))
 
 (def handler
-  (make-handler ["/" {"index.html" :index
-                      ["articles/" :id "/article.html"] :article}]))
+  (make-handler ["/" {"index.html" index-handler
+                      ["articles/" :id "/article.html"] article-handler}]))
+```
+
+To chain this with middleware is simple.
+
+```clojure
+(ns my.app
+  (:require [my.handler :refer [handler]]
+            [ring.middleware.session :refer [wrap-session]
+            [ring.middleware.flash :refer [wrap-flash]))
+(def app
+  (-> handler
+      wrap-session
+      wrap-flash))
 ```
 
 ### Regular Expressions
