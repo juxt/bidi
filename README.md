@@ -156,6 +156,8 @@ Add the following dependency to your `project.clj` file
 
 [![Build Status](https://travis-ci.org/juxt/bidi.png)](https://travis-ci.org/juxt/bidi)
 
+As bidi uses Clojure's reader conditionals, bidi is dependent on both Clojure 1.7 and Leiningen 2.5.3 or later.
+
 ## Take 5 minutes to learn bidi (using the REPL)
 
 Let's create a route that matches `/index.html`. A route is simply a
