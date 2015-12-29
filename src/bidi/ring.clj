@@ -4,16 +4,16 @@
   (:require
    [bidi.bidi :as bidi :refer :all]
    [clojure.java.io :as io]
-   [ring.util.response :refer (file-response url-response)]
+   [ring.util.response :refer (file-response url-response resource-response)]
    [ring.middleware.content-type :refer (wrap-content-type)]
-   [ring.middleware.file-info :refer (wrap-file-info)]
-   [ring.middleware.not-modified :refer (wrap-not-modified)]))
+   [ring.middleware.not-modified :refer (wrap-not-modified)]
+   [ring.middleware.resource :refer (wrap-resource)]))
 
 (defprotocol Ring
   (request [_ req match-context]
     "Handle a Ring request, but optionally utilize any context that was
-    collected in the process of matching the handler."
-    ))
+    collected in the process of matching the handler."))
+
 
 (extend-protocol Ring
   clojure.lang.Fn
@@ -29,20 +29,19 @@
   structure. Matches a handler from the uri in the request, and invokes
   it with the request as a parameter."
   ([route handler-fn]
-      (assert route "Cannot create a Ring handler with a nil Route(s) parameter")
-      (fn [{:keys [uri path-info] :as req}]
-        (let [path (or path-info uri)
-              {:keys [handler route-params] :as match-context}
-              (match-route* route path req)]
-          (when handler
-            (request
-             (handler-fn handler)
-             (-> req
-                 (update-in [:params] merge route-params)
-                 (update-in [:route-params] merge route-params))
-             (apply dissoc match-context :handler (keys req))
-             )))))
-   ([route] (make-handler route identity)))
+   (assert route "Cannot create a Ring handler with a nil Route(s) parameter")
+   (fn [{:keys [uri path-info] :as req}]
+     (let [path (or path-info uri)
+           {:keys [handler route-params] :as match-context}
+           (match-route* route path req)]
+       (when handler
+         (request
+          (handler-fn handler)
+          (-> req
+              (update-in [:params] merge route-params)
+              (update-in [:route-params] merge route-params))
+          (apply dissoc match-context :handler (keys req)))))))
+  ([route] (make-handler route identity)))
 
 ;; Any types can be used which satisfy bidi protocols.
 
@@ -86,16 +85,11 @@
     (let [path (url-decode (:remainder m))]
       (when (not-empty path)
         (assoc (dissoc m :remainder)
-          :handler (if-let [res (io/resource (str (:prefix options) path))]
-                     (-> (fn [req] (url-response res))
-                         (wrap-file-info (:mime-types options))
-                         ;; TODO It appears that wrap-file-info
-                         ;; encompasses wrap-content-type and
-                         ;; wrap-not-modified such that they are
-                         ;; unnecessary
-                         (wrap-content-type options)
-                         (wrap-not-modified))
-                     (fn [req] {:status 404}))))))
+          :handler
+            (fn [req]
+              (if-let [res (resource-response (str (:prefix options) path))]
+                res
+                {:status 404}))))))
   (unresolve-handler [this m]
     (when (= this (:handler m)) "")))
 
@@ -117,10 +111,7 @@
       (when (not-empty path)
         (when-let [res (io/resource (str (:prefix options) path))]
           (assoc (dissoc m :remainder)
-            :handler (-> (fn [req] (url-response res))
-                         (wrap-file-info (:mime-types options))
-                         (wrap-content-type options)
-                         (wrap-not-modified)))))))
+            :handler (fn [req] (resource-response (str (:prefix options) path))))))))
   (unresolve-handler [this m]
     (when (= this (:handler m)) "")))
 
@@ -136,7 +127,6 @@
            :handler (->
                      (fn [req] (file-response (url-decode (:remainder m))
                                               {:root (:dir options)}))
-                     (wrap-file-info (:mime-types options))
                      (wrap-content-type options)
                      (wrap-not-modified))))
   (unresolve-handler [this m]
