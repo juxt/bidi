@@ -10,8 +10,7 @@
   :pedantic? :abort
 
   :dependencies [[prismatic/schema "1.0.3"]
-                 [ring/ring-core "1.4.0" :exclusions [org.clojure/clojure]]
-                 ]
+                 [ring/ring-core "1.4.0" :exclusions [org.clojure/clojure]]]
 
   :plugins [[lein-cljsbuild "1.1.1"]
             [lein-doo "0.1.6"]]
@@ -24,15 +23,18 @@
                                   [org.clojure/tools.reader "0.10.0-alpha3"]
                                   [ring/ring-mock "0.3.0"]
                                   [compojure "1.4.0"]
-                                  [criterium "0.4.3"]]}}
+                                  [criterium "0.4.3"]
+                                  [org.mozilla/rhino "1.7.7"]]}}
 
   :aliases {"deploy" ["do" "clean," "deploy" "clojars"]
-            "test" ["do" "clean," "test," "doo" "phantom" "test" "once"]}
+            "test" ["do" "clean," "test," "doo" "rhino" "test" "once"]}
 
   :jar-exclusions [#"\.swp|\.swo|\.DS_Store"]
 
   :lein-release {:deploy-via :shell
                  :shell ["lein" "deploy"]}
+
+  :doo {:paths {:rhino "lein run -m org.mozilla.javascript.tools.shell.Main"}}
 
   :cljsbuild {:builds
               {:test {:source-paths ["src" "test"]
