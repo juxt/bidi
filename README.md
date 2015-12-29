@@ -574,7 +574,7 @@ which each match the handler. The first in the list is considered the
 canonical pattern for the purposes of URI formation.
 
 ```clojure
-[(alts ["/index.html" "/index"]) :index]
+[(alts "/index.html" "/index") :index]
 ```
 
 Any pattern can be used in the list. This allows quite sophisticated
@@ -582,13 +582,13 @@ matching. For example, if you want to match on requests that are either
 HEAD or GET but not anything else.
 
 ```clojure
-[(alts [:head :get]) :index]
+[(alts :head :get) :index]
 ```
 
 Or match if the server name is `juxt.pro` or `localhost`.
 
 ```clojure
-[(alts [{:server-name "juxt.pro"}{:server-name "localhost"}])
+[(alts {:server-name "juxt.pro"}{:server-name "localhost"})
  {"/index.html" :index}]
 ```
 

@@ -209,7 +209,10 @@
   (let [routes [(->Alternates ["/index.html" "/index"]) :index]]
     (is (= (match-route routes "/index.html") {:handler :index}))
     (is (= (match-route routes "/index") {:handler :index}))
-    (is (= (path-for routes :index) "/index.html")))) ; first is the canonical one
+    (is (= (path-for routes :index) "/index.html"))) ; first is the canonical one
+  (let [routes [(alts "/index.html" "/index") :index]]
+    (is (= (match-route routes "/index.html") {:handler :index}))
+    (is (= (match-route routes "/index") {:handler :index}))))
 
 (deftest similar-alternates-test
   (let [routes-test ["/" {(alts ["index" "index-x" "index.html" "x-index.html" "index-x.html" "x.html"]) :index}]]
