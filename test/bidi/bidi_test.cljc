@@ -46,6 +46,12 @@
                         "/blog/articles/123/index.html")
            {:handler 'foo :route-params {:id "123"}}))
 
+    (is (= (match-route ["/blog" [["/foo" 'foo]
+                                  ["/bar" [["/abc" :bar]]]]]
+                        "/blog/bar/abc?q=2&b=str")
+           {:handler :bar}))
+
+
     (testing "regex"
       (is (= (match-route ["/blog" [[["/articles/" [#"[0-9]+" :id] "/index.html"] 'foo]
                                     ["/text" 'bar]]]
