@@ -156,6 +156,8 @@ Add the following dependency to your `project.clj` file
 
 [![Build Status](https://travis-ci.org/juxt/bidi.png)](https://travis-ci.org/juxt/bidi)
 
+[![CircleCI Status](https://circleci.com/gh/juxt/bidi.svg?style=shield&circle-token=d604205dab0328029e95202a4344e6a1082b79c2)
+
 As bidi uses Clojure's reader conditionals, bidi is dependent on both Clojure 1.7 and Leiningen 2.5.3 or later.
 
 ## Take 5 minutes to learn bidi (using the REPL)
