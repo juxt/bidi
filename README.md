@@ -594,11 +594,19 @@ Or match if the server name is `juxt.pro` or `localhost`.
 
 ### Tagged Match
 
-Sometimes you need to apply a tag to a route, so you can use the tag (rather than the handler) in a `path-for` function. This is very convenient when forming routes, because you don't need to have a reference to the handler itself.
+Sometimes you need to apply a tag to a route, so you can use the tag
+(rather than the handler) in a `path-for` function. This is very
+convenient when forming routes, because you don't need to have a
+reference to the handler itself.
 
 You can use the `tag` function to construct these records.
 
-For example.
+```clojure
+(tag my-handler :my-tag)
+```
+
+It's common to use the single threaded macro, so wrapping handlers in
+tags is just like wrapping them in Ring middleware. For example :-
 
 ```clojure
 ["/" [["foo" (-> foo-handler (tag :foo)]

@@ -451,7 +451,7 @@ actually a valid UUID (this is handled by the route matching logic)."
 ;; If you have multiple routes which match the same handler, but need to
 ;; label them so that you can form the correct URI, wrap the handler in
 ;; a TaggedMatch.
-(defrecord TaggedMatch [tag matched]
+(defrecord TaggedMatch [matched tag]
   Matched
   (resolve-handler [this m]
     (resolve-handler matched (assoc m :tag tag)))
@@ -460,8 +460,8 @@ actually a valid UUID (this is handled by the route matching logic)."
       (when (= tag (:handler m)) "")
       (unresolve-handler matched m))))
 
-(defn tag [matched k]
-  (->TaggedMatch k matched))
+(defn tag [matched tag]
+  (->TaggedMatch matched tag))
 
 (defrecord IdentifiableHandler [id handler]
   Matched
