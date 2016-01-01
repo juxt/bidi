@@ -306,7 +306,7 @@ form a Ring handler (similar to what Compojure's `routes` and
 
 (defn article-handler
   [{:keys [route-params]}]
-  (res/reponse (str "You are viewing article: " (:id route-params))))
+  (res/response (str "You are viewing article: " (:id route-params))))
 
 (def handler
   (make-handler ["/" {"index.html" index-handler
