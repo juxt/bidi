@@ -477,7 +477,8 @@ A [schema](https://github.com/Prismatic/schema) is available as `bidi.schema/Rou
 
 (def route ["/index.html" :index])
 
-;; Check that the route is properly structured - returns nil if it isn't
+;; Check that the route is properly structured - returns nil if valid;
+   otherwise, returns a value with 'bad' parts of the route.
 (s/check bidi.schema/RoutePair route)
 
 ;; Throw an exception if the route is badly structured
