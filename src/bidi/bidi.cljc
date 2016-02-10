@@ -1,8 +1,6 @@
 ;; Copyright © 2014, JUXT LTD.
 
 (ns bidi.bidi
-  (:require [clojure.walk :as walk :refer [postwalk]]
-            [schema.core :as s])
   (:refer-clojure :exclude [uuid])
   #?(:cljs (:import goog.Uri)))
 
