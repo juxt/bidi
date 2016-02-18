@@ -14,7 +14,6 @@
     "Handle a Ring request, but optionally utilize any context that was
     collected in the process of matching the handler."))
 
-
 (extend-protocol Ring
   clojure.lang.Fn
   (request [f req _]
