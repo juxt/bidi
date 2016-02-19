@@ -35,4 +35,4 @@
               {Pattern (s/recursive #'Matched)}
               (s/=> s/Any s/Any)))
 
-(def ^:export RoutePair (s/pair Pattern "" Matched ""))
+(def ^:export RoutePair (s/pair Pattern "Pattern" Matched "Matched"))
