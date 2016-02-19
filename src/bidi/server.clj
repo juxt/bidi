@@ -54,7 +54,11 @@
              (assoc req
                     :remainder (:uri req)
                     :route ["" routes]
-                    :uri-for (partial uri-for uri-model)))
+                    :uri-for
+                    ;; uri-for should generate 'local' paths (not
+                    ;; absolute URIs) when inside the same server as
+                    ;; the caller.
+                    (partial uri-for uri-model)))
             (dissoc :route)))))
      (:servers uri-model))))
 
