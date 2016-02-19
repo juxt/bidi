@@ -9,29 +9,28 @@
 
 (def example-uri-model
   (uri-model
-   [[{:scheme :https :host "a.org" :port 443}
-     {:scheme :http :host "a.org" :port 80}
-     {:scheme :http :host "www.a.org" :port 80}
-     {:scheme :https :host "www.a.org" :port 443}]
+   [[{:scheme :https :host "a.org"}
+     {:scheme :http :host "a.org"}
+     {:scheme :http :host "www.a.org"}
+     {:scheme :https :host "www.a.org"}]
     ["/index" :a]]
 
-   [{:scheme :https :host "b.org" :port 443}
+   [{:scheme :https :host "b.org"}
     ["/b/b1.html" :b1]
     ["/b/b2.html" :b2]]
 
-   [[{:scheme :http :host "c.com" :port 8000}
-     {:scheme :https :host "c.com" :port 8001}]
+   [[{:scheme :http :host "c.com:8000"}
+     {:scheme :https :host "c.com:8001"}]
     ["/index.html" :c]]
 
-   [{:scheme :http :host "d.com" :port 8002}
+   [{:scheme :http :host "d.com:8002"}
     ["/index/" [["d" :d]]]]))
 
 (deftest find-handler-test
   (is (= :c (:handler (find-handler
                     example-uri-model
                     {:scheme :http
-                     :headers {"host" "c.com"}
-                     :server-port 8000
+                     :headers {"host" "c.com:8000"}
                      :uri "/index.html"})) )))
 
 (deftest uri-for-test
@@ -48,7 +47,6 @@
     (is (= {:status 200}
            (h
             {:scheme :http
-             :headers {"host" "c.com"}
-             :server-port 8000
+             :headers {"host" "c.com:8000"}
              :uri "/index.html"})))))
 

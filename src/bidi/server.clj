@@ -10,8 +10,7 @@
    [schema.utils :refer [error?]]))
 
 (s/defschema Server {:scheme (s/enum :http :https)
-                     :host s/Str
-                     :port s/Int})
+                     :host s/Str})
 
 (s/defschema ServerWithRoutes
   [(s/one [Server] "Server")
@@ -33,25 +32,18 @@
                       {:error (:error servers)})))
     (map->UriModel {:servers servers})))
 
-(defn- port-str [scheme port]
-  (if (or
-       (and (= scheme :http) (= port 80))
-       (and (= scheme :https) (= port 443)))
-    "" (str ":" port)))
-
 (defn uri-for
   [uri-router handler & params]
   (some
    (fn [[servers & routes]]
      (when-let [path (apply path-for ["" (vec routes)] handler params)]
-       (let [{:keys [scheme host port]} (first servers)]
-         (format "%s://%s%s%s" (name scheme) host (port-str scheme port) path))))
+       (let [{:keys [scheme host]} (first servers)]
+         (format "%s://%s%s" (name scheme) host path))))
    (:servers uri-router)))
 
 (defn find-handler [uri-model req]
   (let [server {:scheme (:scheme req)
-                :host (get-in req [:headers "host"])
-                :port (:server-port req)}]
+                :host (get-in req [:headers "host"])}]
     (some
      (fn [[servers & routes]]
        (let [routes (vec routes)]
