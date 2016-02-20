@@ -2,6 +2,7 @@
 
 (ns bidi.bidi
   (:refer-clojure :exclude [uuid])
+  (:require clojure.string)
   #?(:cljs (:import goog.Uri)))
 
 (defn url-encode
