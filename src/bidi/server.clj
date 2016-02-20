@@ -75,3 +75,7 @@
               (update-in [:params] merge route-params)
               (update-in [:route-params] merge route-params))
           (apply dissoc match-context :handler (keys req))))))))
+
+(defprotocol ServerModel
+  (server-model [_] "Provide a server model, for example: [[{:scheme :http :host \"example.org:8000\"}] routes...]. This allows for greater modularity where servers can be defined individually a composed into a complete UriModel"))
+
