@@ -9,28 +9,28 @@
    [schema.coerce :as sc]
    [schema.utils :refer [error?]]))
 
-(s/defschema Server {:scheme (s/enum :http :https)
+(s/defschema VHost {:scheme (s/enum :http :https)
                      :host s/Str})
 
-(s/defschema ServerWithRoutes
-  [(s/one [Server] "Server")
+(s/defschema VHostWithRoutes
+  [(s/one [VHost] "Virtual host")
    bsc/RoutePair])
 
-(def multi-server-model
+(def coerce-to-vhosts-model
   (sc/coercer
-   [ServerWithRoutes]
-   {[Server] (fn [x]
-               (if-not (s/check Server x) (vector x) x))}))
+   [VHostWithRoutes]
+   {[VHost] (fn [x]
+               (if-not (s/check VHost x) (vector x) x))}))
 
-(defrecord VHostsModel [servers])
+(defrecord VHostsModel [vhosts])
 
-(defn vhosts-model [& servers-with-routes]
-  (let [servers (multi-server-model (vec servers-with-routes))]
-    (when (error? servers)
+(defn vhosts-model [& vhosts-with-routes]
+  (let [vhosts (coerce-to-vhosts-model (vec vhosts-with-routes))]
+    (when (error? vhosts)
       (throw (ex-info (format "Error in server model: %s"
-                              (pr-str (:error servers)))
-                      {:error (:error servers)})))
-    (map->VHostsModel {:servers servers})))
+                              (pr-str (:error vhosts)))
+                      {:error (:error vhosts)})))
+    (map->VHostsModel {:vhosts vhosts})))
 
 (defn- query-string [query-params]
   (let [enc (fn [a b] (str a "=" (java.net.URLEncoder/encode b)))
@@ -46,15 +46,15 @@
   "Return URI info as a map."
   [vhosts-model handler & [{:keys [vhost path-params query-params] :as options}]]
   (some
-   (fn [[servers & routes]]
+   (fn [[vhosts & routes]]
      (when-let [path (apply path-for ["" (vec routes)] handler (mapcat identity path-params))]
        
        (let [path (if query-params
                     (str path "?" (query-string query-params))
                     path)
              canonical (if vhost
-                         (first (filter (comp (partial = (:scheme vhost)) :scheme) servers))
-                         (first servers))
+                         (first (filter (comp (partial = (:scheme vhost)) :scheme) vhosts))
+                         (first vhosts))
              {:keys [scheme host]} canonical
              uri (format "%s://%s%s" (name scheme) host path)
              relative? (= vhost canonical)]
@@ -63,24 +63,25 @@
           :host host
           :scheme scheme
           :href (if relative? path uri)})))
-   (:servers vhosts-model)))
+   (:vhosts vhosts-model)))
 
 (defn find-handler [vhosts-model req]
-  (let [server {:scheme (:scheme req)
-                :host (get-in req [:headers "host"])}]
+  (let [vhost {:scheme (:scheme req)
+               :host (get-in req [:headers "host"])}]
     (some
-     (fn [[servers & routes]]
+     (fn [[vhosts & routes]]
        (let [routes (vec routes)]
-         (when (some (partial = server) servers)
+         (when (some (partial = vhost) vhosts)
            (->
             (resolve-handler
              routes
              (assoc req
                     :remainder (:uri req)
                     :route ["" routes]
-                    :uri-for (partial uri-for vhosts-model server)))
+                    :uri-for (fn [handler options]
+                               (uri-for vhosts-model handler (merge {:vhost vhost} options)))))
             (dissoc :route)))))
-     (:servers vhosts-model))))
+     (:vhosts vhosts-model))))
 
 (defn make-handler
   ([vhosts-model] (make-handler vhosts-model identity))
@@ -96,6 +97,5 @@
               (update-in [:route-params] merge route-params))
           (apply dissoc match-context :handler (keys req))))))))
 
-(defprotocol ServerModel
-  (server-model [_] "Provide a server model, for example: [[{:scheme :http :host \"example.org:8000\"}] routes...]. This allows for greater modularity where servers can be defined individually a composed into a complete UriModel"))
+
 
