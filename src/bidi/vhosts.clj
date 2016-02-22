@@ -1,6 +1,6 @@
 ;; Copyright © 2014, JUXT LTD.
 
-(ns bidi.server
+(ns bidi.vhosts
   (:require
    [bidi.bidi :as bidi :refer :all]
    [bidi.ring :as br]
@@ -22,26 +22,50 @@
    {[Server] (fn [x]
                (if-not (s/check Server x) (vector x) x))}))
 
-(defrecord UriModel [servers])
+(defrecord VHostsModel [servers])
 
-(defn uri-model [& servers-with-routes]
+(defn vhosts-model [& servers-with-routes]
   (let [servers (multi-server-model (vec servers-with-routes))]
     (when (error? servers)
       (throw (ex-info (format "Error in server model: %s"
                               (pr-str (:error servers)))
                       {:error (:error servers)})))
-    (map->UriModel {:servers servers})))
+    (map->VHostsModel {:servers servers})))
+
+(defn- query-string [query-params]
+  (let [enc (fn [a b] (str a "=" (java.net.URLEncoder/encode b)))
+        join (fn [v] (apply str (interpose "&" v)))]
+    (join
+     (map (fn [[k v]]
+            (if (sequential? v)
+              (join (map enc (repeat k) v))
+              (enc k v)))
+          query-params))))
 
 (defn uri-for
-  [uri-router handler & params]
+  "Return URI info as a map."
+  [vhosts-model handler & [{:keys [vhost path-params query-params] :as options}]]
   (some
    (fn [[servers & routes]]
-     (when-let [path (apply path-for ["" (vec routes)] handler params)]
-       (let [{:keys [scheme host]} (first servers)]
-         (format "%s://%s%s" (name scheme) host path))))
-   (:servers uri-router)))
+     (when-let [path (apply path-for ["" (vec routes)] handler (mapcat identity path-params))]
+       
+       (let [path (if query-params
+                    (str path "?" (query-string query-params))
+                    path)
+             canonical (if vhost
+                         (first (filter (comp (partial = (:scheme vhost)) :scheme) servers))
+                         (first servers))
+             {:keys [scheme host]} canonical
+             uri (format "%s://%s%s" (name scheme) host path)
+             relative? (= vhost canonical)]
+         {:uri uri
+          :path path
+          :host host
+          :scheme scheme
+          :href (if relative? path uri)})))
+   (:servers vhosts-model)))
 
-(defn find-handler [uri-model req]
+(defn find-handler [vhosts-model req]
   (let [server {:scheme (:scheme req)
                 :host (get-in req [:headers "host"])}]
     (some
@@ -54,20 +78,16 @@
              (assoc req
                     :remainder (:uri req)
                     :route ["" routes]
-                    :uri-for
-                    ;; uri-for should generate 'local' paths (not
-                    ;; absolute URIs) when inside the same server as
-                    ;; the caller.
-                    (partial uri-for uri-model)))
+                    :uri-for (partial uri-for vhosts-model server)))
             (dissoc :route)))))
-     (:servers uri-model))))
+     (:servers vhosts-model))))
 
 (defn make-handler
-  ([uri-model] (make-handler uri-model identity))
-  ([uri-model handler-fn]
+  ([vhosts-model] (make-handler vhosts-model identity))
+  ([vhosts-model handler-fn]
    (fn [req]
      (let [{:keys [handler route-params] :as match-context}
-           (find-handler uri-model req)]
+           (find-handler vhosts-model req)]
        (when-let [handler (handler-fn handler)]
          (br/request
           handler
