@@ -532,7 +532,7 @@ would return
 
 A partially applied uri-for function is available in bidi's matching context and returns a map of the following elements. This partial applies the vhosts-model which can help with dependency cycles in your code (where your bidi router requires knowledge of resources, which have views that require knowledge of the bidi router's routes).
 
-When called via bidi's match-context, the `:href` entry in the result may not contain the scheme, host and port, if these are redundant, whereas the `:uri` entry always contains an absolute URI.
+When called via bidi's match-context, the `:href` entry in the result may not contain the scheme, host and port, if these are redundant, whereas the `:uri` entry always contains an absolute URI. If you are creating HTML content for a browser, `:href` is safe to use. If, for example, you are creating an API returning a JSON-formatted response body, prefer `:uri`.
 
 ### Multiple virtual hosts
 
