@@ -506,7 +506,7 @@ A virtual-hosts super-structure is created with the `bidi.vhosts/vhosts.model` v
   (vhosts-model [{:scheme :https :host "example.org:8000"}
                  ["/index.html" :index]
                  ["/login" :login]]))
-                 ```
+```
 
 In this example, only one argument is passed to `vhosts-model`, but the vhosts-model function takes any number of arguments. Each argument corresponds to a virtual-host.
 
