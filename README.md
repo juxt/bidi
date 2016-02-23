@@ -497,7 +497,7 @@ A virtual-host is declared by a vector. The first element is a host specificatio
 
 Each subsequent element is a bidi route served by that host.
 
-A virtual-hosts super-structure is created with the `bidi.vhosts/vhosts.model` variadic function. Each argument corresponds to a virtual-host.
+A virtual-hosts super-structure is created with the `bidi.vhosts/vhosts.model` variadic function.
 
 ```clojure
 (require '[bidi.vhosts :refer [vhosts-model])
@@ -506,7 +506,9 @@ A virtual-hosts super-structure is created with the `bidi.vhosts/vhosts.model` v
   (vhosts-model [{:scheme :https :host "example.org:8000"}
                  ["/index.html" :index]
                  ["/login" :login]]))
-```
+                 ```
+
+In this example, only one argument is passed to `vhosts-model`, but the vhosts-model function takes any number of arguments. Each argument corresponds to a virtual-host.
 
 ### uri-for
 
@@ -525,7 +527,7 @@ would return
  :path "/index.html"
  :host "example.org:8000"
  :scheme :https
- :href https://example.org:8000/index.html?q=juxt}
+ :href "https://example.org:8000/index.html?q=juxt"}
 ```
 
 A partially applied uri-for function is available in bidi's matching context and returns a map of the following elements. This partial applies the vhosts-model which can help with dependency cycles in your code (where your bidi router requires knowledge of resources, which have views that require knowledge of the bidi router's routes).
@@ -534,7 +536,7 @@ When called via bidi's match-context, the `:href` entry in the result may not co
 
 ### Multiple virtual hosts
 
-A virtual-host can be declared as a vector, with the first entry representing the preferred, or 'canonical', virtual host.
+A virtual-host can be declared as a vector, with the first entry representing the preferred, or 'canonical', virtual host that is used when forming URIs. (If called via bidi's matching context, the first virtual host matching the scheme of the source request is used.)
 
 ```clojure
 [{:scheme :https :host "example.org:8443"}
