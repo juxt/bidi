@@ -155,9 +155,13 @@ Add the following dependency to your `project.clj` file
 [![Clojars Project](http://clojars.org/bidi/latest-version.svg)](http://clojars.org/bidi)
 [![Build Status](https://travis-ci.org/juxt/bidi.png)](https://travis-ci.org/juxt/bidi) [![CircleCIStatus](https://circleci.com/gh/juxt/bidi.svg?style=shield&circle-token=d604205dab0328029e95202a4344e6a1082b79c2)](https://circleci.com/gh/juxt/bidi)
 
-
-
 As bidi uses Clojure's reader conditionals, bidi is dependent on both Clojure 1.7 and Leiningen 2.5.3 or later.
+
+## Version 2.x
+
+Version 2.x builds on 1.x by providing a mechanism to envelope multiple virtual hosts with a single route map. The idea is to eventually create a route map which defines routes across multiple services and helps with the construction of URIs to other services, a process which is traditionally error-prone.
+
+Version 2.x is backward compatible and forward compatible with version 1.x. If you are upgrading from 1.x to 2.x you will not need to change your existing route definitions.
 
 ## Take 5 minutes to learn bidi (using the REPL)
 
