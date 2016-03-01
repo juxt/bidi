@@ -35,8 +35,6 @@
                         ;; Ring confusingly calls the URI's path
                         :uri "/index.html"})) )))
 
-;; TODO Rename path-params to route-params, more Ringish
-
 (deftest uri-for-test
   (let [model example-vhosts-model]
     (testing "uris"
@@ -44,9 +42,9 @@
       (is (= "http://c.com:8000/index.html" (:uri (uri-for model :c))))
       (is (= "http://d.com:8002/index/d" (:uri (uri-for model :d)))))
 
-    (testing "path-params"
-      (is (= "https://b.org/b/1/b1.html" (:uri (uri-for model :b1 {:path-params {:n 1}}))))
-      (is (= "https://b.org/b/abc/b2.html" (:uri (uri-for model :b2 {:path-params {:n "abc"}})))))
+    (testing "route-params"
+      (is (= "https://b.org/b/1/b1.html" (:uri (uri-for model :b1 {:route-params {:n 1}}))))
+      (is (= "https://b.org/b/abc/b2.html" (:uri (uri-for model :b2 {:route-params {:n "abc"}})))))
 
     (testing "relative"
       (is (= "http://a.org/index" (:uri (uri-for model :a {:vhost {:scheme :http :host "a.org"}}))))
@@ -59,10 +57,10 @@
 
     (testing "query params"
       (is (= "https://b.org/b/1/b1.html?foo=bar"
-             (:uri (uri-for model :b1 {:path-params {:n 1}
+             (:uri (uri-for model :b1 {:route-params {:n 1}
                                        :query-params {"foo" "bar"}}))))
       (is (= "https://b.org/b/1/b1.html?foo=bar&foo=fry%26laurie"
-             (:uri (uri-for model :b1 {:path-params {:n 1}
+             (:uri (uri-for model :b1 {:route-params {:n 1}
                                        :query-params {"foo" ["bar" "fry&laurie"]}})))))))
 
 (deftest make-handler-test

@@ -44,10 +44,10 @@
 
 (defn uri-for
   "Return URI info as a map."
-  [vhosts-model handler & [{:keys [vhost path-params query-params] :as options}]]
+  [vhosts-model handler & [{:keys [vhost route-params query-params] :as options}]]
   (some
    (fn [[vhosts & routes]]
-     (when-let [path (apply path-for ["" (vec routes)] handler (mapcat identity path-params))]
+     (when-let [path (apply path-for ["" (vec routes)] handler (mapcat identity route-params))]
        
        (let [path (if query-params
                     (str path "?" (query-string query-params))
@@ -107,7 +107,7 @@
         (assoc :location
                (:uri ((:uri-for m) target
                       (merge
-                       {:path-params (:route-params m)}
+                       {:route-params (:route-params m)}
                        (when query-params {:query-params query-params})))))
         true (dissoc :remainder))))
   (unresolve-handler [this m]
