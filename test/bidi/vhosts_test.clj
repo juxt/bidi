@@ -35,6 +35,8 @@
                         ;; Ring confusingly calls the URI's path
                         :uri "/index.html"})) )))
 
+;; TODO Rename path-params to route-params, more Ringish
+
 (deftest uri-for-test
   (let [model example-vhosts-model]
     (testing "uris"
@@ -72,4 +74,16 @@
              :headers {"host" "c.com:8000"}
              :uri "/index.html"})))))
 
+(deftest redirect-test
+  (let [model (vhosts-model
+               [[{:scheme :https :host "a.org"}
+                 {:scheme :http :host "www.a.org"}]
+                ["" [["/index" :a] ["/" (redirect :a)]]]])
+        h (make-handler model)]
 
+    (let [resp (h {:scheme :http
+                   :headers {"host" "www.a.org"}
+                   ;; Ring confusingly calls the URI's path
+                   :uri "/"})]
+      (is (= 302 (:status resp)))
+      (is (= "http://www.a.org/index" (get-in resp [:headers "location"]))))))

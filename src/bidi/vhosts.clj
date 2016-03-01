@@ -97,5 +97,31 @@
               (update-in [:route-params] merge route-params))
           (apply dissoc match-context :handler (keys req))))))))
 
+(defrecord Redirect [status target query-params]
+  bidi/Matched
+  (resolve-handler [this m]
+    (when (= "" (:remainder m))
+      (cond-> m
+        true (assoc :handler this)
+        (not (string? target))
+        (assoc :location
+               (:uri ((:uri-for m) target
+                      (merge
+                       {:path-params (:route-params m)}
+                       (when query-params {:query-params query-params})))))
+        true (dissoc :remainder))))
+  (unresolve-handler [this m]
+    (when (= this (:handler m)) ""))
+  br/Ring
+  (request [f req m]
+    (if-let [location (if-not (string? target) (:location m) target)]
+      {:status status
+       :headers {"location" location}
+       :body (str "Redirect to " location)}
+      {:status 500
+       :body "Failed to determine redirect location"})))
+
+(defn redirect [target & [opts]]
+  (map->Redirect (merge {:status 302 :target target} opts)))
 
 
