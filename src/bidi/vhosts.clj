@@ -78,7 +78,7 @@
              (assoc req
                     :remainder (:uri req)
                     :route ["" routes]
-                    :uri-for (fn [handler options]
+                    :uri-for (fn [handler & [options]]
                                (uri-for vhosts-model handler (merge {:vhost vhost} options)))))
             (dissoc :route)))))
      (:vhosts vhosts-model))))
