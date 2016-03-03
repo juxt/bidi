@@ -186,8 +186,11 @@ actually a valid UUID (this is handled by the route matching logic)."
 
 (defn just-path
   [path]
-  #?(:clj (.getRawPath (java.net.URI. path)) ;; Raw path means encoded chars are kept.
-     :cljs (.getPath (goog.Uri. path))))
+  (let [uri-string (str "file:///" path)]
+    ;; Raw path means encoded chars are kept.
+    (subs #?(:clj (.getRawPath (java.net.URI. uri-string))
+             :cljs (.getPath (goog.Uri. uri-string)))
+          1)))
 
 (defn match-pair
   "A pair contains a pattern to match (either fully or partially) and an
