@@ -85,10 +85,11 @@
       (when (not-empty path)
         (assoc (dissoc m :remainder)
           :handler
-            (fn [req]
-              (if-let [res (resource-response (str (:prefix options) path))]
-                res
-                {:status 404}))))))
+          (-> (fn [req]
+                (if-let [res (resource-response (str (:prefix options) path))]
+                  res
+                  {:status 404})
+                (wrap-content-type options)))))))
   (unresolve-handler [this m]
     (when (= this (:handler m)) "")))
 
@@ -110,7 +111,9 @@
       (when (not-empty path)
         (when-let [res (io/resource (str (:prefix options) path))]
           (assoc (dissoc m :remainder)
-            :handler (fn [req] (resource-response (str (:prefix options) path))))))))
+                 :handler (->
+                           (fn [req] (resource-response (str (:prefix options) path)))
+                           (wrap-content-type options)))))))
   (unresolve-handler [this m]
     (when (= this (:handler m)) "")))
 

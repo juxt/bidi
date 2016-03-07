@@ -18,6 +18,7 @@
   :prep-tasks ["javac" "compile"]
 
   :profiles {:dev {:exclusions [[org.clojure/tools.reader]]
+                   :resource-paths ["test-resources"]
                    :dependencies [[org.clojure/clojure "1.7.0"]
                                   [org.clojure/clojurescript "1.7.170"]
                                   [org.clojure/tools.reader "0.10.0-alpha3"]

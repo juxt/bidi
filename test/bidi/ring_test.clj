@@ -149,3 +149,9 @@
                        ["bar" bar]]]]
       (is (= "/foo" (path-for routes foo)))
       (is (= "/bar" (path-for routes bar))))))
+
+(deftest resource-mimetype-detection []
+  (let [h (make-handler ["/resources/" (->ResourcesMaybe {})])
+        resp (h (mock-request :get "/resources/foo.css"))]
+    (is (= "text/css" (get-in resp [:headers "Content-Type"])))))
+
