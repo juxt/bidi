@@ -239,3 +239,11 @@
   (let [myroutes [true :foo]]
     (is (= {:handler :foo} (match-route myroutes "/")))
     (is (= "" (path-for myroutes :foo)))))
+
+(deftest colon-test
+  (let [myroutes ["/" {":a" :a
+                       "b" :b}]]
+    (is (= {:handler :a} (match-route myroutes "/:a")))
+    (is (= {:handler :b} (match-route myroutes "/b")))
+    (is (nil? (match-route myroutes "/a")))
+    (is (nil? (match-route myroutes "/:b")))))
