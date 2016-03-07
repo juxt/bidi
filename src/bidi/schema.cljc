@@ -2,6 +2,7 @@
 
 (ns bidi.schema
   (:require
+   [bidi.bidi :as bidi]
     #?(:clj [schema.core :as s]
        :cljs [schema.core :as s :include-macros true])))
 
@@ -20,7 +21,8 @@
   {s/Keyword (s/cond-pre s/Str s/Keyword (s/=> s/Any s/Any))})
 
 (def Pattern
-  (s/cond-pre Path
+  (s/cond-pre (s/protocol bidi/Pattern)
+              Path
               [PatternSegment]
               MethodGuard
               GeneralGuard
