@@ -640,7 +640,7 @@ which each match the handler. The first in the list is considered the
 canonical pattern for the purposes of URI formation.
 
 ```clojure
-[(alts "/index.html" "/index") :index]
+[#{"/index.html" "/index"} :index]
 ```
 
 Any pattern can be used in the list. This allows quite sophisticated
@@ -648,13 +648,13 @@ matching. For example, if you want to match on requests that are either
 HEAD or GET but not anything else.
 
 ```clojure
-[(alts :head :get) :index]
+[#{:head :get} :index]
 ```
 
 Or match if the server name is `juxt.pro` or `localhost`.
 
 ```clojure
-[(alts {:server-name "juxt.pro"}{:server-name "localhost"})
+[#{{:server-name "juxt.pro"}{:server-name "localhost"}}
  {"/index.html" :index}]
 ```
 
@@ -686,6 +686,15 @@ Paths can now be created like this :-
 (path-for my-routes :bar :id "123")
 
 ```
+
+### Route sequences
+
+It's possible to extract all possible routes from a route structure with `route-seq`.
+
+Call `route-seq` on a route structure returns a sequence of all the possible routes contained in the route structure. This is useful to generating a site map. Each route is a map containing a path and a handler entry.
+
+If you use keywords to extract route parameters, they will be contained in the path. If you wish to control the expansion, use a custom record that satisfies both `bidi/Pattern` and `bidi/Matches`.
+
 
 ## Contributing
 

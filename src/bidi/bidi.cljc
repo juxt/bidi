@@ -217,13 +217,13 @@ actually a valid UUID (this is handled by the route matching logic)."
   #?(:clj String
      :cljs string)
   #?(:clj (match-pattern [this env]
-            (if (= (.length this) 0)
-              env
-              (when (.startsWith ^String (:remainder env) this)
-                (assoc env :remainder (.substring ^String (:remainder env) (.length this))))))
+                         (if (= (.length this) 0)
+                           env
+                           (when (.startsWith ^String (:remainder env) this)
+                             (assoc env :remainder (.substring ^String (:remainder env) (.length this))))))
      ;; TODO: Optimize cljs version as above
      :cljs (match-pattern [this env]
-             (match-beginning (str "(" (segment-regex-group this) ")") env)))
+                          (match-beginning (str "(" (segment-regex-group this) ")") env)))
   (unmatch-pattern [this _] this)
 
   #?(:clj java.util.regex.Pattern
@@ -234,9 +234,9 @@ actually a valid UUID (this is handled by the route matching logic)."
   ;; string (it's a many-to-one mapping)
 
   #?(:cljs
-      (unmatch-pattern [this m]
-        (let [p (.pattern this)]
-          (unmatch-pattern (clojure.string/replace p #"\\\\" "") m))))
+     (unmatch-pattern [this m]
+                      (let [p (.pattern this)]
+                        (unmatch-pattern (clojure.string/replace p #"\\\\" "") m))))
 
   #?(:clj Boolean
      :cljs boolean)
@@ -293,14 +293,34 @@ actually a valid UUID (this is handled by the route matching logic)."
 
   #?(:cljs cljs.core.PersistentHashMap)
   #?(:cljs
-      (match-pattern [this env]
-        (when (every? (fn [[k v]]
-                        (cond
-                          (or (fn? v) (set? v)) (v (get env k))
-                          :otherwise (= v (get env k))))
-                      (seq this))
-          env)))
-  (unmatch-pattern [_ _] ""))
+     (match-pattern [this env]
+                    (when (every? (fn [[k v]]
+                                    (cond
+                                      (or (fn? v) (set? v)) (v (get env k))
+                                      :otherwise (= v (get env k))))
+                                  (seq this))
+                      env)))
+  #?(:cljs
+     (unmatch-pattern [_ _] ""))
+
+  #?(:clj clojure.lang.APersistentSet
+     :cljs cljs.core.PersistentHashSet)
+  (match-pattern [this s]
+    (some #(match-pattern % s)
+          ;; We try to match on the longest string first, so that the
+          ;; empty string will be matched last, after all other cases
+          (sort-by count > this)))
+  (unmatch-pattern [this s] (unmatch-pattern (first this) s))
+
+  #?(:cljs cljs.core.PersistentTreeSet)
+  #?(:cljs
+     (match-pattern [this s]
+                    (some #(match-pattern % s)
+                          ;; We try to match on the longest string first, so that the
+                          ;; empty string will be matched last, after all other cases
+                          (sort-by count > this))))
+  #?(:cljs
+     (unmatch-pattern [this s] (unmatch-pattern (first this) s))))
 
 (defn unmatch-pair [v m]
   (when-let [r (unresolve-handler (second v) m)]
@@ -381,6 +401,21 @@ actually a valid UUID (this is handled by the route matching logic)."
 ;; Route seqs
 ;; --------------------------------------------------------------------------------
 
+(defprotocol Matches
+  (matches [_] "A protocol used in the expansion of possible matches that the pattern can match. This is used to gather all possible routes using route-seq below."))
+
+(extend-protocol Matches
+  #?(:clj Object
+     :cljs default)
+  (matches [this] [this])
+
+  #?(:clj clojure.lang.APersistentSet
+     :cljs cljs.core.PersistentHashSet)
+  (matches [this] this)
+
+  #?(:cljs cljs.core.PersistentTreeSet)
+  #?(:cljs (matches [this] this)))
+
 (defrecord Route [handler path])
 
 (defprotocol RouteSeq
@@ -388,7 +423,10 @@ actually a valid UUID (this is handled by the route matching logic)."
 
 (defn route-seq
   ([[pattern matched] ctx]
-   (gather matched (update-in ctx [:path] (fnil conj []) pattern)))
+   (mapcat
+    identity
+    (for [p (matches pattern)]
+      (gather matched (update-in ctx [:path] (fnil conj []) p)))))
   ([route]
    (route-seq route {})))
 
@@ -438,6 +476,8 @@ actually a valid UUID (this is handled by the route matching logic)."
 ;; the route is matched. The first pattern in the vector is considered
 ;; the canonical pattern for the purposes of URI formation with
 ;; (path-for).
+
+;; This is deprecated. You should really use the literal set syntax.
 (defrecord Alternates [alts]
   Pattern
   (match-pattern [this m]
@@ -445,7 +485,9 @@ actually a valid UUID (this is handled by the route matching logic)."
           ;; We try to match on the longest string first, so that the
           ;; empty string will be matched last, after all other cases
           (sort-by count > alts)))
-  (unmatch-pattern [this m] (unmatch-pattern (first alts) m)))
+  (unmatch-pattern [this m] (unmatch-pattern (first alts) m))
+  Matches
+  (matches [_] alts))
 
 (defn alts [& alts]
   (->Alternates alts))
@@ -460,7 +502,9 @@ actually a valid UUID (this is handled by the route matching logic)."
   (unresolve-handler [this m]
     (if (keyword? (:handler m))
       (when (= tag (:handler m)) "")
-      (unresolve-handler matched m))))
+      (unresolve-handler matched m)))
+  RouteSeq
+  (gather [this context] [(map->Route (assoc context :handler matched :tag tag))]))
 
 (defn tag [matched tag]
   (->TaggedMatch matched tag))

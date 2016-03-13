@@ -223,17 +223,51 @@
     (= (match-route routes-test "/x-index.html") :index)
     (= (match-route routes-test "/index-x.html") :index)))
 
-(deftest route-seq-test
-  (let [myroutes
-        ["/" [
-              ["index" :index]
-              ["docs/" [
-                        [[:doc-id "/"]
-                         [["view" :docview]
-                          [["chapter/" :chapter "/"] {"view" :chapter-view}]]]]]]]
+(deftest wrap-set-test
+  (let [routes [#{"/index.html" "/index"} :index]]
+    (is (= (match-route routes "/index.html") {:handler :index}))
+    (is (= (match-route routes "/index") {:handler :index}))
+    (is (= (path-for routes :index) "/index.html"))) ; first is the canonical one
+  (let [routes [#{"/index.html" "/index"} :index]]
+    (is (= (match-route routes "/index.html") {:handler :index}))
+    (is (= (match-route routes "/index") {:handler :index}))))
 
-        result (route-seq ["" [myroutes]])]
-    (is (= (count result) 3))))
+(deftest similar-set-test
+  (let [routes-test ["/" {#{"index" "index-x" "index.html" "x-index.html" "index-x.html" "x.html"} :index}]]
+    (= (match-route routes-test "/index") :index)
+    (= (match-route routes-test "/index-x") :index)
+    (= (match-route routes-test "/index.html") :index)
+    (= (match-route routes-test "/x.html") :index)
+    (= (match-route routes-test "/x-index.html") :index)
+    (= (match-route routes-test "/index-x.html") :index)))
+
+(deftest route-seq-test
+  (testing ""
+    (let [myroutes
+          ["/" [
+                ["index" :index]
+                ["docs/" [
+                          [[:doc-id "/"]
+                           [["view" :docview]
+                            [["chapter/" :chapter "/"] {"view" :chapter-view}]]]]]]]
+
+          result (route-seq ["" [myroutes]])]
+      (is (= 3 (count result)))))
+
+  (testing "set patterns"
+    (let [result (route-seq [#{"" "/"} [[:a "A"]
+                                        [:b "B"]]])]
+      (is (= 4 (count result)))))
+
+  (testing "only leaves"
+    (let [result (route-seq [#{"" "/"} [[:a "A"]
+                                        [:b "B"]]])]
+      (is (= 4 (count result)))))
+
+  (testing "tags"
+    (let [result (route-seq ["/" [[:a (bidi/tag "A" :abc)]
+                                  [:b "B"]]])]
+      (is (= [:abc nil] (map :tag result))))))
 
 (deftest boolean-test
   (let [myroutes [true :foo]]
