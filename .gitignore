@@ -9,4 +9,6 @@ pom.xml.asc
 /.nrepl-port
 /todo.org
 .repl/
+/.idea/
+*.iml
 out/
