@@ -262,6 +262,7 @@
   (testing "only leaves"
     (let [result (route-seq [#{"" "/"} [[:a "A"]
                                         [:b "B"]]])]
+      (is (= [["" :a] ["" :b] ["/" :a] ["/" :b]] (map :path result)))
       (is (= 4 (count result)))))
 
   (testing "tags"
