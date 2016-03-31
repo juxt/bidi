@@ -252,16 +252,49 @@
                             [["chapter/" :chapter "/"] {"view" :chapter-view}]]]]]]]
 
           result (route-seq ["" [myroutes]])]
+      (is (= [["" "/" "index"]
+              ["" "/" "docs/" [:doc-id "/"] "view"]
+              ["" "/" "docs/" [:doc-id "/"] ["chapter/" :chapter "/"] "view"]]
+             (map :path result)))
       (is (= 3 (count result)))))
+
+  (testing "qualifiers"
+    (is (= [["/" ["test/" [keyword :id] "/end"]]
+            ["/" "test/"]]
+           (map :path (route-seq ["/" [[["test/" [keyword :id] "/end"] :view]
+                                       ["test/" :test]]]))))
+    (is (= [[[[bidi/uuid :id]]]]
+           (map :path (route-seq [[[bidi/uuid :id]] :view]))))
+    (is (= [[[[long :id]]]]
+           (map :path (route-seq [[[long :id]] :view]))))
+    (let [pattern #"^m\d+b$"]
+      (is (= [[[[pattern :id]]]]
+             (map :path (route-seq [[[pattern :id]] :view])))))
+    (is (= [[[[keyword :id]]]]
+            (map :path (route-seq [[[keyword :id]] :view]))))
+    (is (= [[["test/" [keyword :id]]]]
+           (map :path (route-seq [["test/" [keyword :id]] :view]))))
+    (is (= [[[[keyword :id] "/end"]]]
+           (map :path (route-seq [[[keyword :id] "/end"] :view]))))
+    (is (= [[["test/" [keyword :id] "/end"]]]
+           (map :path (route-seq [["test/" [keyword :id] "/end"] :view])))))
 
   (testing "set patterns"
     (let [result (route-seq [#{"" "/"} [[:a "A"]
                                         [:b "B"]]])]
+      (is (= [["" :a] ["" :b] ["/" :a] ["/" :b]]))
+      (is (= 4 (count result)))))
+
+  (testing "alt patterns"
+    (let [result (route-seq [(bidi/alts "" "/") [[:a "A"]
+                                                 [:b "B"]]])]
+      (is (= [["" :a] ["" :b] ["/" :a] ["/" :b]]))
       (is (= 4 (count result)))))
 
   (testing "only leaves"
     (let [result (route-seq [#{"" "/"} [[:a "A"]
                                         [:b "B"]]])]
+      (is (= [["" :a] ["" :b] ["/" :a] ["/" :b]]))
       (is (= 4 (count result)))))
 
   (testing "tags"
