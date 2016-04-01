@@ -10,7 +10,7 @@
    [schema.utils :refer [error?]]))
 
 (s/defschema VHost {:scheme (s/enum :http :https)
-                     :host s/Str})
+                    :host s/Str})
 
 (s/defschema VHostWithRoutes
   [(s/one [VHost] "Virtual host")
