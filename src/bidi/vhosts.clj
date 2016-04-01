@@ -7,7 +7,8 @@
    [bidi.schema :as bsc]
    [schema.core :as s]
    [schema.coerce :as sc]
-   [schema.utils :refer [error?]]))
+   [schema.utils :refer [error?]])
+  (:import [java.net URL URI]))
 
 (s/defschema VHost {:scheme (s/enum :http :https)
                     :host s/Str})
@@ -16,11 +17,25 @@
   [(s/one [VHost] "Virtual host")
    bsc/RoutePair])
 
+(def coerce-to-vhost
+  (sc/coercer VHost
+              {VHost (fn [x]
+                       (cond (instance? URI x) {:scheme (keyword (.getScheme x))
+                                                :host (.getHost x)}
+                             (instance? URL x) (recur x)
+                             (string? x) (recur (URI. x))
+                             :otherwise x))}))
+
 (def coerce-to-vhosts-model
   (sc/coercer
    [VHostWithRoutes]
-   {[VHost] (fn [x]
-               (if-not (s/check VHost x) (vector x) x))}))
+   {VHost coerce-to-vhost
+    [VHost] (fn [x]
+              (if
+                  (or (string? x)
+                      (instance? URI x)
+                      (instance? URL x)) [(coerce-to-vhost x)]
+                  (if-not (s/check VHost x) (vector x) x)))}))
 
 (defrecord VHostsModel [vhosts])
 

@@ -491,28 +491,33 @@ A [schema](https://github.com/Prismatic/schema) is available as `bidi.schema/Rou
 
 ## Virtual Hosts
 
-If you are serving multiple virtual hosts, you may want to create a super-structure that allows routing across virtual host boundaries. You may even wish to create an organization-wide model which can be loaded into bidi, to support the creation of links to other services, including 'micro-services'.
+If you are serving multiple virtual hosts with the same server, you may want to create a super-structure that allows routing across virtual host boundaries.
 
-A virtual-host is declared by a vector. The first element is a host specification.
+Here's a virtual-host structure:
 
 ```clojure
-{:scheme :https :host "example.org:8000"}
+["https://example.org:8443"
+ ["/index.html" :index]
+ ["/login" :login]
+ ["/posts" […]]
 ```
 
-Each subsequent element is a bidi route served by that host.
+It's just like the vector-of-vectors syntax we've seen before in bidi, but this time the first element is a virtual-host declaration. This is usually a string but can also be a `java.net.URI` or `java.net.URL`, or a map like `{:scheme :https :host "example.org:8443"}`.
 
-A virtual-hosts super-structure is created with the `bidi.vhosts/vhosts.model` variadic function.
+A virtual-hosts super-structure is created with the `bidi.vhosts/vhosts.model` variadic function, each argument is a virtual-host structure.
 
 ```clojure
 (require '[bidi.vhosts :refer [vhosts-model])
 
 (def my-vhosts-model
-  (vhosts-model [{:scheme :https :host "example.org:8000"}
+  (vhosts-model ["https://example.org:8443"
                  ["/index.html" :index]
-                 ["/login" :login]]))
-```
+                 ["/login" :login]]
 
-In this example, only one argument is passed to `vhosts-model`, but the vhosts-model function takes any number of arguments. Each argument corresponds to a virtual-host.
+                ["https://blog.example.org"
+                 ["/posts.html" […]]]))
+
+```
 
 ### uri-for
 
@@ -527,27 +532,28 @@ For example:
 would return
 
 ```
-{:uri "https://example.org:8000/index.html?q=juxt"
+{:uri "https://example.org:8443/index.html?q=juxt"
  :path "/index.html"
- :host "example.org:8000"
+ :host "example.org:8443"
  :scheme :https
- :href "https://example.org:8000/index.html?q=juxt"}
+ :href "https://example.org:8443/index.html?q=juxt"}
 ```
 
 A partially applied uri-for function is available in bidi's matching context and returns a map of the following elements. This partial applies the vhosts-model which can help with dependency cycles in your code (where your bidi router requires knowledge of resources, which have views that require knowledge of the bidi router's routes).
 
 When called via bidi's match-context, the `:href` entry in the result may not contain the scheme, host and port, if these are redundant, whereas the `:uri` entry always contains an absolute URI. If you are creating HTML content for a browser, `:href` is safe to use. If, for example, you are creating an API returning a JSON-formatted response body, prefer `:uri`.
 
-### Multiple virtual hosts
+### Synonymous virtual-hosts
 
-A virtual-host can be declared as a vector, with the first entry representing the preferred, or 'canonical', virtual host that is used when forming URIs. (If called via bidi's matching context, the first virtual host matching the scheme of the source request is used.)
+The virtual-host declaration can itself be a vector, if you need to match multiple possibilities. Here's another example, which matches two hosts:
 
 ```clojure
-[{:scheme :https :host "example.org:8443"}
- {:scheme :https :host "www.example.org:8443"}
- {:scheme :http :host "example.org:8000"}
- {:scheme :http :host "www.example.org:8000"}]
+[["https://example.org:8443" "http://example.org:8000"]
+ ["/index.html" :index]
+ ["/login" :login]]
 ```
+
+The rules for `uri-for` are that the first virtual-host in the vector is used. When the request is known to bidi (i.e. in the partially applied uri-for function in the match-context) the algorithm chooses the first virtual host that matches the request URI's scheme.
 
 ## Composability
 
