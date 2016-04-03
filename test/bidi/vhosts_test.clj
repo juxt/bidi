@@ -115,6 +115,12 @@
   (testing "synonymous vhosts"
     (is (nil? (:error (coerce-to-vhosts-model
                        [[["http://localhost:8000"
-                           "http://localhost:8001"]
-                          ["/" :index]
-                          ]]))))))
+                          "http://localhost:8001"]
+                         ["/" :index]
+                         ]])))))
+
+  (testing "cannot have empty vhosts"
+    (is (:error (coerce-to-vhosts-model
+                 [[[]
+                   ["/" :index]
+                   ]])))))

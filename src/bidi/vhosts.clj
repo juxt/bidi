@@ -14,8 +14,8 @@
                     :host s/Str})
 
 (s/defschema VHostWithRoutes
-  [(s/one [VHost] "Virtual host")
-   bsc/RoutePair])
+  (s/constrained [(s/one [VHost] "Virtual host")
+                  bsc/RoutePair] (comp not-empty first) "Must have at least one vhost"))
 
 (def coerce-to-vhost
   (sc/coercer VHost
