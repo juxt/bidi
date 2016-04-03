@@ -88,25 +88,33 @@
       (is (= "http://www.a.org/index" (get-in resp [:headers "location"]))))))
 
 (deftest coercion-test
-  (let [m
-        (coerce-to-vhosts-model
-         [
-          ["https://abc.com"
-           ["/" :a/index]
-           ["/foo" :a/foo]
-           ]
-          [{:scheme :http :host "abc"}
-           ["/" :b/index]
-           ["/bar" :b/bar]
-           ]
-          [[{:scheme :http :host "localhost"} "http://def.org"]
-           ["/" :c/index]
-           ["/zip" :c/zip]
-           ]])]
-    (is (not (error? m)))
-    (is (= [[[{:scheme :https, :host "abc.com"}] ["/" :a/index] ["/foo" :a/foo]]
-            [[{:scheme :http, :host "abc"}] ["/" :b/index] ["/bar" :b/bar]]
-            [[{:scheme :http, :host "localhost"}
-              {:scheme :http, :host "def.org"}]
+  (testing "coercions"
+    (let [m
+          (coerce-to-vhosts-model
+           [
+            ["https://abc.com"
+             ["/" :a/index]
+             ["/foo" :a/foo]
+             ]
+            [{:scheme :http :host "abc"}
+             ["/" :b/index]
+             ["/bar" :b/bar]
+             ]
+            [[{:scheme :http :host "localhost"} "http://def.org"]
              ["/" :c/index]
-             ["/zip" :c/zip]]] m))))
+             ["/zip" :c/zip]
+             ]])]
+      (is (not (error? m)))
+      (is (= [[[{:scheme :https, :host "abc.com"}] ["/" :a/index] ["/foo" :a/foo]]
+              [[{:scheme :http, :host "abc"}] ["/" :b/index] ["/bar" :b/bar]]
+              [[{:scheme :http, :host "localhost"}
+                {:scheme :http, :host "def.org"}]
+               ["/" :c/index]
+               ["/zip" :c/zip]]] m))))
+
+  (testing "synonymous vhosts"
+    (is (nil? (:error (coerce-to-vhosts-model
+                       [[["http://localhost:8000"
+                           "http://localhost:8001"]
+                          ["/" :index]
+                          ]]))))))
