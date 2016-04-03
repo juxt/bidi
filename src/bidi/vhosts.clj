@@ -17,14 +17,21 @@
   (s/constrained [(s/one [VHost] "Virtual host")
                   bsc/RoutePair] (comp not-empty first) "Must have at least one vhost"))
 
+(defn uri->host [uri]
+  (cond-> (.getHost uri)
+    (pos? (.getPort uri))
+    (str ":" (.getPort uri))))
+
 (def coerce-to-vhost
-  (sc/coercer VHost
-              {VHost (fn [x]
-                       (cond (instance? URI x) {:scheme (keyword (.getScheme x))
-                                                :host (.getHost x)}
-                             (instance? URL x) (recur x)
-                             (string? x) (recur (URI. x))
-                             :otherwise x))}))
+  (sc/coercer
+   VHost
+   {VHost (fn [x]
+            (cond (instance? URI x)
+                  {:scheme (keyword (.getScheme x))
+                   :host (uri->host x)}
+                  (instance? URL x) (recur x)
+                  (string? x) (recur (URI. x))
+                  :otherwise x))}))
 
 (def coerce-to-vhosts-model
   (sc/coercer
