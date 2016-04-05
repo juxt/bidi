@@ -108,16 +108,21 @@
 (defn make-handler
   ([vhosts-model] (make-handler vhosts-model identity))
   ([vhosts-model handler-fn]
+   (make-handler vhosts-model handler-fn
+                 (fn [req]
+                   {:status 404 :body "Not found\n"})))
+  ([vhosts-model handler-fn not-found]
    (fn [req]
      (let [{:keys [handler route-params] :as match-context}
            (find-handler vhosts-model req)]
-       (when-let [handler (handler-fn handler)]
+       (if-let [handler (handler-fn handler)]
          (br/request
           handler
           (-> req
               (update-in [:params] merge route-params)
               (update-in [:route-params] merge route-params))
-          (apply dissoc match-context :handler (keys req))))))))
+          (apply dissoc match-context :handler (keys req)))
+         (not-found req))))))
 
 (defrecord Redirect [status target query-params]
   bidi/Matched
