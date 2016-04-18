@@ -88,8 +88,8 @@
           (-> (fn [req]
                 (if-let [res (resource-response (str (:prefix options) path))]
                   res
-                  {:status 404})
-                (wrap-content-type options)))))))
+                  {:status 404}))
+              (wrap-content-type options))))))
   (unresolve-handler [this m]
     (when (= this (:handler m)) "")))
 
