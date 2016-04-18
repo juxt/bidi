@@ -752,6 +752,7 @@ A big thank you to everyone involved in bidi so far, including
 * Thomas Crowley
 * Thomas Mulvaney
 * Tom Crayford
+* Andrew Phillips
 
 ## Copyright & License
 
