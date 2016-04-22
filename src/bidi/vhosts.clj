@@ -67,24 +67,22 @@
 (defn uri-for
   "Return URI info as a map."
   [vhosts-model handler & [{:keys [vhost route-params query-params] :as options}]]
+  (assert vhost "vhost must be specified as an option")
   (some
    (fn [[vhosts & routes]]
      (when-let [path (apply path-for ["" (vec routes)] handler (mapcat identity route-params))]
-       
+
        (let [path (if query-params
                     (str path "?" (query-string query-params))
                     path)
-             canonical (if vhost
-                         (first (filter (comp (partial = (:scheme vhost)) :scheme) vhosts))
-                         (first vhosts))
-             {:keys [scheme host]} canonical
+             {:keys [scheme host]} vhost
              uri (format "%s://%s%s" (name scheme) host path)
-             relative? (= vhost canonical)]
+             ]
          {:uri uri
           :path path
           :host host
           :scheme scheme
-          :href (if relative? path uri)})))
+          :href path})))
    (:vhosts vhosts-model)))
 
 (defn find-handler [vhosts-model req]
@@ -150,5 +148,3 @@
 
 (defn redirect [target & [opts]]
   (map->Redirect (merge {:status 302 :target target} opts)))
-
-

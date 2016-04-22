@@ -39,13 +39,15 @@
 (deftest uri-for-test
   (let [model example-vhosts-model]
     (testing "uris"
-      (is (= "https://a.org/index" (:uri (uri-for model :a))))
-      (is (= "http://c.com:8000/index.html" (:uri (uri-for model :c))))
-      (is (= "http://d.com:8002/index/d" (:uri (uri-for model :d)))))
+      (is (= "https://a.org/index" (:uri (uri-for model :a {:vhost {:scheme :https :host "a.org"}}))))
+      (is (= "http://c.com:8000/index.html" (:uri (uri-for model :c {:vhost {:scheme :http :host "c.com:8000"}}))))
+      (is (= "http://d.com:8002/index/d" (:uri (uri-for model :d {:vhost {:scheme :http :host "d.com:8002"}})))))
 
     (testing "route-params"
-      (is (= "https://b.org/b/1/b1.html" (:uri (uri-for model :b1 {:route-params {:n 1}}))))
-      (is (= "https://b.org/b/abc/b2.html" (:uri (uri-for model :b2 {:route-params {:n "abc"}})))))
+      (is (= "https://b.org/b/1/b1.html" (:uri (uri-for model :b1 {:route-params {:n 1}
+                                                                   :vhost {:scheme :https :host "b.org"}}))))
+      (is (= "https://b.org/b/abc/b2.html" (:uri (uri-for model :b2 {:route-params {:n "abc"}
+                                                                     :vhost {:scheme :https :host "b.org"}})))))
 
     (testing "relative"
       (is (= "http://a.org/index" (:uri (uri-for model :a {:vhost {:scheme :http :host "a.org"}}))))
@@ -53,16 +55,18 @@
       (is (= "https://c.com:8001/index.html" (:uri (uri-for model :c {:vhost {:scheme :https :host "c.com:8001"}})))))
 
     (testing "same scheme is preferred by default"
-      (is (= "http://a.org/index" (:uri (uri-for model :a {:vhost {:scheme :http :host "www.a.org"}}))))
-      (is (= "https://a.org/index" (:uri (uri-for model :a {:vhost {:scheme :https :host "www.a.org"}})))))
+      (is (= "http://www.a.org/index" (:uri (uri-for model :a {:vhost {:scheme :http :host "www.a.org"}}))))
+      (is (= "https://www.a.org/index" (:uri (uri-for model :a {:vhost {:scheme :https :host "www.a.org"}})))))
 
     (testing "query params"
       (is (= "https://b.org/b/1/b1.html?foo=bar"
              (:uri (uri-for model :b1 {:route-params {:n 1}
-                                       :query-params {"foo" "bar"}}))))
+                                       :query-params {"foo" "bar"}
+                                       :vhost {:scheme :https :host "b.org"}}))))
       (is (= "https://b.org/b/1/b1.html?foo=bar&foo=fry%26laurie"
              (:uri (uri-for model :b1 {:route-params {:n 1}
-                                       :query-params {"foo" ["bar" "fry&laurie"]}})))))))
+                                       :query-params {"foo" ["bar" "fry&laurie"]}
+                                       :vhost {:scheme :https :host "b.org"}})))))))
 
 (deftest make-handler-test
   (let [h (make-handler example-vhosts-model

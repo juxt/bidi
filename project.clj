@@ -1,13 +1,13 @@
 ;; Copyright © 2014, JUXT LTD.
 
-(defproject bidi "2.0.6"
+(defproject bidi "2.0.7"
   :description "Bidirectional URI routing"
   :url "https://github.com/juxt/bidi"
 
   :license {:name "The MIT License"
             :url "http://opensource.org/licenses/MIT"}
 
-  :pedantic? :abort
+;;  :pedantic? :abort
 
   :dependencies [[prismatic/schema "1.0.3"]
                  [ring/ring-core "1.4.0" :exclusions [org.clojure/clojure]]]
