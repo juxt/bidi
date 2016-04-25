@@ -64,26 +64,64 @@
               (enc k v)))
           query-params))))
 
+(defn- segments [s]
+  (let [l (re-seq #"[^/]*/?" s)]
+    (if (.endsWith s "/") l (butlast l))))
+
+(defn relativize [from to]
+  (if (and from to)
+    (loop [from (segments from)
+           to (segments to)]
+      (if-not (= (first from) (first to))
+        (str (apply str (repeat (+ (dec (count from))) "../"))
+             (apply str to))
+        (if (next from)
+          (recur (next from) (next to))
+          (first to))))
+    to))
+
+(defn prioritize-vhosts [vhosts-model vhost]
+  (cond->> (:vhosts vhosts-model)
+    vhost (sort-by (fn [[vhosts & _]] (if (first (filter (fn [x] (= x vhost)) vhosts)) -1 1)))))
+
 (defn uri-for
   "Return URI info as a map."
-  [vhosts-model handler & [{:keys [vhost route-params query-params] :as options}]]
-  (assert vhost "vhost must be specified as an option")
+  [prioritized-vhosts handler & [{:keys [request vhost route-params query-params prefer fragment] :or {prefer :local} :as options}]]
   (some
    (fn [[vhosts & routes]]
+
      (when-let [path (apply path-for ["" (vec routes)] handler (mapcat identity route-params))]
 
-       (let [path (if query-params
-                    (str path "?" (query-string query-params))
-                    path)
-             {:keys [scheme host]} vhost
-             uri (format "%s://%s%s" (name scheme) host path)
-             ]
-         {:uri uri
-          :path path
-          :host host
-          :scheme scheme
-          :href path})))
-   (:vhosts vhosts-model)))
+       (let [qs (when query-params
+                  (query-string query-params))]
+
+         (let [to-vhost (case prefer
+                          :local (or (first (filter (partial = vhost) vhosts))
+                                     (first vhosts))
+                          :first (first vhosts)
+                          :same-scheme (first (filter #(= (:scheme vhost) (:scheme %)) vhosts))
+                          :http (first (filter #(= :http (:scheme %)) vhosts))
+                          :https (first (filter #(= :https (:scheme %)) vhosts))
+                          :local-then-same-scheme (or (first (filter (partial = vhost) vhosts))
+                                                      (first (filter #(= (:scheme vhost) (:scheme %)) vhosts))
+                                                      (first vhosts)))
+               uri (format "%s://%s%s%s%s"
+                           (name (:scheme to-vhost))
+                           (:host to-vhost)
+                           path
+                           (if qs (str "?" qs) "")
+                           (if fragment (str "#" fragment) ""))]
+           (merge {:uri uri
+                   :path path
+                   :host (:host to-vhost)
+                   :scheme (:scheme to-vhost)
+                   :href (if (and (= vhost to-vhost) request)
+                           (relativize (:uri request) path)
+                           uri)}
+                  (when qs {:query-string qs})
+                  (when fragment {:fragment fragment}))))))
+
+   prioritized-vhosts))
 
 (defn find-handler [vhosts-model req]
   (let [vhost {:scheme (:scheme req)
@@ -99,7 +137,7 @@
                     :remainder (:uri req)
                     :route ["" routes]
                     :uri-for (fn [handler & [options]]
-                               (uri-for vhosts-model handler (merge {:vhost vhost} options)))))
+                               (uri-for (prioritize-vhosts vhosts-model vhost) handler (merge {:vhost vhost :request req} options)))))
             (dissoc :route)))))
      (:vhosts vhosts-model))))
 

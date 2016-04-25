@@ -22,10 +22,13 @@
 
    [[{:scheme :http :host "c.com:8000"}
      {:scheme :https :host "c.com:8001"}]
-    ["/index.html" :c]]
+    ["/index.html" :c]
+    ["/x" :x]]
 
    [{:scheme :http :host "d.com:8002"}
-    ["/index/" [["d" :d]]]]))
+    ["/index/" [["d" :d]]]
+    ;; :x is in both this and the one above
+    ["/dir/x" :x]]))
 
 (deftest find-handler-test
   (is (= :c (:handler (find-handler
@@ -37,7 +40,8 @@
                         :uri "/index.html"})) )))
 
 (deftest uri-for-test
-  (let [model example-vhosts-model]
+  (let [raw-model example-vhosts-model
+        model (prioritize-vhosts raw-model nil)]
     (testing "uris"
       (is (= "https://a.org/index" (:uri (uri-for model :a {:vhost {:scheme :https :host "a.org"}}))))
       (is (= "http://c.com:8000/index.html" (:uri (uri-for model :c {:vhost {:scheme :http :host "c.com:8000"}}))))
@@ -58,6 +62,7 @@
       (is (= "http://www.a.org/index" (:uri (uri-for model :a {:vhost {:scheme :http :host "www.a.org"}}))))
       (is (= "https://www.a.org/index" (:uri (uri-for model :a {:vhost {:scheme :https :host "www.a.org"}})))))
 
+
     (testing "query params"
       (is (= "https://b.org/b/1/b1.html?foo=bar"
              (:uri (uri-for model :b1 {:route-params {:n 1}
@@ -67,6 +72,11 @@
              (:uri (uri-for model :b1 {:route-params {:n 1}
                                        :query-params {"foo" ["bar" "fry&laurie"]}
                                        :vhost {:scheme :https :host "b.org"}})))))))
+
+(deftest duplicate-routes-test
+  (testing "same vhost takes priority"
+    (is (= "https://c.com:8001/x" (:uri (uri-for (prioritize-vhosts example-vhosts-model {:scheme :https :host "c.com:8001"}) :x {:prefer :https}))))
+    (is (= "http://d.com:8002/dir/x" (:uri (uri-for (prioritize-vhosts example-vhosts-model {:scheme :http :host "d.com:8002"}) :x))))))
 
 (deftest make-handler-test
   (let [h (make-handler example-vhosts-model
