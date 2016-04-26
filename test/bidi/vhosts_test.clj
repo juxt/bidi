@@ -39,6 +39,22 @@
                         ;; Ring confusingly calls the URI's path
                         :uri "/index.html"})) )))
 
+(deftest relativize-test
+  (are [source dest href] (= href (relativize source dest))
+    "" "" nil
+    "/abc/cd/d.html" "/abc/" "../"
+    "/abc/foo.html" "/abc/bar.html" "bar.html"
+    "/abc/foo/a.html" "/abc/bar/b.html" "../bar/b.html"
+    "/abc/foo/a/b" "/abc/bar/b" "../../bar/b"
+    "/abc.html" "/abc.html" "abc.html"
+    "/a/abc.html" "/a/abc.html" "abc.html"
+
+    "/a/" "/a/abc.html" "abc.html"
+    "/a" "/a/abc.html" "a/abc.html"
+
+    "/a/abc.html" "/a/" ""
+    ))
+
 (deftest uri-for-test
   (let [raw-model example-vhosts-model
         model (prioritize-vhosts raw-model nil)]
