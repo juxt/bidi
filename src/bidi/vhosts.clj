@@ -129,7 +129,7 @@
     (some
      (fn [[vhosts & routes]]
        (let [routes (vec routes)]
-         (when (some (partial = vhost) vhosts)
+         (when (some (partial = (:host vhost)) (map :host vhosts))
            (->
             (resolve-handler
              routes
