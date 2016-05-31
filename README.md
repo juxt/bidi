@@ -1,5 +1,7 @@
 # bidi
 
+[![Join the chat at https://gitter.im/juxt/bidi](https://badges.gitter.im/juxt/bidi.svg)](https://gitter.im/juxt/bidi?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 > "bidi bidi bidi" -- Twiki, in probably every episode of
   [Buck Rogers in the 25th Century](http://en.wikipedia.org/wiki/Buck_Rogers_in_the_25th_Century_%28TV_series%29)
 
