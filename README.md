@@ -92,8 +92,8 @@ There are numerous Clojure(Script) routing libraries. Here's a table to help you
 <td></td>
 <td>Data</td>
 <td>✔</td>
-<td></td>
-<td></td>
+<td>✔</td>
+<td>✔</td>
 </tr>
 <tr>
 <td><a href="https://github.com/thatismatt/gudu">gudu</a></td>
