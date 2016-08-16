@@ -6,6 +6,9 @@
        :cljs [cljs.test :refer-macros [deftest is testing]])
     [bidi.bidi :as bidi :refer [match-route path-for ->Alternates route-seq alts]]))
 
+(def foo-var-handler #(identity))
+(def bar-var-handler #(identity))
+
 (deftest matching-routes-test
   (testing "misc-routes"
     (is (= (match-route ["/blog/foo" 'foo] "/blog/foo")
@@ -51,6 +54,11 @@
                         "/blog/bar/abc?q=2&b=str")
            {:handler :bar}))
 
+    ;; Testing for var support
+    (is (= (match-route ["/blog" [["/foo" #'foo-var-handler]
+                                  ["/bar" [["/abc" #'bar-var-handler]]]]]
+                        "/blog/bar/abc")
+           {:handler #'bar-var-handler}))
 
     (testing "regex"
       (is (= (match-route ["/blog" [[["/articles/" [#"[0-9]+" :id] "/index.html"] 'foo]
