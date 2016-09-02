@@ -453,7 +453,7 @@ actually a valid UUID (this is handled by the route matching logic)."
   #?(:clj Object
      :cljs default)
   (gather [this context] [(map->Route (assoc context :handler this))]))
-  
+
 
 ;; --------------------------------------------------------------------------------
 ;; Protocols
@@ -500,8 +500,8 @@ actually a valid UUID (this is handled by the route matching logic)."
   (resolve-handler [this m]
     (resolve-handler matched (assoc m :tag tag)))
   (unresolve-handler [this m]
-    (if (keyword? (:handler m))
-      (when (= tag (:handler m)) "")
+    (if (and (keyword? (:handler m)) (= tag (:handler m)))
+      ""
       (unresolve-handler matched m)))
   RouteSeq
   (gather [this context] [(map->Route (assoc context :handler matched :tag tag))]))
@@ -535,10 +535,10 @@ actually a valid UUID (this is handled by the route matching logic)."
   (resolve-handler [_ m]
     (when-let [m (resolve-handler routes m)]
       (merge context m)))
-  
+
   (unresolve-handler [_ m]
     (unresolve-handler routes m))
-  
+
   RouteSeq
   (gather [_ context]
     (gather routes context)))
