@@ -150,6 +150,10 @@ HTTP servers (including Jetty, [http-kit](http://http-kit.org/) and
 [aleph](https://github.com/ztellman/aleph)) and is fully compatible with
 [Liberator](http://clojure-liberator.github.io/liberator/).
 
+If you're using with Liberator, see
+https://github.com/juxt/bidi/issues/95 for some more details on how to
+use them together.
+
 ## Installation
 
 Add the following dependency to your `project.clj` file
