@@ -33,7 +33,7 @@
                   (string? x) (recur (URI. x))
                   :otherwise x))}))
 
-(def coerce-to-vhosts-model
+(def coerce-to-vhosts
   (sc/coercer
    [VHostWithRoutes]
    {VHost coerce-to-vhost
@@ -47,7 +47,7 @@
 (defrecord VHostsModel [vhosts])
 
 (defn vhosts-model [& vhosts-with-routes]
-  (let [vhosts (coerce-to-vhosts-model (vec vhosts-with-routes))]
+  (let [vhosts (coerce-to-vhosts (vec vhosts-with-routes))]
     (when (error? vhosts)
       (throw (ex-info (format "Error in server model: %s"
                               (pr-str (:error vhosts)))
@@ -141,12 +141,24 @@
             (dissoc :route)))))
      (:vhosts vhosts-model))))
 
+(defn vhosts->roots [vhosts]
+  (->> vhosts
+       (map first)
+       (apply concat)
+       (map (fn [{:keys [scheme host]}] (str (subs (str scheme) 1) "://" host)))))
+
+(defn make-default-not-found-handler [vhosts-model]
+  (fn [req]
+    {:status 404
+     :body (apply str "Not found\n\n"
+                  ;; It is useful to provide the hosts that are served from this server
+                  (->> (vhosts->roots (:vhosts vhosts-model))
+                       (interpose "\n")))}))
+
 (defn make-handler
   ([vhosts-model] (make-handler vhosts-model identity))
   ([vhosts-model handler-fn]
-   (make-handler vhosts-model handler-fn
-                 (fn [req]
-                   {:status 404 :body "Not found\n"})))
+   (make-handler vhosts-model handler-fn (make-default-not-found-handler vhosts-model)))
   ([vhosts-model handler-fn not-found]
    (fn [req]
      (let [{:keys [handler route-params] :as match-context}

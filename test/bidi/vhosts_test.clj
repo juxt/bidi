@@ -6,7 +6,8 @@
    [schema.core :as s]
    [schema.utils :refer [error?]]
    [bidi.bidi :refer [path-for]]
-   [bidi.vhosts :refer :all]))
+   [bidi.vhosts :refer :all]
+   [ring.mock.request :refer (request) :rename {request mock-request}]))
 
 (def example-vhosts-model
   (vhosts-model
@@ -120,7 +121,7 @@
 (deftest coercion-test
   (testing "coercions"
     (let [m
-          (coerce-to-vhosts-model
+          (coerce-to-vhosts
            [
             ["https://abc.com"
              ["/" :a/index]
@@ -143,14 +144,22 @@
                ["/zip" :c/zip]]] m))))
 
   (testing "synonymous vhosts"
-    (is (nil? (:error (coerce-to-vhosts-model
+    (is (nil? (:error (coerce-to-vhosts
                        [[["http://localhost:8000"
                           "http://localhost:8001"]
                          ["/" :index]
                          ]])))))
 
   (testing "cannot have empty vhosts"
-    (is (:error (coerce-to-vhosts-model
-                 [[[]
-                   ["/" :index]
-                   ]])))))
+    (is (:error (coerce-to-vhosts [[[] ["/" :index]]])))))
+
+(deftest vhosts->roots-test []
+  (is (= ["https://a.org"
+          "http://a.org"
+          "http://www.a.org"
+          "https://www.a.org"
+          "https://b.org"
+          "http://c.com:8000"
+          "https://c.com:8001"
+          "http://d.com:8002"]
+         (vhosts->roots (:vhosts example-vhosts-model)))))
