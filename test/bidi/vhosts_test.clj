@@ -5,7 +5,6 @@
    [clojure.test :refer :all]
    [schema.core :as s]
    [schema.utils :refer [error?]]
-   [bidi.bidi :refer [path-for]]
    [bidi.vhosts :refer :all]
    [ring.mock.request :refer (request) :rename {request mock-request}]))
 

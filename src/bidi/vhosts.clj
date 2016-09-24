@@ -2,7 +2,7 @@
 
 (ns bidi.vhosts
   (:require
-   [bidi.bidi :as bidi :refer :all]
+   [bidi.bidi :as bidi :refer :all :exclude [path-for]]
    [bidi.ring :as br]
    [bidi.schema :as bsc]
    [schema.core :as s]
@@ -84,13 +84,13 @@
   (cond->> (:vhosts vhosts-model)
     vhost (sort-by (fn [[vhosts & _]] (if (first (filter (fn [x] (= x vhost)) vhosts)) -1 1)))))
 
-(defn uri-for
+(defn uri-info
   "Return URI info as a map."
   [prioritized-vhosts handler & [{:keys [request vhost route-params query-params prefer fragment] :or {prefer :local} :as options}]]
   (some
    (fn [[vhosts & routes]]
 
-     (when-let [path (apply path-for ["" (vec routes)] handler (mapcat identity route-params))]
+     (when-let [path (apply bidi/path-for ["" (vec routes)] handler (mapcat identity route-params))]
 
        (let [qs (when query-params
                   (query-string query-params))]
@@ -123,6 +123,15 @@
 
    prioritized-vhosts))
 
+(def path-for (comp :path uri-info))
+(def host-for (comp :host uri-info))
+(def scheme-for (comp :scheme uri-info))
+(def href-for (comp :href uri-info))
+
+;; At some point in the future, uri-for will be removed, opening up
+;; the possibility that it can be re-implemented.
+(def ^{:deprecated true} uri-for uri-info)
+
 (defn find-handler [vhosts-model req]
   (let [vhost {:scheme (:scheme req)
                :host (get-in req [:headers "host"])}]
@@ -136,8 +145,8 @@
              (assoc req
                     :remainder (:uri req)
                     :route ["" routes]
-                    :uri-for (fn [handler & [options]]
-                               (uri-for (prioritize-vhosts vhosts-model vhost) handler (merge {:vhost vhost :request req} options)))))
+                    :uri-info (fn [handler & [options]]
+                               (uri-info (prioritize-vhosts vhosts-model vhost) handler (merge {:vhost vhost :request req} options)))))
             (dissoc :route)))))
      (:vhosts vhosts-model))))
 
@@ -180,7 +189,7 @@
         true (assoc :handler this)
         (not (string? target))
         (assoc :location
-               (:uri ((:uri-for m) target
+               (:uri ((:uri-info m) target
                       (merge
                        {:route-params (:route-params m)}
                        (when query-params {:query-params query-params})))))

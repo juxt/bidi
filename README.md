@@ -525,14 +525,14 @@ A virtual-hosts super-structure is created with the `bidi.vhosts/vhosts.model` v
 
 ```
 
-### uri-for
+### uri-info
 
-When using virtual hosts, use the `bidi.vhosts/uri-for` to generate URIs.
+When using virtual hosts, use the `bidi.vhosts/uri-info` to generate a map of URIs.
 
 For example:
 
 ```
-(uri-for my-vhosts-model :index {:query-params {"q" "juxt"}})
+(uri-info my-vhosts-model :index {:query-params {"q" "juxt"}})
 ```
 
 would return
@@ -545,7 +545,7 @@ would return
  :href "https://example.org:8443/index.html?q=juxt"}
 ```
 
-A partially applied uri-for function is available in bidi's matching context and returns a map of the following elements. This partial applies the vhosts-model which can help with dependency cycles in your code (where your bidi router requires knowledge of resources, which have views that require knowledge of the bidi router's routes).
+A partially applied uri-info function is available in bidi's matching context and returns a map of the following elements. This partial applies the vhosts-model which can help with dependency cycles in your code (where your bidi router requires knowledge of resources, which have views that require knowledge of the bidi router's routes).
 
 When called via bidi's match-context, the `:href` entry in the result may not contain the scheme, host and port, if these are redundant, whereas the `:uri` entry always contains an absolute URI. If you are creating HTML content for a browser, `:href` is safe to use. If, for example, you are creating an API returning a JSON-formatted response body, prefer `:uri`.
 
@@ -559,7 +559,7 @@ The virtual-host declaration can itself be a vector, if you need to match multip
  ["/login" :login]]
 ```
 
-The rules for `uri-for` are that the first virtual-host in the vector is used. When the request is known to bidi (i.e. in the partially applied uri-for function in the match-context) the algorithm chooses the first virtual host that matches the request URI's scheme.
+The rules for `uri-info` are that the first virtual-host in the vector is used. When the request is known to bidi (i.e. in the partially applied uri-info function in the match-context) the algorithm chooses the first virtual host that matches the request URI's scheme.
 
 ## Composability
 
