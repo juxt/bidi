@@ -294,6 +294,38 @@ If you don't specify a required parameter an exception is thrown.
 Apart from a few extra bells and whistles documented in the rest of this
 README, that's basically it. Your five minutes are up!
 
+### Verbose syntax
+
+bidi also supports a verbose syntax which "compiles" to the more terse
+default syntax. For example:
+
+```clojure
+(require '[bidi.verbose :refer [branch param leaf]])
+
+(branch
+ "http://localhost:8080"
+ (branch "/users/" (param :user-id)
+         (branch "/topics"
+                 (leaf "" :topics)
+                 (leaf "/bulk" :topic-bulk)))
+ (branch "/topics/" (param :topic)
+         (leaf "" :private-topic))
+ (leaf "/schemas" :schemas)
+ (branch "/orgs/" (param :org-id)
+         (leaf "/topics" :org-topics)))
+```
+
+Will produce the following routes:
+
+```clojure
+["http://localhost:8080"
+ [[["/users/" :user-id]
+   [["/topics" [["" :topics] ["/bulk" :topic-bulk]]]]]
+  [["/topics/" :topic] [["" :private-topic]]]
+  ["/schemas" :schemas]
+  [["/orgs/" :org-id] [["/topics" :org-topics]]]]]
+```
+
 ## Going further
 
 Here are some extra topics you'll need to know to use bidi in a project.
