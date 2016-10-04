@@ -10,8 +10,10 @@
    [schema.utils :refer [error?]])
   (:import [java.net URL URI]))
 
-(s/defschema VHost {:scheme (s/enum :http :https)
-                    :host s/Str})
+(s/defschema VHost (s/conditional
+                    map? {:scheme (s/enum :http :https)
+                          :host s/Str}
+                    keyword? s/Keyword))
 
 (s/defschema VHostWithRoutes
   (s/constrained [(s/one [VHost] "Virtual host")
@@ -40,8 +42,10 @@
     [VHost] (fn [x]
               (if
                   (or (string? x)
+                      (= x :*)
                       (instance? URI x)
-                      (instance? URL x)) [(coerce-to-vhost x)]
+                      (instance? URL x))
+                  [(coerce-to-vhost x)]
                   (if-not (s/check VHost x) (vector x) x)))}))
 
 (defrecord VHostsModel [vhosts])
@@ -106,8 +110,10 @@
                                                       (first (filter #(= (:scheme vhost) (:scheme %)) vhosts))
                                                       (first vhosts)))
                uri (format "%s://%s%s%s%s"
-                           (name (:scheme to-vhost))
-                           (:host to-vhost)
+                           (cond (= to-vhost :*) (name (:scheme request))
+                                 :otherwise (name (:scheme to-vhost)))
+                           (cond (= to-vhost :*) (get-in request [:headers "host"])
+                                 :otherwise (:host to-vhost))
                            path
                            (if qs (str "?" qs) "")
                            (if fragment (str "#" fragment) ""))]
@@ -138,7 +144,7 @@
     (some
      (fn [[vhosts & routes]]
        (let [routes (vec routes)]
-         (when (some (partial = (:host vhost)) (map :host vhosts))
+         (when (some (fn [vh] (or (= vh :*) (= (:host vh) (:host vhost)))) vhosts)
            (->
             (resolve-handler
              routes
@@ -150,18 +156,22 @@
             (dissoc :route)))))
      (:vhosts vhosts-model))))
 
-(defn vhosts->roots [vhosts]
+(defn vhosts->roots [vhosts request]
   (->> vhosts
        (map first)
        (apply concat)
-       (map (fn [{:keys [scheme host]}] (str (subs (str scheme) 1) "://" host)))))
+       (map (fn [x]
+              (cond
+                (= x :*) (format "%s://%s" (name (:scheme request)) (get-in request [:headers "host"]))
+                :otherwise (let [{:keys [scheme host]} x]
+                             (str (name scheme) "://" host)))))))
 
 (defn make-default-not-found-handler [vhosts-model]
   (fn [req]
     {:status 404
      :body (apply str "Not found\n\n"
                   ;; It is useful to provide the hosts that are served from this server
-                  (->> (vhosts->roots (:vhosts vhosts-model))
+                  (->> (vhosts->roots (:vhosts vhosts-model) req)
                        (interpose "\n")))}))
 
 (defn make-handler
