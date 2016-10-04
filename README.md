@@ -597,6 +597,14 @@ The rules for `uri-info` are that the first virtual-host in the vector is used. 
 
 An virtual host can be specified as a wildcard `:*`, which means it matches any scheme/host. Calls to `uri-info` will assume the scheme/host are that of the incoming request.
 
+```clojure
+[:*
+ ["/index.html" :index]
+ ["/login" :login]]
+```
+
+Wildcards can be mixed with other vhost forms.
+
 ## Composability
 
 As they are simply nested data structures (strings, vectors, maps),
