@@ -31,7 +31,7 @@
             (cond (instance? URI x)
                   {:scheme (keyword (.getScheme x))
                    :host (uri->host x)}
-                  (instance? URL x) (recur x)
+                  (instance? URL x) (recur (.toURI x))
                   (string? x) (recur (URI. x))
                   :otherwise x))}))
 
