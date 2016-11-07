@@ -84,6 +84,19 @@
           (first to))))
     to))
 
+(defn scheme
+  "Get the real scheme (as a keyword) from a request, taking into
+  account reverse-proxy headers"
+  [req]
+  (or (some-> (get-in req [:headers "x-forwarded-proto"]) keyword)
+      (:scheme req)))
+
+(defn host
+  "Get the real host from a request, taking into account reverse-proxy headers"
+  [req]
+  (or (get-in req [:headers "x-forwarded-host"])
+      (get-in req [:headers "host"])))
+
 (defn prioritize-vhosts [vhosts-model vhost]
   (cond->> (:vhosts vhosts-model)
     vhost (sort-by (fn [[vhosts & _]] (if (first (filter (fn [x] (= x vhost)) vhosts)) -1 1)))))
@@ -110,9 +123,9 @@
                                                       (first (filter #(= (:scheme vhost) (:scheme %)) vhosts))
                                                       (first vhosts)))
                uri (format "%s://%s%s%s%s"
-                           (cond (= to-vhost :*) (name (:scheme request))
+                           (cond (= to-vhost :*) (name (scheme request))
                                  :otherwise (name (:scheme to-vhost)))
-                           (cond (= to-vhost :*) (get-in request [:headers "host"])
+                           (cond (= to-vhost :*) (host request)
                                  :otherwise (:host to-vhost))
                            path
                            (if qs (str "?" qs) "")
@@ -139,8 +152,8 @@
 (def ^{:deprecated true} uri-for uri-info)
 
 (defn find-handler [vhosts-model req]
-  (let [vhost {:scheme (:scheme req)
-               :host (get-in req [:headers "host"])}]
+  (let [vhost {:scheme (scheme req)
+               :host (host req)}]
     (some
      (fn [[vhosts & routes]]
        (let [routes (vec routes)]
@@ -162,7 +175,7 @@
        (apply concat)
        (map (fn [x]
               (cond
-                (= x :*) (format "%s://%s" (name (:scheme request)) (get-in request [:headers "host"]))
+                (= x :*) (format "%s://%s" (name (scheme request)) (host request))
                 :otherwise (let [{:keys [scheme host]} x]
                              (str (name scheme) "://" host)))))))
 
