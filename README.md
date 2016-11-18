@@ -545,7 +545,7 @@ It's just like the vector-of-vectors syntax we've seen before in bidi, but this 
 A virtual-hosts super-structure is created with the `bidi.vhosts/vhosts.model` variadic function, each argument is a virtual-host structure.
 
 ```clojure
-(require '[bidi.vhosts :refer [vhosts-model])
+(require '[bidi.vhosts :refer [vhosts-model]])
 
 (def my-vhosts-model
   (vhosts-model ["https://example.org:8443"
