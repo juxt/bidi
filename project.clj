@@ -1,6 +1,6 @@
 ;; Copyright © 2014, JUXT LTD.
 
-(defproject bidi "2.0.14"
+(defproject bidi "2.0.15"
   :description "Bidirectional URI routing"
   :url "https://github.com/juxt/bidi"
 
@@ -10,7 +10,7 @@
 ;;  :pedantic? :abort
 
   :dependencies [[prismatic/schema "1.0.3"]
-                 [ring/ring-core "1.4.0" :exclusions [org.clojure/clojure]]]
+                 [ring/ring-core "1.5.0" :exclusions [org.clojure/clojure]]]
 
   :plugins [[lein-cljsbuild "1.1.1"]
             [lein-doo "0.1.6"]]
