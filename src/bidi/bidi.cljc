@@ -174,10 +174,10 @@ actually a valid UUID (this is handled by the route matching logic)."
 ;; while the right contains the result if the pattern matches.
 
 (defprotocol Pattern
-  ;; Return truthy if the given pattern matches the given path. By
-  ;; truthy, we mean a map containing (at least) the rest of the path to
-  ;; match in a :remainder entry
-  (match-pattern [_ #?@(:clj [^String path] :cljs [^string path])])
+  (match-pattern [_ env]
+    "Return a new state if this pattern matches the given state, or
+    falsy otherwise. If a new state is returned it will usually have the
+    rest of the path to match in the :remainder entry.")
   (unmatch-pattern [_ m]))
 
 (defprotocol Matched
@@ -199,7 +199,7 @@ actually a valid UUID (this is handled by the route matching logic)."
   [[pattern matched] orig-env]
   (let [env (update orig-env :remainder just-path)]
     (when-let [match-result (match-pattern pattern env)]
-      (resolve-handler matched (merge env match-result)))))
+      (resolve-handler matched match-result))))
 
 (defn match-beginning
   "Match the beginning of the :remainder value in m. If matched, update
