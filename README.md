@@ -225,7 +225,7 @@ in a map (or vector of pairs, if order is important).
 
 ```clojure
 user> (def my-routes ["/" {"index.html" :index
-                        "article.html" :article}])
+                           "article.html" :article}])
 #'user/my-routes
 ```
 
@@ -234,8 +234,8 @@ recursively.
 
 ```clojure
 user> (def my-routes ["/" {"index.html" :index
-                        "articles/" {"index.html" :article-index
-                                     "article.html" :article}}])
+                           "articles/" {"index.html" :article-index
+                                        "article.html" :article}}])
 #'user/my-routes
 ```
 
@@ -265,8 +265,8 @@ left hand side of the route pair.
 
 ```clojure
 user> (def my-routes ["/" {"index.html" :index
-                        "articles/" {"index.html" :article-index
-                                     [:id "/article.html"] :article}}])
+                           "articles/" {"index.html" :article-index
+                                        [:id "/article.html"] :article}}])
 #'user/my-routes
 ```
 
