@@ -21,6 +21,13 @@
       (is (= (handler (mock-request :get "/blog/index.html"))
              {:status 200 :body "Index"}))))
 
+  (testing "encoded uri"
+
+    (let [handler
+          (make-handler [["/" :encoded-id] (fn [req] {:status 200 :body "Content"})])]
+      (is (= (handler (mock-request :get "/id%2A1"))
+             {:status 200 :body "Content"}))))
+
   (testing "method constraints"
 
     (let [handler
