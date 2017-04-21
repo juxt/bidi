@@ -39,13 +39,13 @@
                        {:scheme :http
                         :headers {"host" "c.com:8000"}
                         ;; Ring confusingly calls the URI's path
-                        :uri "/index.html"})) ))
+                        :uri "/index.html"}))))
   (is (= :d (:handler (find-handler
                        (vhosts-model [[:* {:scheme :http :host "example.org"}] ["/index.html" :d]])
                        ;; Matches due to wildcard
                        {:scheme :http
                         :headers {"host" "c.com:8000"}
-                        :uri "/index.html"})) )))
+                        :uri "/index.html"})))))
 
 (deftest relativize-test
   (are [source dest href] (= href (relativize source dest))
@@ -60,8 +60,7 @@
     "/a/" "/a/abc.html" "abc.html"
     "/a" "/a/abc.html" "a/abc.html"
 
-    "/a/abc.html" "/a/" ""
-    ))
+    "/a/abc.html" "/a/" ""))
 
 (deftest uri-info-test
   (let [raw-model example-vhosts-model
@@ -73,9 +72,9 @@
 
     (testing "route-params"
       (is (= "https://b.org/b/1/b1.html" (:uri (uri-info model :b1 {:route-params {:n 1}
-                                                                   :vhost {:scheme :https :host "b.org"}}))))
+                                                                    :vhost {:scheme :https :host "b.org"}}))))
       (is (= "https://b.org/b/abc/b2.html" (:uri (uri-info model :b2 {:route-params {:n "abc"}
-                                                                     :vhost {:scheme :https :host "b.org"}})))))
+                                                                      :vhost {:scheme :https :host "b.org"}})))))
 
     (testing "relative"
       (is (= "http://a.org/index" (:uri (uri-info model :a {:vhost {:scheme :http :host "a.org"}}))))
@@ -89,8 +88,8 @@
     (testing "query params"
       (is (= "https://b.org/b/1/b1.html?foo=bar"
              (:uri (uri-info model :b1 {:route-params {:n 1}
-                                       :query-params {"foo" "bar"}
-                                       :vhost {:scheme :https :host "b.org"}}))))
+                                        :query-params {"foo" "bar"}
+                                        :vhost {:scheme :https :host "b.org"}}))))
       (is (= "https://b.org/b/1/b1.html?foo=bar&foo=fry%26laurie"
              (:uri (uri-info model :b1 {:route-params {:n 1}
                                         :query-params {"foo" ["bar" "fry&laurie"]}
@@ -137,19 +136,15 @@
   (testing "coercions"
     (let [m
           (coerce-to-vhosts
-           [
-            ["https://abc.com"
+           [["https://abc.com"
              ["/" :a/index]
-             ["/foo" :a/foo]
-             ]
+             ["/foo" :a/foo]]
             [{:scheme :http :host "abc"}
              ["/" :b/index]
-             ["/bar" :b/bar]
-             ]
+             ["/bar" :b/bar]]
             [[{:scheme :http :host "localhost"} "http://def.org"]
              ["/" :c/index]
-             ["/zip" :c/zip]
-             ]
+             ["/zip" :c/zip]]
             ;; Coerce wildcard
             [:* ["/" :d/index]]])]
       (is (not (error? m)))
@@ -165,8 +160,7 @@
     (is (nil? (:error (coerce-to-vhosts
                        [[["http://localhost:8000"
                           "http://localhost:8001"]
-                         ["/" :index]
-                         ]])))))
+                         ["/" :index]]])))))
 
   (testing "cannot have empty vhosts"
     (is (:error (coerce-to-vhosts [[[] ["/" :index]]])))))

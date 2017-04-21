@@ -2,9 +2,9 @@
 
 (ns bidi.bidi-test
   (:require
-    #?(:clj  [clojure.test :refer :all]
-       :cljs [cljs.test :refer-macros [deftest is testing]])
-    [bidi.bidi :as bidi :refer [match-route path-for ->Alternates route-seq alts]]))
+   #?(:clj  [clojure.test :refer :all]
+      :cljs [cljs.test :refer-macros [deftest is testing]])
+   [bidi.bidi :as bidi :refer [match-route path-for ->Alternates route-seq alts]]))
 
 (deftest matching-routes-test
   (testing "misc-routes"
@@ -70,7 +70,7 @@
        (is (= (match-route [#"/bl[a-z]{2}+" [[["/articles/" [#"[0-9]+" :id] [#"[a-z]+" :a] "/index.html"] 'foo]
                                              ["/text" 'bar]]]
                            "/blog/articles/123abc/index.html")
-             {:handler 'foo :route-params {:id "123" :a "abc"}})))
+              {:handler 'foo :route-params {:id "123" :a "abc"}})))
 
     (is (= (match-route [["/blog/articles/123/" :path] 'foo]
                         "/blog/articles/123/index.html")
@@ -243,10 +243,8 @@
 (deftest route-seq-test
   (testing ""
     (let [myroutes
-          ["/" [
-                ["index" :index]
-                ["docs/" [
-                          [[:doc-id "/"]
+          ["/" [["index" :index]
+                ["docs/" [[[:doc-id "/"]
                            [["view" :docview]
                             [["chapter/" :chapter "/"] {"view" :chapter-view}]]]]]]]
 
@@ -270,7 +268,7 @@
       (is (= [[[[pattern :id]]]]
              (map :path (route-seq [[[pattern :id]] :view])))))
     (is (= [[[[keyword :id]]]]
-            (map :path (route-seq [[[keyword :id]] :view]))))
+           (map :path (route-seq [[[keyword :id]] :view]))))
     (is (= [[["test/" [keyword :id]]]]
            (map :path (route-seq [["test/" [keyword :id]] :view]))))
     (is (= [[[[keyword :id] "/end"]]]

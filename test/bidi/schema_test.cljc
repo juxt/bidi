@@ -2,11 +2,11 @@
 
 (ns bidi.schema-test
   (:require
-    #?(:clj  [clojure.test :refer :all]
-       :cljs [cljs.test :refer-macros [deftest is testing]])
-    [schema.core :as s]
-    [bidi.bidi :as bidi]
-    [bidi.schema :as bs]))
+   #?(:clj  [clojure.test :refer :all]
+      :cljs [cljs.test :refer-macros [deftest is testing]])
+   [schema.core :as s]
+   [bidi.bidi :as bidi]
+   [bidi.schema :as bs]))
 
 ;; TODO
 
@@ -54,7 +54,6 @@
   (testing "patterns"
     (is (nil? (s/check bs/RoutePair
                        ["/index/" [[(bidi/alts "foo" "bar") :foo-or-bar]]])))))
-
 
 ["/index/" [[(bidi/alts "foo" "bar") :foo-or-bar]]]
 
