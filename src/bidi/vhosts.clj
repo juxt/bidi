@@ -40,13 +40,12 @@
    [VHostWithRoutes]
    {VHost coerce-to-vhost
     [VHost] (fn [x]
-              (if
-                  (or (string? x)
+              (if (or (string? x)
                       (= x :*)
                       (instance? URI x)
                       (instance? URL x))
-                  [(coerce-to-vhost x)]
-                  (if-not (s/check VHost x) (vector x) x)))}))
+                [(coerce-to-vhost x)]
+                (if-not (s/check VHost x) (vector x) x)))}))
 
 (defrecord VHostsModel [vhosts])
 
@@ -168,7 +167,7 @@
                     :remainder (:uri req)
                     :route ["" routes]
                     :uri-info (fn [handler & [options]]
-                               (uri-info (prioritize-vhosts vhosts-model vhost) handler (merge {:vhost vhost :request req} options)))))
+                                (uri-info (prioritize-vhosts vhosts-model vhost) handler (merge {:vhost vhost :request req} options)))))
             (dissoc :route)))))
      (:vhosts vhosts-model))))
 
@@ -216,9 +215,9 @@
         (not (string? target))
         (assoc :location
                (:uri ((:uri-info m) target
-                      (merge
-                       {:route-params (:route-params m)}
-                       (when query-params {:query-params query-params})))))
+                                    (merge
+                                     {:route-params (:route-params m)}
+                                     (when query-params {:query-params query-params})))))
         true (dissoc :remainder))))
   (unresolve-handler [this m]
     (when (= this (:handler m)) ""))

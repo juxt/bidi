@@ -152,10 +152,10 @@ actually a valid UUID (this is handled by the route matching logic)."
      :cljs function)
   (segment-regex-group [this]
     (condp = this
-     keyword "[A-Za-z]+[A-Za-z0-9\\*\\+\\!\\-\\_\\?\\.]*(?:%2F[A-Za-z]+[A-Za-z0-9\\*\\+\\!\\-\\_\\?\\.]*)?"
-     long "-?\\d{1,19}"
-     uuid "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}"
-     :otherwise (throw (ex-info (str "Unidentified function qualifier to pattern segment: " this) {}))))
+      keyword "[A-Za-z]+[A-Za-z0-9\\*\\+\\!\\-\\_\\?\\.]*(?:%2F[A-Za-z]+[A-Za-z0-9\\*\\+\\!\\-\\_\\?\\.]*)?"
+      long "-?\\d{1,19}"
+      uuid "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}"
+      :otherwise (throw (ex-info (str "Unidentified function qualifier to pattern segment: " this) {}))))
   (transform-param [this]
     (condp = this
       ;; keyword is close, but must be applied to a decoded string, to work with namespaced keywords
@@ -248,16 +248,16 @@ actually a valid UUID (this is handled by the route matching logic)."
      :cljs cljs.core.PersistentVector)
   (match-pattern [this env]
     (when-let [groups (as-> this %
-                        ;; Make regexes of each segment in the vector
-                        (map segment-regex-group %)
-                        ;; Form a regexes group from each
-                        (map (fn [x] (str "(" x ")")) %)
-                        (reduce str %)
-                        ;; Add the 'remainder' group
-                        (str % "(.*)")
-                        (re-pattern %)
-                        (re-matches % (:remainder env))
-                        (next %))]
+                            ;; Make regexes of each segment in the vector
+                            (map segment-regex-group %)
+                            ;; Form a regexes group from each
+                            (map (fn [x] (str "(" x ")")) %)
+                            (reduce str %)
+                            ;; Add the 'remainder' group
+                            (str % "(.*)")
+                            (re-pattern %)
+                            (re-matches % (:remainder env))
+                            (next %))]
       (let [params (->> groups
                         butlast         ; except the 'remainder' group
                         ;; Transform parameter values if necessary
@@ -453,7 +453,6 @@ actually a valid UUID (this is handled by the route matching logic)."
   #?(:clj Object
      :cljs default)
   (gather [this context] [(map->Route (assoc context :handler this))]))
-
 
 ;; --------------------------------------------------------------------------------
 ;; Protocols
