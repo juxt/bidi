@@ -19,7 +19,7 @@
   (s/constrained [(s/one [VHost] "Virtual host")
                   bsc/RoutePair] (comp not-empty first) "Must have at least one vhost"))
 
-(defn uri->host [uri]
+(defn uri->host [^URI uri]
   (cond-> (.getHost uri)
     (pos? (.getPort uri))
     (str ":" (.getPort uri))))
@@ -29,9 +29,9 @@
    VHost
    {VHost (fn [x]
             (cond (instance? URI x)
-                  {:scheme (keyword (.getScheme x))
+                  {:scheme (keyword (.getScheme ^URI x))
                    :host (uri->host x)}
-                  (instance? URL x) (recur (.toURI x))
+                  (instance? URL x) (recur (.toURI ^URL x))
                   (string? x) (recur (URI. x))
                   :otherwise x))}))
 
@@ -68,7 +68,7 @@
               (enc k v)))
           query-params))))
 
-(defn- segments [s]
+(defn- segments [^String s]
   (let [l (re-seq #"[^/]*/?" s)]
     (if (.endsWith s "/") l (butlast l))))
 

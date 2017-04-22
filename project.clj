@@ -19,6 +19,7 @@
 
   :profiles {:dev {:exclusions [[org.clojure/tools.reader]]
                    :resource-paths ["test-resources"]
+                   :global-vars {*warn-on-reflection* true}
                    :dependencies [[org.clojure/clojure "1.8.0"]
                                   [org.clojure/clojurescript "1.9.293"]
                                   [org.clojure/tools.reader "1.0.0-beta4"]
