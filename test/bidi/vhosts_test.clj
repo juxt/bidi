@@ -94,7 +94,13 @@
       (is (= "https://b.org/b/1/b1.html?foo=bar&foo=fry%26laurie"
              (:uri (uri-info model :b1 {:route-params {:n 1}
                                         :query-params {"foo" ["bar" "fry&laurie"]}
-                                        :vhost {:scheme :https :host "b.org"}})))))
+                                        :vhost {:scheme :https :host "b.org"}}))))
+      ;; :href should include query strings and fragments, like :uri
+      (is (= "/b/1/b1.html?foo=bar&foo=zip"
+           (:href (uri-info model :b1 {:route-params {:n 1}
+                                       :query-params {"foo" ["bar" "zip"]}
+                                       :vhost {:scheme :https :host "b.org"}
+                                       :request {:scheme :https :headers {"host" "example.org"}}})))))
 
     (testing "wildcards"
       (is (= "https://example.org/index.html" (:uri (uri-info model :wildcard-index {:request {:scheme :https :headers {"host" "example.org"}}})))))))

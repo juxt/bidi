@@ -135,7 +135,10 @@
                    :host (:host to-vhost)
                    :scheme (:scheme to-vhost)
                    :href (if (and (= vhost to-vhost) request)
-                           (relativize (:uri request) path)
+                           (format "%s%s%s"
+                                   (relativize (:uri request) path)
+                                   (if qs (str "?" qs) "")
+                                   (if fragment (str "#" fragment) ""))
                            uri)}
                   (when qs {:query-string qs})
                   (when fragment {:fragment fragment}))))))
