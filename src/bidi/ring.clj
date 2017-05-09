@@ -20,8 +20,8 @@
     (f req))
 
   clojure.lang.Var
-  (request [v req _]
-    ((deref v) req)))
+  (request [v req match-context]
+    (request (deref v) req match-context)))
 
 (defn make-handler
   "Create a Ring handler from the route definition data
