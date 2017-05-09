@@ -27,8 +27,7 @@
           (make-handler ["/"
                          [["blog"
                            [[:get [["/index.html" (fn [req] {:status 200 :body "Index"})]]]
-                            [:post [["/zip" (fn [req] {:status 201 :body "Created"})]]]]
-                           ]]])]
+                            [:post [["/zip" (fn [req] {:status 201 :body "Created"})]]]]]]])]
 
       (is handler)
       (is (= (handler (mock-request :get "/blog/index.html")) {:status 200 :body "Index"}))
@@ -45,8 +44,7 @@
                              [["/index"
                                (fn [req] {:status 200 :body "Index"})]
                               [["/article/" :artid "/article.html"]
-                               (fn [req] {:status 200 :body (get-in req [:route-params :artid])})]
-                              ]]
+                               (fn [req] {:status 200 :body (get-in req [:route-params :artid])})]]]
                             [{:request-method :post :server-name "juxt.pro"}
                              [["/zip"
                                (fn [req] {:status 201 :body "Created"})]]]]]]])]
@@ -88,7 +86,6 @@
                           (assoc :params {"foo" "bar"})))
              {:status 201 :body {:userid "8888"}})))))
 
-
 (deftest redirect-test
   (let [content-handler (fn [req] {:status 200 :body "Some content"})
         routes ["/articles/"
@@ -96,7 +93,7 @@
                  [[:artid "/old"] (->Redirect 307 content-handler)]]]
         handler (make-handler routes)]
     (is (= (handler (mock-request :get "/articles/123/old"))
-           {:status 307, :headers {"Location" "/articles/123/new"}, :body "Redirect to /articles/123/new"} ))))
+           {:status 307, :headers {"Location" "/articles/123/new"}, :body "Redirect to /articles/123/new"}))))
 
 (deftest wrap-middleware-test
   (let [wrapper (fn [h] (fn [req] (assoc (h req) :wrapper :evidence)))

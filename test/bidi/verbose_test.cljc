@@ -2,9 +2,9 @@
 
 (ns bidi.verbose-test
   (:require
-    #?(:clj  [clojure.test :refer :all]
-       :cljs [cljs.test :refer-macros [deftest is testing]])
-    [bidi.verbose :refer [branch param leaf]]))
+   #?(:clj  [clojure.test :refer :all]
+      :cljs [cljs.test :refer-macros [deftest is testing]])
+   [bidi.verbose :refer [branch param leaf]]))
 
 (deftest verbose-syntax-test
   (is (= ["http://localhost:8080"

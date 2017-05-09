@@ -3,8 +3,8 @@
 (ns bidi.schema
   (:require
    [bidi.bidi :as bidi]
-    #?(:clj [schema.core :as s]
-       :cljs [schema.core :as s :include-macros true])))
+   #?(:clj [schema.core :as s]
+      :cljs [schema.core :as s :include-macros true])))
 
 (def Path s/Str)
 
@@ -37,7 +37,6 @@
    s/Keyword
    [(s/recursive #'RoutePair)]
    {Pattern (s/recursive #'Matched)}
-   (s/=> s/Any s/Any)
-   ))
+   (s/=> s/Any s/Any)))
 
 (def ^:export RoutePair (s/pair Pattern "Pattern" Matched "Matched"))
