@@ -26,8 +26,8 @@
 
   #?(:clj clojure.lang.Var
      :cljs cljs.core.Var)
-  (request [v req _]
-    ((deref v) req)))
+  (request [v req mc]
+    (request (deref v) req mc)))
 
 (defn make-handler
   "Create a Ring handler from the route definition data
