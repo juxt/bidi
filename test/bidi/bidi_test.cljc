@@ -6,8 +6,8 @@
        :cljs [cljs.test :refer-macros [deftest is testing]])
     [bidi.bidi :as bidi :refer [match-route path-for ->Alternates route-seq alts]]))
 
-(def foo-var-handler #(identity))
-(def bar-var-handler #(identity))
+(def foo-var-handler identity)
+(def bar-var-handler identity)
 
 (deftest matching-routes-test
   (testing "misc-routes"
