@@ -362,7 +362,7 @@ actually a valid UUID (this is handled by the route matching logic)."
   #?(:clj clojure.lang.Var
      :cljs cljs.core.Var)
   (resolve-handler [this m] (succeed this m))
-  (unresolve-handler [this m] (when (= this (:handler m)) ""))
+  (unresolve-handler [this m] (unresolve-handler @this m))
 
   #?(:clj clojure.lang.Keyword
      :cljs cljs.core.Keyword)

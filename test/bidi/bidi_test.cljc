@@ -4,7 +4,7 @@
   (:require
     #?(:clj  [clojure.test :refer :all]
        :cljs [cljs.test :refer-macros [deftest is testing]])
-    [bidi.bidi :as bidi :refer [match-route path-for ->Alternates route-seq alts]]))
+    [bidi.bidi :as bidi :refer [match-route path-for ->Alternates route-seq alts tag]]))
 
 (def foo-var-handler identity)
 (def bar-var-handler identity)
@@ -141,7 +141,11 @@
 
     (testing "unmatching with nil handlers" ; issue #28
       (let [routes ["/" {"foo" nil "bar" :bar}]]
-        (is (= (path-for routes :bar) "/bar"))))))
+        (is (= (path-for routes :bar) "/bar"))))
+
+    (testing "unmatching tags"
+      (let [routes ["/" {"foo" (tag :handler :tag) "bar" :bar}]]
+        (is (= (path-for routes :tag) "/foo"))))))
 
 (deftest unmatching-routes-with-anonymous-fns-test
   (testing "unmatching when routes contains a ref to anonymous function(s) should not throw exception"
