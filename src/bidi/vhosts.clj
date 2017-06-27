@@ -59,7 +59,7 @@
     (map->VHostsModel {:vhosts vhosts})))
 
 (defn- query-string [query-params]
-  (let [enc (fn [a b] (str (if (keyword? a) (name a) a) "=" (java.net.URLEncoder/encode b)))
+  (let [enc (fn [a b] (str (if (keyword? a) (name a) a) "=" (java.net.URLEncoder/encode (str b))))
         join (fn [v] (apply str (interpose "&" v)))]
     (join
      (map (fn [[k v]]
