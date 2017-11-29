@@ -368,6 +368,33 @@ To chain this with middleware is simple.
       wrap-flash))
 ```
 
+To prevent mixing functions into your route definitions, you may pass an
+optional `handler-fn` to `make-handler`. This handler function will receive the
+match result as its only argument.
+
+```clojure
+(ns my.handler
+  (:require [bidi.ring :refer (make-handler)]
+            [ring.util.response :as res]))
+
+(defn index-handler
+  [request]
+  (res/response "Homepage"))
+
+(defn article-handler
+  [{:keys [route-params]}]
+  (res/response (str "You are viewing article: " (:id route-params))))
+
+(defn routes ["/" {"index.html" :index-handler
+                   ["articles/" :id "/article.html"] :article-handler}])
+
+(def handler-map {:index-handler index-handler :article-handler article-handler})
+
+(defn locate-handler [match-result] (get handler-map match-result))
+
+(def handler (make-handler routes locate-handler))
+```
+
 ### Regular Expressions
 
 We've already seen how keywords can be used to extract segments from a path. By default, keywords only capture numbers and simple identifiers. This is on purpose, in a defence against injection attacks. Often you'll want to specify exactly what you're trying to capture using a regular expression.
