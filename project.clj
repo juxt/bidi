@@ -9,7 +9,7 @@
 
 ;;  :pedantic? :abort
 
-  :dependencies [[prismatic/schema "1.1.3"]
+  :dependencies [[prismatic/schema "1.1.7"]
                  [ring/ring-core "1.5.0" :exclusions [org.clojure/clojure]]]
 
   :plugins [[lein-cljsbuild "1.1.1"]
