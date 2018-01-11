@@ -326,3 +326,6 @@
     (is (= {:handler :b} (match-route myroutes "/b")))
     (is (nil? (match-route myroutes "/a")))
     (is (nil? (match-route myroutes "/:b")))))
+
+(deftest invalid-uri-test
+  (is (= (match-route ["/blog/foo" 'foo] "<><>") nil)))

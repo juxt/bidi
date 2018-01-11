@@ -186,9 +186,8 @@ actually a valid UUID (this is handled by the route matching logic)."
 
 (defn just-path
   [path]
-  (let [uri-string (str "file:///" path)]
-    ;; Raw path means encoded chars are kept.
-    (subs #?(:clj (.getRawPath (java.net.URI. uri-string))
+  (let [uri-string (str "http://bidi.bidi/" path)]
+    (subs #?(:clj (.getPath (java.net.URL. uri-string))
              :cljs (.getPath (goog.Uri. uri-string)))
           1)))
 
