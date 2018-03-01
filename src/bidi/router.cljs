@@ -3,7 +3,8 @@
             [goog.History :as h]
             [goog.events :as e]
             [clojure.string :as s])
-  (:import [goog History]))
+  (:import goog.History
+           goog.history.Html5History))
 
 (defprotocol Router
   (set-location! [_ location])
@@ -22,6 +23,7 @@
     routes :- a Bidi route structure
     on-navigate :- 0-arg function, accepting a Location
     default-location :- Location to default to if the current token doesn't match a route
+    mode :- Bootstrap the router in either :legacy or :html5 mode
 
   Returns :- Router
 
@@ -34,16 +36,19 @@
                                           \"/page2\" ::page2}]
                                    {:on-navigate (fn [location]
                                                    (reset! !location location))
-                                    :default-location {:handler ::home-page}})]
+                                    :default-location {:handler ::home-page}
+                                    :mode html5})]
 
       ...
 
       (br/set-location! router {:handler ::page2}))"
 
-  [routes {:keys [on-navigate default-location]
-           :or {on-navigate (constantly nil)}}]
+  [routes {:keys [on-navigate default-location mode]
+           :or {on-navigate (constantly nil) mode :legacy}}]
 
-  (let [history (History.)]
+  (let [history (case mode
+                  :legacy (History.)
+                  :html5 (Html5History.))]
     (.setEnabled history true)
 
     (letfn [(token->location [token]
