@@ -101,7 +101,12 @@
                           {:status 404}))
                       (wrap-content-type options))))))
      (unresolve-handler [this m]
-       (when (= this (:handler m)) ""))))
+       (when (= this (:handler m)) ""))
+     Ring
+     (request [f req m]
+       (if-let [res (resource-response (str (:prefix options) (:uri req)))]
+         res
+         {:status 404}))))
 
 #?(:clj
    (defn resources [options]
@@ -127,7 +132,12 @@
                               (fn [req] (resource-response (str (:prefix options) path)))
                               (wrap-content-type options)))))))
      (unresolve-handler [this m]
-       (when (= this (:handler m)) ""))))
+       (when (= this (:handler m)) ""))
+     Ring
+     (request [f req m]
+       (let [path (str (:prefix options) (:uri req))]
+         (when (io/resource path)
+           (resource-response path))))))
 
 #?(:clj
    (defn resources-maybe [options]
