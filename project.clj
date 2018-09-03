@@ -9,7 +9,7 @@
 
 ;;  :pedantic? :abort
 
-  :dependencies [[prismatic/schema "1.1.3"]]
+  :dependencies [[prismatic/schema "1.1.7"]]
 
   :plugins [[lein-cljsbuild "1.1.1"]
             [lein-doo "0.1.6"]]
