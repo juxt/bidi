@@ -26,7 +26,7 @@ in the case of ClojureScript, it does not validate that the input string is
 actually a valid UUID (this is handled by the route matching logic)."
   [s]
   #?(:clj (java.util.UUID/fromString s)
-     :cljs (cljs.core.UUID. s)))
+     :cljs (cljs.core/uuid s)))
 
 ;; When forming paths, parameters are encoded into the URI according to
 ;; the parameter value type.
