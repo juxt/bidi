@@ -1,5 +1,0 @@
-sudo: required # to prevent `lein test` from exiting with non-zero code
-language: clojure
-cache:
-  directories:
-    - $HOME/.m2
