@@ -29,7 +29,7 @@
                                   [org.mozilla/rhino "1.7.7.1"]]}}
 
   :aliases {"deploy" ["do" "clean," "deploy" "clojars"]
-            "test" ["do" "clean," "test," "doo" "rhino" "test" "once"]}
+            "test-cljs" ["doo" "rhino" "test" "once"]}
 
   :jar-exclusions [#"\.swp|\.swo|\.DS_Store"]
 
