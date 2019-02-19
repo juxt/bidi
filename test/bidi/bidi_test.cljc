@@ -294,20 +294,20 @@
   (testing "set patterns"
     (let [result (route-seq [#{"" "/"} [[:a "A"]
                                         [:b "B"]]])]
-      (is (= [{:handler "A", :path ["" :a]}
-              {:handler "B", :path ["" :b]}
-              {:handler "A", :path ["/" :a]}
-              {:handler "B", :path ["/" :b]}]
+      (is (= [#bidi.bidi.Route {:handler "A", :path ["" :a]}
+              #bidi.bidi.Route {:handler "B", :path ["" :b]}
+              #bidi.bidi.Route {:handler "A", :path ["/" :a]}
+              #bidi.bidi.Route {:handler "B", :path ["/" :b]}]
              result))
       (is (= 4 (count result)))))
 
   (testing "alt patterns"
     (let [result (route-seq [(bidi/alts "" "/") [[:a "A"]
                                                  [:b "B"]]])]
-      (is (= [{:handler "A", :path ["" :a]}
-              {:handler "B", :path ["" :b]}
-              {:handler "A", :path ["/" :a]}
-              {:handler "B", :path ["/" :b]}]
+      (is (= [#bidi.bidi.Route {:handler "A", :path ["" :a]}
+              #bidi.bidi.Route {:handler "B", :path ["" :b]}
+              #bidi.bidi.Route {:handler "A", :path ["/" :a]}
+              #bidi.bidi.Route {:handler "B", :path ["/" :b]}]
              result))
 
       (is (= 4 (count result)))))
