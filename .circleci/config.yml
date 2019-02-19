@@ -1,7 +1,7 @@
 version: 2
 
 jobs:
-  test-clj:
+  test:
     docker:
       - image: circleci/clojure:lein-2.8.1
 
@@ -11,8 +11,8 @@ jobs:
           keys:
             - clj-deps-{{ checksum "project.clj" }}
 
-      - run: lein deps
       - run: lein test
+      - run: lein test-cljs
       - save_cache:
           paths:
             - ~/.m2/repository
@@ -20,17 +20,8 @@ jobs:
 
           key: clj-deps-{{ checksum "project.clj" }}
 
-  test-cljs:
-    docker:
-      - image: circleci/clojure:lein-2.8.1
-
-    steps:
-      - checkout
-      - run: lein test-cljs
-
 workflows:
   version: 2
   test:
     jobs:
-      - test-clj
-      - test-cljs
+      - test
