@@ -294,13 +294,22 @@
   (testing "set patterns"
     (let [result (route-seq [#{"" "/"} [[:a "A"]
                                         [:b "B"]]])]
-      (is (= [["" :a] ["" :b] ["/" :a] ["/" :b]]))
+      (is (= [{:handler "A", :path ["" :a]}
+              {:handler "B", :path ["" :b]}
+              {:handler "A", :path ["/" :a]}
+              {:handler "B", :path ["/" :b]}]
+             result))
       (is (= 4 (count result)))))
 
   (testing "alt patterns"
     (let [result (route-seq [(bidi/alts "" "/") [[:a "A"]
                                                  [:b "B"]]])]
-      (is (= [["" :a] ["" :b] ["/" :a] ["/" :b]]))
+      (is (= [{:handler "A", :path ["" :a]}
+              {:handler "B", :path ["" :b]}
+              {:handler "A", :path ["/" :a]}
+              {:handler "B", :path ["/" :b]}]
+             result))
+
       (is (= 4 (count result)))))
 
   (testing "only leaves"
