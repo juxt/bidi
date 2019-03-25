@@ -103,7 +103,10 @@
                                        :request {:scheme :https :headers {"host" "example.org"}}})))))
 
     (testing "wildcards"
-      (is (= "https://example.org/index.html" (:uri (uri-info model :wildcard-index {:request {:scheme :https :headers {"host" "example.org"}}})))))))
+      (is (= "https://example.org/index.html" (:uri (uri-info model :wildcard-index {:request {:scheme :https :headers {"host" "example.org"}}})))))
+
+    (testing "path-info"
+      (is (= "https://a.org/index.html" (:uri (uri-info model :c {:path-info "/index.html"})))))))
 
 (deftest duplicate-routes-test
   (testing "same vhost takes priority"

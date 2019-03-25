@@ -1,6 +1,5 @@
-sudo: false
+sudo: required # to prevent `lein test` from exiting with non-zero code
 language: clojure
-lein: lein
 cache:
   directories:
     - $HOME/.m2

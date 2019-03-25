@@ -103,11 +103,13 @@
 
 (defn uri-info
   "Return URI info as a map."
-  [prioritized-vhosts handler & [{:keys [request vhost route-params query-params prefer fragment] :or {prefer :local} :as options}]]
+  [prioritized-vhosts handler & [{:keys [request vhost route-params query-params prefer fragment path-info] :or {prefer :local} :as options}]]
   (some
    (fn [[vhosts & routes]]
 
-     (when-let [path (apply bidi/path-for ["" (vec routes)] handler (mapcat identity route-params))]
+     (when-let [path (cond->
+                         (apply bidi/path-for ["" (vec routes)] handler (mapcat identity route-params))
+                       path-info (str path-info))]
 
        (let [qs (when query-params
                   (query-string query-params))]
