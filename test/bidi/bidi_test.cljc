@@ -211,9 +211,14 @@
     (is (= (path-for routes :z :id #uuid "649a50e8-0342-47af-894e-27eefea83ca9")
            "/foo/649a50e8-0342-47af-894e-27eefea83ca9/bar"))
 
+    (is (= (:route-params (match-route routes "/foo/00000000-0000-0000-0000-000000000000"))
+           {:id #uuid "00000000-0000-0000-0000-000000000000"}))
+    (is (= (:route-params (match-route routes "/foo/649a50e8-0342-47af-c94e-27eefea83ca9"))
+           {:id #uuid "649a50e8-0342-47af-c94e-27eefea83ca9"}))
+    (is (= (:route-params (match-route routes "/foo/649a50e8-0342-67af-894e-27eefea83ca9"))
+           {:id #uuid "649a50e8-0342-67af-894e-27eefea83ca9"}))
+
     (testing "invalid uuids"
-      (is (nil? (match-route routes "/foo/649a50e8-0342-67af-894e-27eefea83ca9")))
-      (is (nil? (match-route routes "/foo/649a50e8-0342-47af-c94e-27eefea83ca9")))
       (is (nil? (match-route routes "/foo/649a50e8034247afc94e27eefea83ca9")))
       (is (nil? (match-route routes "/foo/1012301231111111111111111111"))))))
 
