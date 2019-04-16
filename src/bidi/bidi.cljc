@@ -388,14 +388,22 @@ actually a valid UUID (this is handled by the route matching logic)."
   [route path & {:as options}]
   (match-route* route path options))
 
-(defn path-for
+(defn path-for*
   "Given a route definition data structure, a handler and an option map, return a
   path that would route to the handler. The map must contain the values to any
   parameters required to create the path, and extra values are silently ignored."
-  [route handler & {:as params}]
+  [route handler params]
   (when (nil? handler)
     (throw (ex-info "Cannot form URI from a nil handler" {})))
   (unmatch-pair route {:handler handler :params params}))
+
+(defn path-for
+  "Given a route definition data structure, a handler and an unrolled option map,
+  return a path that would route to the handler. The map must contain the values
+  to any parameters required to create the path, and extra values are silently
+  ignored."
+  [route handler & {:as params}]
+  (path-for* route handler params))
 
 ;; --------------------------------------------------------------------------------
 ;; Route seqs
