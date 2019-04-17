@@ -1,0 +1,33 @@
+version: 2
+
+jobs:
+  test:
+    docker:
+      - image: circleci/clojure:lein-2.8.1
+
+    # this is needed because inside the docker container $TERM
+    # is not defined
+    environment:
+      - TERM: dumb
+
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - clj-deps-{{ checksum "project.clj" }}
+
+      - run: lein deps
+      - run: lein test
+      - save_cache:
+          paths:
+            - ~/.m2/repository
+            - ~/.lein
+
+          key: clj-deps-{{ checksum "project.clj" }}
+
+
+workflows:
+  version: 2
+  test:
+    jobs:
+      - test
