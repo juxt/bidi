@@ -147,10 +147,20 @@
 
    prioritized-vhosts))
 
-(def path-for (comp :path uri-info))
 (def host-for (comp :host uri-info))
 (def scheme-for (comp :scheme uri-info))
 (def href-for (comp :href uri-info))
+
+(defn path-for
+  [prioritized-vhosts handler & [{:keys [route-params path-info]
+                                  :as options}]]
+  (some
+    (fn [[vhosts & routes]]
+      (when-let [path (cond->
+                        (apply bidi/path-for ["" (vec routes)] handler (mapcat identity route-params))
+                        path-info (str path-info))]
+        path))
+    prioritized-vhosts))
 
 ;; At some point in the future, uri-for will be removed, opening up
 ;; the possibility that it can be re-implemented.
