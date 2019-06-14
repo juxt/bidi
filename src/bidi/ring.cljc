@@ -133,7 +133,7 @@
    (defn resources-maybe [options]
      (->ResourcesMaybe options)))
 
-;; Use this to map to files, using file-response. Options sbould include
+;; Use this to map to files, using file-response. Options should include
 ;; :dir, the root directory containing the files.
 #?(:clj
    (defrecord Files [options]

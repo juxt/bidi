@@ -22,7 +22,7 @@
                         "/blog/bar/abc")
            {:handler :bar}))
 
-    ;; If no determinstic order is required, a map can also be used.
+    ;; If no deterministic order is required, a map can also be used.
     (is (= (match-route ["/blog" {"/foo" 'foo
                                   "/bar" [["/abc" :bar]]}]
                         "/blog/bar/abc")
