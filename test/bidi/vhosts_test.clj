@@ -6,6 +6,7 @@
    [schema.core :as s]
    [schema.utils :refer [error?]]
    [bidi.vhosts :refer :all]
+   [bidi.bidi :as bidi]
    [ring.mock.request :refer (request) :rename {request mock-request}]))
 
 (def example-vhosts-model
@@ -185,3 +186,18 @@
           "http://d.com:8002"
           "https://example.org"]
          (vhosts->roots (:vhosts example-vhosts-model) {:scheme :https :headers {"host" "example.org"}}))))
+
+(defrecord ARecord []
+  bidi/Pattern)
+
+(deftest record-survives-test
+  (let [routes [(->ARecord) :match]
+        vhost (vhosts-model [["https://example.com"] routes])]
+    (is (=
+         (-> vhost
+             :vhosts
+             ;; The first (and only) pairing
+             first
+             ;; The route structure
+             second)
+         routes))))

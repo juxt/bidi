@@ -4,7 +4,6 @@
   (:require
    [bidi.bidi :as bidi :refer :all :exclude [path-for]]
    [bidi.ring :as br]
-   [bidi.schema :as bsc]
    [schema.core :as s]
    [schema.coerce :as sc]
    [schema.utils :refer [error?]])
@@ -16,8 +15,8 @@
                     keyword? s/Keyword))
 
 (s/defschema VHostWithRoutes
-  (s/constrained [(s/one [VHost] "Virtual host")
-                  bsc/RoutePair] (comp not-empty first) "Must have at least one vhost"))
+  (s/constrained [(s/one [VHost] "Virtual host") s/Any]
+                 (comp not-empty first) "Must have at least one vhost"))
 
 (defn uri->host [^URI uri]
   (cond-> (.getHost uri)
