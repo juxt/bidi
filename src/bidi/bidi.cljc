@@ -508,7 +508,7 @@ actually a valid UUID (this is handled by the route matching logic)."
   (resolve-handler [this m]
     (resolve-handler matched (assoc m :tag tag)))
   (unresolve-handler [this m]
-    (if (and (keyword? (:handler m)) (= tag (:handler m)))
+    (if (and (ident? (:handler m)) (= tag (:handler m)))
       ""
       (unresolve-handler matched m)))
   RouteSeq
